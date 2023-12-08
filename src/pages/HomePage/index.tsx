@@ -373,11 +373,23 @@ const index: FC = () => {
         }
       })
       .catch((error) => {
-        // setOffers(1);
         setOpen(true);
         const err = error as AxiosError;
         toast.error(err.message, { duration: 2000 });
       });
+  };
+
+  const onlyNumber = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const keyCode = event.which || event.keyCode;
+    const isValid = /^[0-9]+$/.test(String.fromCharCode(keyCode));
+    return isValid;
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Delete" || event.key === "Backspace") {
+    } else if (!onlyNumber(event)) {
+      event.preventDefault();
+    }
   };
 
   return (
@@ -495,15 +507,15 @@ const index: FC = () => {
                       {offers ? (
                         <div className="step_1">
                           <div className="coin_img">
-                            <img src={coin} alt="" />
+                            <img src={coin} alt="coin-image" />
                           </div>
                           <div className="contenttext">
                             <p>
                               <i className="fa fa-inr" aria-hidden="true" />{" "}
-                              50,000
+                              {offers.loanAmt}
                             </p>
-                            <strong>tenure of loan</strong>
-                            <span>180 DAYS</span>
+                            <strong>{offers.Tenor}</strong>
+                            <span>{offers.ExpiryDate}</span>
                           </div>
                         </div>
                       ) : (
@@ -578,17 +590,22 @@ const index: FC = () => {
                   <div className="page">
                     <div className="main_step_2">
                       <h4>Enter Your Mobile Number</h4>
-                      <img src={Second_screen} alt="" />
+                      <img
+                        src={Second_screen}
+                        alt="enter-mobile-number-image"
+                      />
                     </div>
                     <div className="main_step_2 text-left">
                       <label htmlFor="number">Mobile Number*</label>
                       <input
                         // readOnly
-                        type="tel"
+
                         maxLength={10}
                         name="number"
                         className="form-control"
                         placeholder="Enter Mobile Number"
+                        type="text"
+                        onKeyDown={(e) => handleKeyPress(e)}
                         required
                         id="number"
                         onChange={(e) =>
@@ -618,7 +635,7 @@ const index: FC = () => {
                     <div className="main_step_3">
                       <h4>Verification</h4>
                       <h5>We Have Sent OTP on Your Registred Mobile Number</h5>
-                      <img src={Second_screen} alt="" />
+                      <img src={Second_screen} alt="enter-mobile-otp-image" />
                       <div className="mt-5 otp_box col-md-8 mx-auto">
                         {[...Array(6)].map((_, index) => (
                           <input
@@ -631,6 +648,7 @@ const index: FC = () => {
                             onKeyUp={(e) =>
                               tabChange(index, e.currentTarget.value)
                             }
+                            onKeyDown={(e) => handleKeyPress(e)}
                             maxLength={1}
                             required
                             ref={inputRefs[index]}
@@ -795,7 +813,8 @@ const index: FC = () => {
                               <label htmlFor="postal-code">Pincode</label>
                               <input
                                 className="form-control"
-                                type="tel"
+                                type="text"
+                                onKeyDown={(e) => handleKeyPress(e)}
                                 name="postal-code"
                                 defaultValue=""
                                 placeholder="Please Enter Pincode"
@@ -937,7 +956,8 @@ const index: FC = () => {
                               <input
                                 className="form-control"
                                 maxLength={10}
-                                type="tel"
+                                type="text"
+                                onKeyDown={(e) => handleKeyPress(e)}
                                 name="number"
                                 defaultValue=""
                                 placeholder="Emergency Contact Number"
@@ -1094,7 +1114,7 @@ const index: FC = () => {
                       <img
                         // style={{ width: "60%" }}
                         src={Second_screen}
-                        alt=""
+                        alt="enter-account-details-image"
                       />
                     </div>
                     <div
@@ -1254,6 +1274,8 @@ const index: FC = () => {
                               placeholder="Account Number"
                               id="account_number"
                               required
+                              maxLength={20}
+                              onKeyDown={(e) => handleKeyPress(e)}
                               onChange={(e) =>
                                 onInputChange("account_number", e.target.value)
                               }
@@ -1280,6 +1302,8 @@ const index: FC = () => {
                               placeholder="Confirm Account Number"
                               id="confirm_account_number"
                               required
+                              maxLength={20}
+                              onKeyDown={(e) => handleKeyPress(e)}
                               onChange={(e) =>
                                 onInputChange(
                                   "confirm_account_number",
