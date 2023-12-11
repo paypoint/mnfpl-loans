@@ -1,6 +1,7 @@
 import { FC, useEffect, useRef, useState } from "react";
 import { AxiosError, AxiosResponse } from "axios";
 import toast from "react-hot-toast";
+import { format } from "date-fns";
 
 import coin from "../../assets/images/coin.png";
 import Second_screen from "../../assets/images/Second_screen.jpg";
@@ -9,18 +10,28 @@ import Screen_6 from "../../assets/images/Screen_6.jpg";
 import Screen_7 from "../../assets/images/Screen_7.jpg";
 
 import validations from "@/lib/validations";
+import crypto from "@/lib/crypto";
 import api from "@/services/api";
 import { FileDialog } from "@/components/ui/file-dialog";
-import { FileWithPreview, GetOffersAPIResponseType } from "@/types";
+import {
+  BankList,
+  FileWithPreview,
+  GetBusinessMerchantDetailsAPIResponseType,
+  GetOffersAPIResponseType,
+  ParsedMerchantAddressDetails,
+  ParsedMerchantDetails,
+  SendOTPAPIResponseType,
+} from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertModal } from "@/components/modals/alert-modal";
 
 import "./style.css";
 
 const index: FC = () => {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(4);
   const [countDownTimer, setCountDownTimer] = useState(50);
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
+  const [bankList, setBankList] = useState<[BankList]>();
   const [selfieImage, setSelfieImage] = useState<FileWithPreview[] | null>(
     null
   );
@@ -69,7 +80,7 @@ const index: FC = () => {
       value: "",
       error: false,
     },
-    pincode: {
+    business_address_pincode: {
       value: "",
       error: false,
     },
@@ -81,7 +92,7 @@ const index: FC = () => {
       value: "",
       error: false,
     },
-    address_kyc: {
+    current_pincode: {
       value: "",
       error: false,
     },
@@ -98,6 +109,10 @@ const index: FC = () => {
       error: false,
     },
     emergency_contact_number: {
+      value: "",
+      error: false,
+    },
+    relation: {
       value: "",
       error: false,
     },
@@ -122,10 +137,15 @@ const index: FC = () => {
       value: "",
       error: false,
     },
+    //from api
+    merchant_id: {
+      value: "",
+      error: false,
+    },
   };
 
   const [formValues, setFormValues] = useState(defaultFormValues);
-  type offerType = Omit<GetOffersAPIResponseType["Message"], "Status">;
+  type offerType = Omit<GetOffersAPIResponseType["message"], "Status">;
   const [offers, setOffers] = useState<offerType>();
 
   const inputRefs = Array.from({ length: 6 }, () =>
@@ -133,7 +153,6 @@ const index: FC = () => {
   );
 
   const digitValidate = (index: number, value: string) => {
-    console.log(value);
     // Update the OTP values in the state
     setOtpValues((prevValues) => {
       const newValues = [...prevValues];
@@ -162,7 +181,9 @@ const index: FC = () => {
     }
   };
 
-  const handleNext = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  const handleNext = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
     e.preventDefault();
     let _formValues = { ...formValues };
     if (step === 1) {
@@ -188,7 +209,8 @@ const index: FC = () => {
       } else {
         _formValues.mobile_no.error = false;
         setFormValues(_formValues);
-        setStep((prevStep) => prevStep + 1);
+        await sendOTP();
+        // setStep((prevStep) => prevStep + 1);
         setInterval(() => {
           setCountDownTimer((PrevCountDown) => PrevCountDown - 1);
         }, 1000);
@@ -199,7 +221,8 @@ const index: FC = () => {
         _formValues.otp.value = otp;
         _formValues.otp.error = false;
         setFormValues(_formValues);
-        setStep((prevStep) => prevStep + 1);
+        await verifyOTP();
+        // setStep((prevStep) => prevStep + 1);
       } else {
         _formValues.otp.error = true;
         setFormValues(_formValues);
@@ -213,7 +236,6 @@ const index: FC = () => {
           key === "gender" ||
           key === "address_business" ||
           key === "address_current" ||
-          key === "address_kyc" ||
           key === "full_name"
         ) {
           let hasError = !validations.isRequired(_formValues[key].value);
@@ -244,7 +266,7 @@ const index: FC = () => {
             formObjectHasError = true;
           }
         }
-        if (key === "pincode") {
+        if (key === "business_address_pincode" || key === "current_pincode") {
           let hasError = !validations.isPINValid(_formValues[key].value);
           _formValues[key].error = !validations.isPINValid(
             _formValues[key].value
@@ -348,30 +370,216 @@ const index: FC = () => {
     _formValues[id].error = false;
     setFormValues(_formValues);
   };
-  const houseDropDown = ["crib", "hood", "streets"];
+
+  const onSameAsAboveClick = (value: boolean) => {
+    const _formValues = { ...formValues };
+    if (value) {
+      _formValues.address_current.value = _formValues.address_business.value;
+      _formValues.current_pincode.value =
+        _formValues.business_address_pincode.value;
+      setFormValues(_formValues);
+    } else {
+      _formValues.address_current.value = "";
+      _formValues.current_pincode.value = "";
+      setFormValues(_formValues);
+    }
+  };
+
+  const houseDropDown = ["Owned", "Rented"];
+  const genderDropdDown = ["Male", "Female", "Other"];
   const bankDropDown = [
     "HDFC Bank",
     "State Bank of India Bank",
     "Bank of India",
   ];
+  const relationDropDown = ["Father", "Mother", "Daughter"];
 
   useEffect(() => {
-    getOffers();
+    getPersonalDetails();
   }, []);
 
   const getOffers = async () => {
+    const body = {
+      RefID: "1334338946318021960dbc7fc4-aa0d-4b49-8f46-ee03dc2260ac",
+    };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+
     await api.app
       .getOffers({
-        RefID: "1334338946318021960dbc7fc4-aa0d-4b49-8f46-ee03dc2260ac",
+        requestBody: encryptedBody,
       })
       .then((res: AxiosResponse<GetOffersAPIResponseType>) => {
-        let { data } = res;
-        if (data.Status === "S") {
-          setOffers(data.Message);
+        const { data } = res;
+
+        if (data.status === "S") {
+          setOffers(data.message);
+          let _formValues = { ...formValues };
+          _formValues.mobile_no.value = data.message.mobileNumber;
+          _formValues.merchant_id.value = data.message.merchantID;
+          setFormValues(_formValues);
         } else {
-          toast.error(data.Message.toString());
+          toast.error(data.message.toString());
         }
       })
+      .catch((error) => {
+        setOpen(true);
+        const err = error as AxiosError;
+        toast.error(err.message, { duration: 2000 });
+      });
+  };
+
+  const sendOTP = async () => {
+    const body = { MobileNumber: formValues.mobile_no.value };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+
+    await api.app
+      .sendOTP({ requestBody: encryptedBody })
+      .then((res: AxiosResponse<SendOTPAPIResponseType>) => {
+        const { data } = res;
+        if (data.status === "S") {
+          toast.success(data.message);
+          setStep((prevStep) => prevStep + 1);
+        } else {
+          toast.error(data.message);
+        }
+      })
+      .catch((error) => {
+        setOpen(true);
+        const err = error as AxiosError;
+        toast.error(err.message, { duration: 2000 });
+      });
+  };
+
+  const verifyOTP = async () => {
+    const body = {
+      MobileNumber: formValues.mobile_no.value,
+      OTP: formValues.otp.value,
+    };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    await api.app
+      .verifyOTP({
+        requestBody: encryptedBody,
+      })
+      .then((res: AxiosResponse<SendOTPAPIResponseType>) => {
+        const { data } = res;
+        if (data.status === "S") {
+          toast.success(data.message);
+          setStep((prevStep) => prevStep + 1);
+          getPersonalDetails();
+        } else {
+          toast.error(data.message);
+        }
+      })
+      .catch((error) => {
+        setOpen(true);
+        const err = error as AxiosError;
+        toast.error(err.message, { duration: 2000 });
+      });
+  };
+
+  const getPersonalDetails = async () => {
+    const body = {
+      MerchantID: formValues.merchant_id.value,
+    };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+
+    await api.app
+      .businessMerchantDetails({
+        requestBody: encryptedBody,
+      })
+      .then(
+        async (
+          res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
+        ) => {
+          const { data } = res;
+          if (data.Status === "Success") {
+            // toast.success(data.Message);
+            const details: ParsedMerchantDetails = JSON.parse(data.data);
+            const inputDate = new Date(details.DateOfBirth);
+            const formattedDate = format(inputDate, "yyyy-MM-dd");
+            let _formValues = { ...formValues };
+            _formValues.dob.value = formattedDate;
+            _formValues.email.value = details.EmailId;
+            _formValues.pan_number.value = details.PANNo;
+            _formValues.full_name.value =
+              details.FirstName.trim() +
+              " " +
+              details.MiddleName.trim() +
+              " " +
+              details.LastName.trim();
+            setFormValues(_formValues);
+            await getBusinessAddressDetails();
+            // setStep((prevStep) => prevStep + 1);
+          } else {
+            toast.error(data.Message);
+          }
+        }
+      )
+      .catch((error) => {
+        setOpen(true);
+        const err = error as AxiosError;
+        toast.error(err.message, { duration: 2000 });
+      });
+  };
+
+  const getBussinessBankDetails = async () => {
+    const body = {
+      MerchantID: formValues.merchant_id.value,
+    };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+
+    await api.app
+      .businessBankDetails({
+        requestBody: encryptedBody,
+      })
+      .then(
+        async (
+          res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
+        ) => {
+          const { data } = res;
+          if (data.Status === "Success") {
+            const _banklist: [BankList] = JSON.parse(data.data);
+            setBankList(_banklist);
+          } else {
+            toast.error(data.Message);
+          }
+        }
+      )
+      .catch((error) => {
+        setOpen(true);
+        const err = error as AxiosError;
+        toast.error(err.message, { duration: 2000 });
+      });
+  };
+
+  const getBusinessAddressDetails = async () => {
+    const body = {
+      MerchantID: formValues.merchant_id.value,
+    };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+
+    await api.app
+      .businessAddressDetails({
+        requestBody: encryptedBody,
+      })
+      .then(
+        async (
+          res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
+        ) => {
+          const { data } = res;
+          if (data.Status === "Success") {
+            const details: ParsedMerchantAddressDetails = JSON.parse(data.data);
+            let _formValues = { ...formValues };
+            _formValues.business_address_pincode.value = details.PinCode;
+            _formValues.address_business.value =
+              details.Address1 + details.Address2;
+
+            setFormValues(_formValues);
+          } else {
+            toast.error(data.Message);
+          }
+        }
+      )
       .catch((error) => {
         setOpen(true);
         const err = error as AxiosError;
@@ -512,10 +720,10 @@ const index: FC = () => {
                           <div className="contenttext">
                             <p>
                               <i className="fa fa-inr" aria-hidden="true" />{" "}
-                              {offers.loanAmt}
+                              {offers.loanAmount}
                             </p>
-                            <strong>{offers.Tenor}</strong>
-                            <span>{offers.ExpiryDate}</span>
+                            <strong>{offers.tenor}</strong>
+                            <span>{offers.expiryDate}</span>
                           </div>
                         </div>
                       ) : (
@@ -598,8 +806,8 @@ const index: FC = () => {
                     <div className="main_step_2 text-left">
                       <label htmlFor="number">Mobile Number*</label>
                       <input
-                        // readOnly
-
+                        readOnly
+                        value={formValues.mobile_no.value}
                         maxLength={10}
                         name="number"
                         className="form-control"
@@ -711,6 +919,7 @@ const index: FC = () => {
                                 placeholder="Enter Full Name"
                                 id="name"
                                 required
+                                value={formValues.full_name.value}
                                 onChange={(e) =>
                                   onInputChange("full_name", e.target.value)
                                 }
@@ -736,6 +945,7 @@ const index: FC = () => {
                                 defaultValue=""
                                 placeholder="DOB"
                                 id=""
+                                value={formValues.dob.value}
                                 required
                                 onChange={(e) =>
                                   onInputChange("dob", e.target.value)
@@ -754,28 +964,24 @@ const index: FC = () => {
                           </div>
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
-                              <label htmlFor="sex">Gender</label>
-                              <input
+                              <label htmlFor="Gender">Gender</label>
+
+                              <select
+                                id="my-select"
                                 className="form-control"
-                                type="text"
-                                name="sex"
-                                defaultValue=""
-                                placeholder="Please Enter Gender"
-                                id="sex"
-                                required
+                                name=""
                                 onChange={(e) =>
                                   onInputChange("gender", e.target.value)
                                 }
-                              />
-                              {formValues.gender.error ? (
-                                <span
-                                  style={{ color: "red", fontSize: "14px" }}
-                                >
-                                  Gender should not be empty
-                                </span>
-                              ) : (
-                                ""
-                              )}
+                              >
+                                {genderDropdDown.map((i, id) => {
+                                  return (
+                                    <option key={id} value={i}>
+                                      {i}
+                                    </option>
+                                  );
+                                })}
+                              </select>
                             </div>
                           </div>
                           <div className="col-md-6 mt-2">
@@ -792,6 +998,7 @@ const index: FC = () => {
                                 placeholder="Enter Enter PAN Number"
                                 id="pannumber"
                                 required
+                                value={formValues.pan_number.value}
                                 maxLength={10}
                                 onChange={(e) =>
                                   onInputChange("pan_number", e.target.value)
@@ -810,36 +1017,8 @@ const index: FC = () => {
                           </div>
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
-                              <label htmlFor="postal-code">Pincode</label>
-                              <input
-                                className="form-control"
-                                type="text"
-                                onKeyDown={(e) => handleKeyPress(e)}
-                                name="postal-code"
-                                defaultValue=""
-                                placeholder="Please Enter Pincode"
-                                id="postal-code"
-                                required
-                                maxLength={6}
-                                onChange={(e) =>
-                                  onInputChange("pincode", e.target.value)
-                                }
-                              />
-                              {formValues.pincode.error ? (
-                                <span
-                                  style={{ color: "red", fontSize: "14px" }}
-                                >
-                                  Please enter valid pincode
-                                </span>
-                              ) : (
-                                ""
-                              )}
-                            </div>
-                          </div>
-                          <div className="col-md-6 mt-2">
-                            <div className="form-group">
                               <label htmlFor="address_business">
-                                Address Business
+                                Business Address
                               </label>
                               <textarea
                                 id="address_business"
@@ -848,7 +1027,7 @@ const index: FC = () => {
                                 cols={50}
                                 name="address_business"
                                 placeholder="Address Business"
-                                defaultValue={""}
+                                value={formValues.address_business.value}
                                 onChange={(e) =>
                                   onInputChange(
                                     "address_business",
@@ -869,6 +1048,43 @@ const index: FC = () => {
                           </div>
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
+                              <label htmlFor="postal-code">
+                                Business Address Pincode
+                              </label>
+                              <input
+                                className="form-control"
+                                type="text"
+                                onKeyDown={(e) => handleKeyPress(e)}
+                                name="postal-code"
+                                defaultValue=""
+                                placeholder="Please Enter Pincode"
+                                id="postal-code"
+                                required
+                                value={
+                                  formValues.business_address_pincode.value
+                                }
+                                maxLength={6}
+                                onChange={(e) =>
+                                  onInputChange(
+                                    "business_address_pincode",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                              {formValues.business_address_pincode.error ? (
+                                <span
+                                  style={{ color: "red", fontSize: "14px" }}
+                                >
+                                  Please enter valid business_address_pincode
+                                </span>
+                              ) : (
+                                ""
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="col-md-6 mt-2">
+                            <div className="form-group">
                               <label htmlFor="street-address">
                                 Address Current
                               </label>
@@ -879,7 +1095,7 @@ const index: FC = () => {
                                 cols={50}
                                 name="street-address"
                                 placeholder="Address Current"
-                                defaultValue={""}
+                                value={formValues.address_current.value}
                                 onChange={(e) =>
                                   onInputChange(
                                     "address_current",
@@ -896,24 +1112,48 @@ const index: FC = () => {
                               ) : (
                                 ""
                               )}
+                              <div className="form-check form-check-inline">
+                                <input
+                                  id="termsCondition1"
+                                  className="form-check-input"
+                                  type="checkbox"
+                                  name="termsCondition1"
+                                  defaultValue="true"
+                                  required
+                                  onChange={(e) => {
+                                    onSameAsAboveClick(e.target.checked);
+                                  }}
+                                />
+                                <label
+                                  htmlFor="termsCondition1"
+                                  className="form-check-label mt-1"
+                                >
+                                  Same as above
+                                </label>
+                              </div>
                             </div>
                           </div>
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
-                              <label htmlFor="address_kyc">Address KYC</label>
-                              <textarea
-                                id="address_kyc"
+                              <label htmlFor="current_pincode">
+                                Current Address Pincode
+                              </label>
+                              <input
+                                id="current_pincode"
                                 className="form-control"
-                                rows={1}
-                                cols={50}
-                                name="address_kyc"
-                                placeholder="Address KYC"
-                                defaultValue={""}
+                                onKeyDown={(e) => handleKeyPress(e)}
+                                maxLength={6}
+                                name="current_pincode"
+                                placeholder="Current Address Pincode"
+                                value={formValues.current_pincode.value}
                                 onChange={(e) =>
-                                  onInputChange("address_kyc", e.target.value)
+                                  onInputChange(
+                                    "current_pincode",
+                                    e.target.value
+                                  )
                                 }
                               />
-                              {formValues.address_kyc.error ? (
+                              {formValues.current_pincode.error ? (
                                 <span
                                   style={{ color: "red", fontSize: "14px" }}
                                 >
@@ -926,9 +1166,7 @@ const index: FC = () => {
                           </div>
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
-                              <label htmlFor="house">
-                                House – Owned/Rented
-                              </label>
+                              <label htmlFor="house">House</label>
 
                               <select
                                 id="my-select"
@@ -963,6 +1201,9 @@ const index: FC = () => {
                                 placeholder="Emergency Contact Number"
                                 id="number"
                                 required
+                                value={
+                                  formValues.emergency_contact_number.value
+                                }
                                 onChange={(e) =>
                                   onInputChange(
                                     "emergency_contact_number",
@@ -992,6 +1233,7 @@ const index: FC = () => {
                                 placeholder="Please Enter Email"
                                 id="email"
                                 required
+                                value={formValues.email.value}
                                 onChange={(e) =>
                                   onInputChange("email", e.target.value)
                                 }
@@ -1009,17 +1251,16 @@ const index: FC = () => {
                           </div>
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
-                              <label htmlFor="">
-                                Nominee Name and Relation
-                              </label>
+                              <label htmlFor="nominee">Nominee Name</label>
                               <input
                                 className="form-control"
                                 type="text"
-                                name=""
+                                name="nominee"
                                 defaultValue=""
-                                placeholder="Nominee Name and Relation"
-                                id=""
+                                placeholder="Nominee Name"
+                                id="nominee"
                                 required
+                                value={formValues.nominee.value}
                                 onChange={(e) =>
                                   onInputChange("nominee", e.target.value)
                                 }
@@ -1033,6 +1274,28 @@ const index: FC = () => {
                               ) : (
                                 ""
                               )}
+                            </div>
+                          </div>
+                          <div className="col-md-6 mt-2">
+                            <div className="form-group">
+                              <label htmlFor="relation">Nominee Relation</label>
+
+                              <select
+                                id="my-select"
+                                className="form-control"
+                                name="relation"
+                                onChange={(e) =>
+                                  onInputChange("relation", e.target.value)
+                                }
+                              >
+                                {relationDropDown.map((i, id) => {
+                                  return (
+                                    <option key={id} value={i}>
+                                      {i}
+                                    </option>
+                                  );
+                                })}
+                              </select>
                             </div>
                           </div>
                         </div>
@@ -1123,68 +1386,78 @@ const index: FC = () => {
                     >
                       <table className="table table-light">
                         <tbody>
-                          <tr>
-                            <td>
-                              <div className="form-check">
-                                <label className="form-check-label">
-                                  <input
-                                    type="radio"
-                                    className="form-check-input"
-                                    name=""
-                                    id=""
-                                    defaultValue="checkedValue"
-                                  />
-                                  Display value
-                                </label>
-                              </div>
-                            </td>
-                            <td>
-                              <div className="form-check">
-                                <label className="form-check-label">
-                                  <input
-                                    type="radio"
-                                    className="form-check-input"
-                                    name=""
-                                    id=""
-                                    defaultValue="checkedValue"
-                                  />
-                                  Display value
-                                </label>
-                              </div>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <div className="form-check">
-                                <label className="form-check-label">
-                                  <input
-                                    type="radio"
-                                    className="form-check-input"
-                                    name=""
-                                    id=""
-                                    defaultValue="checkedValue"
-                                  />
-                                  Display value
-                                </label>
-                              </div>
-                            </td>
-                            <td>
-                              <div className="form-check">
-                                <label className="form-check-label">
-                                  <input
-                                    type="radio"
-                                    className="form-check-input"
-                                    name=""
-                                    id=""
-                                    defaultValue="checkedValue"
-                                  />
-                                  Display value
-                                </label>
-                              </div>
-                            </td>
-                          </tr>
+                          {bankList?.map((i, id) => {
+                            return (
+                              <tr key={id}>
+                                <td>
+                                  <div className="form-check">
+                                    <label className="form-check-label">
+                                      <input
+                                        type="radio"
+                                        className="form-check-input"
+                                        name=""
+                                        id=""
+                                        defaultValue="checkedValue"
+                                      />
+                                      {i.AccountHolderName}
+                                    </label>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
+                      {bankList?.map((i, id) => (
+                        <article
+                          key={id}
+                          className="flex items-start space-x-6 p-6"
+                        >
+                          <div className="min-w-0 relative flex-auto">
+                            <h2 className="font-semibold text-slate-900 truncate pr-20">
+                              {i.AccountHolderName}
+                            </h2>
+                            <dl className="mt-2 flex flex-wrap text-sm leading-6 font-medium">
+                              <div className="absolute top-0 right-0 flex items-center space-x-1">
+                                <input
+                                  type="radio"
+                                  className="form-check-input"
+                                  name=""
+                                  id=""
+                                  defaultValue="checkedValue"
+                                />
+                              </div>
+                              <div>
+                                <dt className="sr-only">Bank name</dt>
+                                <dd className="px-1.5 ring-1 ring-slate-200 rounded">
+                                  {i.Bank}
+                                </dd>
+                              </div>
+                              <div className="ml-2">
+                                <dt className="sr-only">Bank Account Number</dt>
+                                <dd className="flex items-center">
+                                  {" "}
+                                  <svg
+                                    width="2"
+                                    height="2"
+                                    fill="currentColor"
+                                    className="mx-2 text-slate-300"
+                                    aria-hidden="true"
+                                  >
+                                    <circle cx="1" cy="1" r="1" />
+                                  </svg>
+                                  {i.AccountNumber}
+                                </dd>
+                              </div>
+
+                              <div className="flex-none w-full mt-2 font-normal">
+                                <dt className="sr-only">Ifsc code</dt>
+                                <dd className="text-slate-400">{i.IFSCCode}</dd>
+                              </div>
+                            </dl>
+                          </div>
+                        </article>
+                      ))}
                       <h5>
                         Only Banks That Support Auto repayments will Show up
                       </h5>

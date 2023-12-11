@@ -6,47 +6,46 @@ const baseURL = siteConfig.API_STAGE_URL;
 const client = axios.create({
   baseURL: baseURL,
   headers: {
-    "Access-Control-Allow-Origin": "*",
     "Content-Type": "application/json",
-    Accept: "application/json, text/plain, */*",
   },
 });
 
+type RequestBody = { requestBody: string };
+
 class App {
-  getOffers({ RefID }: { RefID: string }) {
+  getOffers({ requestBody }: RequestBody) {
     return client.post("/GetOffers", {
-      RefID,
+      requestBody,
     });
   }
 
-  sendOTP({ MobileNumber }: { MobileNumber: string }) {
+  sendOTP({ requestBody }: RequestBody) {
     return client.post("/SendOTP", {
-      MobileNumber,
+      requestBody,
     });
   }
 
-  verifyOTP({ MobileNumber, OTP }: { MobileNumber: string; OTP: string }) {
+  verifyOTP({ requestBody }: RequestBody) {
     return client.post("/OTPVerify", {
-      MobileNumber,
-      OTP,
+      requestBody,
     });
   }
 
-  businessBankDetails({ MerchantID }: { MerchantID: string }) {
+  businessBankDetails({ requestBody }: RequestBody) {
     return client.post("/BusinessBankDetails", {
-      MerchantID,
+      requestBody,
     });
   }
 
-  businessAddressDetails({ MerchantID }: { MerchantID: string }) {
+  businessAddressDetails({ requestBody }: RequestBody) {
     return client.post("/BusinessAddressDetails", {
-      MerchantID,
+      requestBody,
     });
   }
 
-  businessMerchantDetails({ MerchantID }: { MerchantID: string }) {
+  businessMerchantDetails({ requestBody }: RequestBody) {
     return client.post("/BusinessMerchantDetails", {
-      MerchantID,
+      requestBody,
     });
   }
 }
