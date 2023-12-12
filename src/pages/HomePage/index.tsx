@@ -26,9 +26,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertModal } from "@/components/modals/alert-modal";
 
 import "./style.css";
+import { getBase64 } from "@/lib/utils";
 
 const index: FC = () => {
-  const [step, setStep] = useState(4);
+  const [step, setStep] = useState(5);
   const [countDownTimer, setCountDownTimer] = useState(50);
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [bankList, setBankList] = useState<[BankList]>();
@@ -301,7 +302,11 @@ const index: FC = () => {
       }
     } else if (step === 5) {
       if (selfieImage) {
-        setStep((prevStep) => prevStep + 1);
+        // setStep((prevStep) => prevStep + 1);
+
+        await getBase64(selfieImage[0])
+          .then(async (res) => await uploadDocument("2", res as string))
+          .catch((err) => console.log(err));
       } else {
         alert("Please upload selfie");
       }
@@ -579,12 +584,12 @@ const index: FC = () => {
       });
   };
 
-  const uploadDocument = async () => {
+  const uploadDocument = async (id: "1" | "2" | "3", image: string) => {
     const body = {
       Customer_code: "7e77a7d4",
       Application_ID: "123",
-      DocumentFileImage: "snmdc",
-      DocID: "1",
+      DocumentFileImage: image,
+      DocID: id,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
 
@@ -605,7 +610,7 @@ const index: FC = () => {
             //   details.Address1 + details.Address2;
             // setFormValues(_formValues);
           } else {
-            // toast.error(data.Message);
+            toast.error(data.Message);
           }
         }
       )
