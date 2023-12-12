@@ -231,9 +231,7 @@ const index: FC = () => {
       let formObjectHasError = false;
       Object.keys(_formValues).forEach((key) => {
         if (
-          // key === "house" ||
           key === "nominee" ||
-          key === "gender" ||
           key === "address_business" ||
           key === "address_current" ||
           key === "full_name"
@@ -275,15 +273,15 @@ const index: FC = () => {
             formObjectHasError = true;
           }
         }
-        if (key === "pan_number") {
-          let hasError = !validations.isPANCardValid(_formValues[key].value);
-          _formValues[key].error = !validations.isPANCardValid(
-            _formValues[key].value
-          );
-          if (hasError) {
-            formObjectHasError = true;
-          }
-        }
+        // if (key === "pan_number") {
+        //   let hasError = !validations.isPANCardValid(_formValues[key].value);
+        //   _formValues[key].error = !validations.isPANCardValid(
+        //     _formValues[key].value
+        //   );
+        //   if (hasError) {
+        //     formObjectHasError = true;
+        //   }
+        // }
 
         if (key === "dob") {
           let hasError = !validations.isAgeValid(_formValues[key].value);
@@ -395,7 +393,7 @@ const index: FC = () => {
   const relationDropDown = ["Father", "Mother", "Daughter"];
 
   useEffect(() => {
-    getPersonalDetails();
+    getOffers();
   }, []);
 
   const getOffers = async () => {
@@ -421,10 +419,9 @@ const index: FC = () => {
           toast.error(data.message.toString());
         }
       })
-      .catch((error) => {
+      .catch((error: AxiosError) => {
         setOpen(true);
-        const err = error as AxiosError;
-        toast.error(err.message, { duration: 2000 });
+        toast.error(error.message, { duration: 2000 });
       });
   };
 
@@ -443,10 +440,9 @@ const index: FC = () => {
           toast.error(data.message);
         }
       })
-      .catch((error) => {
+      .catch((error: AxiosError) => {
         setOpen(true);
-        const err = error as AxiosError;
-        toast.error(err.message, { duration: 2000 });
+        toast.error(error.message, { duration: 2000 });
       });
   };
 
@@ -470,10 +466,9 @@ const index: FC = () => {
           toast.error(data.message);
         }
       })
-      .catch((error) => {
+      .catch((error: AxiosError) => {
         setOpen(true);
-        const err = error as AxiosError;
-        toast.error(err.message, { duration: 2000 });
+        toast.error(error.message, { duration: 2000 });
       });
   };
 
@@ -515,10 +510,9 @@ const index: FC = () => {
           }
         }
       )
-      .catch((error) => {
+      .catch((error: AxiosError) => {
         setOpen(true);
-        const err = error as AxiosError;
-        toast.error(err.message, { duration: 2000 });
+        toast.error(error.message, { duration: 2000 });
       });
   };
 
@@ -545,10 +539,9 @@ const index: FC = () => {
           }
         }
       )
-      .catch((error) => {
+      .catch((error: AxiosError) => {
         setOpen(true);
-        const err = error as AxiosError;
-        toast.error(err.message, { duration: 2000 });
+        toast.error(error.message, { duration: 2000 });
       });
   };
 
@@ -580,13 +573,47 @@ const index: FC = () => {
           }
         }
       )
-      .catch((error) => {
+      .catch((error: AxiosError) => {
         setOpen(true);
-        const err = error as AxiosError;
-        toast.error(err.message, { duration: 2000 });
+        toast.error(error.message, { duration: 2000 });
       });
   };
 
+  const uploadDocument = async () => {
+    const body = {
+      Customer_code: "7e77a7d4",
+      Application_ID: "123",
+      DocumentFileImage: "snmdc",
+      DocID: "1",
+    };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+
+    await api.app
+      .savekycdocuments({
+        requestBody: encryptedBody,
+      })
+      .then(
+        async (
+          res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
+        ) => {
+          const { data } = res;
+          if (data.Status === "Success") {
+            // const details: ParsedMerchantAddressDetails = JSON.parse(data.data);
+            // let _formValues = { ...formValues };
+            // _formValues.business_address_pincode.value = details.PinCode;
+            // _formValues.address_business.value =
+            //   details.Address1 + details.Address2;
+            // setFormValues(_formValues);
+          } else {
+            // toast.error(data.Message);
+          }
+        }
+      )
+      .catch((error: AxiosError) => {
+        setOpen(true);
+        toast.error(error.message, { duration: 2000 });
+      });
+  };
   const onlyNumber = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const keyCode = event.which || event.keyCode;
     const isValid = /^[0-9]+$/.test(String.fromCharCode(keyCode));
@@ -719,11 +746,17 @@ const index: FC = () => {
                           </div>
                           <div className="contenttext">
                             <p>
-                              <i className="fa fa-inr" aria-hidden="true" />{" "}
+                              <i className="fa fa-inr" aria-hidden="true" />
                               {offers.loanAmount}
                             </p>
-                            <strong>{offers.tenor}</strong>
-                            <span>{offers.expiryDate}</span>
+                            <strong>Tenor : {offers.tenor}</strong>
+                            <span>
+                              Expriy Date :
+                              {format(
+                                new Date(offers.expiryDate),
+                                "dd/MM/yyyy"
+                              )}
+                            </span>
                           </div>
                         </div>
                       ) : (
@@ -962,29 +995,8 @@ const index: FC = () => {
                               )}
                             </div>
                           </div>
-                          <div className="col-md-6 mt-2">
-                            <div className="form-group">
-                              <label htmlFor="Gender">Gender</label>
 
-                              <select
-                                id="my-select"
-                                className="form-control"
-                                name=""
-                                onChange={(e) =>
-                                  onInputChange("gender", e.target.value)
-                                }
-                              >
-                                {genderDropdDown.map((i, id) => {
-                                  return (
-                                    <option key={id} value={i}>
-                                      {i}
-                                    </option>
-                                  );
-                                })}
-                              </select>
-                            </div>
-                          </div>
-                          <div className="col-md-6 mt-2">
+                          {/* <div className="col-md-6 mt-2">
                             <div className="form-group">
                               <label htmlFor="pannumber">PAN</label>
                               <input
@@ -1014,7 +1026,7 @@ const index: FC = () => {
                                 ""
                               )}
                             </div>
-                          </div>
+                          </div> */}
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
                               <label htmlFor="address_business">
@@ -1086,7 +1098,7 @@ const index: FC = () => {
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
                               <label htmlFor="street-address">
-                                Address Current
+                                Current Address
                               </label>
                               <textarea
                                 id="street-address"
@@ -1094,7 +1106,7 @@ const index: FC = () => {
                                 rows={1}
                                 cols={50}
                                 name="street-address"
-                                placeholder="Address Current"
+                                placeholder="Current Address"
                                 value={formValues.address_current.value}
                                 onChange={(e) =>
                                   onInputChange(
@@ -1157,11 +1169,33 @@ const index: FC = () => {
                                 <span
                                   style={{ color: "red", fontSize: "14px" }}
                                 >
-                                  KYC address should not be empty
+                                  Current pincode should not be empty
                                 </span>
                               ) : (
                                 ""
                               )}
+                            </div>
+                          </div>
+                          <div className="col-md-6 mt-2">
+                            <div className="form-group">
+                              <label htmlFor="Gender">Gender</label>
+
+                              <select
+                                id="my-select"
+                                className="form-control"
+                                name=""
+                                onChange={(e) =>
+                                  onInputChange("gender", e.target.value)
+                                }
+                              >
+                                {genderDropdDown.map((i, id) => {
+                                  return (
+                                    <option key={id} value={i}>
+                                      {i}
+                                    </option>
+                                  );
+                                })}
+                              </select>
                             </div>
                           </div>
                           <div className="col-md-6 mt-2">
@@ -1436,7 +1470,6 @@ const index: FC = () => {
                               <div className="ml-2">
                                 <dt className="sr-only">Bank Account Number</dt>
                                 <dd className="flex items-center">
-                                  {" "}
                                   <svg
                                     width="2"
                                     height="2"

@@ -48,6 +48,12 @@ class App {
       requestBody,
     });
   }
+
+  savekycdocuments({ requestBody }: RequestBody) {
+    return client.post("/savekycdocuments", {
+      requestBody,
+    });
+  }
 }
 
 let app = new App();
