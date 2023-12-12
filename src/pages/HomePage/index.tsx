@@ -1,7 +1,8 @@
 import { FC, useEffect, useRef, useState } from "react";
 import { AxiosError, AxiosResponse } from "axios";
-import toast from "react-hot-toast";
 import { format } from "date-fns";
+import toast from "react-hot-toast";
+import Tesseract from "tesseract.js";
 
 import coin from "../../assets/images/coin.png";
 import Second_screen from "../../assets/images/Second_screen.jpg";
@@ -26,9 +27,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertModal } from "@/components/modals/alert-modal";
 
 import "./style.css";
+import preprocessImage from "@/lib/preprocess";
 
 const index: FC = () => {
-  const [step, setStep] = useState(4);
+  const [step, setStep] = useState(5);
   const [countDownTimer, setCountDownTimer] = useState(50);
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [bankList, setBankList] = useState<[BankList]>();
@@ -42,6 +44,8 @@ const index: FC = () => {
     null
   );
   const [open, setOpen] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   const defaultFormValues = {
     //step-1
@@ -301,7 +305,8 @@ const index: FC = () => {
       }
     } else if (step === 5) {
       if (selfieImage) {
-        setStep((prevStep) => prevStep + 1);
+        handleClick();
+        // setStep((prevStep) => prevStep + 1);
       } else {
         alert("Please upload selfie");
       }
@@ -625,6 +630,33 @@ const index: FC = () => {
     } else if (!onlyNumber(event)) {
       event.preventDefault();
     }
+  };
+
+  const handleClick = () => {
+    // let filePath = selfieImage?.[0]?.preview!;
+    // debugger;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d")!;
+
+    ctx.drawImage(imageRef?.current!, 0, 0);
+    ctx.putImageData(preprocessImage(canvas!), 0, 0);
+    const dataUrl = canvas?.toDataURL("image/jpeg")!;
+
+    Tesseract.recognize(dataUrl, "eng", {
+      logger: (m) => console.log(m),
+    })
+      .catch((err) => {
+        console.error(err);
+      })
+      .then((result) => {
+        console.log("result", result);
+        // Get Confidence score
+        // let confidence = result.confidence
+        //@ts-ignore
+        let text = result.data.text;
+        console.log("text ", text);
+        // setText(text);
+      });
   };
 
   return (
@@ -1354,6 +1386,25 @@ const index: FC = () => {
                       title={"Click Your Selfie"}
                       description={"Capture Clear Image of Yourself"}
                     />
+                    {selfieImage ? (
+                      <>
+                        <img
+                          src={selfieImage[0].preview}
+                          className="App-logo"
+                          alt="logo"
+                          ref={imageRef}
+                        />
+                        <h3>Canvas</h3>
+                        <canvas
+                          ref={canvasRef}
+                          width={700}
+                          height={250}
+                        ></canvas>
+                        <h3>Extracted text</h3>
+                      </>
+                    ) : (
+                      ""
+                    )}
 
                     <div className="field btns">
                       <button
