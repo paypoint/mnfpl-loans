@@ -27,7 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAlert } from "@/components/modals/alert-modal";
 
 import "./style.css";
-import { cn, getBase64 } from "@/lib/utils";
+import { cn, getBase64, onlyNumberValues } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 
@@ -664,18 +664,6 @@ const index: FC = () => {
         });
       });
   };
-  const onlyNumber = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    const keyCode = event.which || event.keyCode;
-    const isValid = /^[0-9]+$/.test(String.fromCharCode(keyCode));
-    return isValid;
-  };
-
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Delete" || event.key === "Backspace") {
-    } else if (!onlyNumber(event)) {
-      event.preventDefault();
-    }
-  };
 
   return (
     <>
@@ -888,7 +876,7 @@ const index: FC = () => {
                         className="form-control"
                         placeholder="Enter Mobile Number"
                         type="text"
-                        onKeyDown={(e) => handleKeyPress(e)}
+                        onKeyDown={(e) => onlyNumberValues(e)}
                         required
                         id="number"
                         onChange={(e) =>
@@ -936,7 +924,7 @@ const index: FC = () => {
                             onKeyUp={(e) =>
                               tabChange(index, e.currentTarget.value)
                             }
-                            onKeyDown={(e) => handleKeyPress(e)}
+                            onKeyDown={(e) => onlyNumberValues(e)}
                             maxLength={1}
                             required
                             ref={inputRefs[index]}
@@ -1146,7 +1134,7 @@ const index: FC = () => {
                               <input
                                 className="form-control"
                                 type="text"
-                                onKeyDown={(e) => handleKeyPress(e)}
+                                onKeyDown={(e) => onlyNumberValues(e)}
                                 name="postal-code"
                                 defaultValue=""
                                 placeholder="Please Enter Pincode"
@@ -1231,7 +1219,7 @@ const index: FC = () => {
                               <input
                                 id="current_pincode"
                                 className="form-control"
-                                onKeyDown={(e) => handleKeyPress(e)}
+                                onKeyDown={(e) => onlyNumberValues(e)}
                                 maxLength={6}
                                 name="current_pincode"
                                 placeholder="Current Address Pincode"
@@ -1307,7 +1295,7 @@ const index: FC = () => {
                                 className="form-control"
                                 maxLength={10}
                                 type="text"
-                                onKeyDown={(e) => handleKeyPress(e)}
+                                onKeyDown={(e) => onlyNumberValues(e)}
                                 name="number"
                                 defaultValue=""
                                 placeholder="Emergency Contact Number"
@@ -1679,7 +1667,7 @@ const index: FC = () => {
                               id="account_number"
                               required
                               maxLength={20}
-                              onKeyDown={(e) => handleKeyPress(e)}
+                              onKeyDown={(e) => onlyNumberValues(e)}
                               onChange={(e) =>
                                 onInputChange("account_number", e.target.value)
                               }
@@ -1707,7 +1695,7 @@ const index: FC = () => {
                               id="confirm_account_number"
                               required
                               maxLength={20}
-                              onKeyDown={(e) => handleKeyPress(e)}
+                              onKeyDown={(e) => onlyNumberValues(e)}
                               onChange={(e) =>
                                 onInputChange(
                                   "confirm_account_number",

@@ -23,8 +23,8 @@ export const useAlert = () => {
 
   const AlertModal = () => (
     <Modal
-      title={alertContent?.title!}
-      description={alertContent?.description!}
+      title={alertContent.title}
+      description={alertContent.description}
       isOpen={isOpen}
       onClose={dismissAlert}
     ></Modal>

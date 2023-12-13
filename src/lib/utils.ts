@@ -36,3 +36,18 @@ export async function getBase64(file: File) {
     reader.onerror = reject;
   });
 }
+
+export const onlyNumber = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const keyCode = event.which || event.keyCode;
+  const isValid = /^[0-9]+$/.test(String.fromCharCode(keyCode));
+  return isValid;
+};
+
+export const onlyNumberValues = (
+  event: React.KeyboardEvent<HTMLInputElement>
+) => {
+  if (event.key === "Delete" || event.key === "Backspace") {
+  } else if (!onlyNumber(event)) {
+    event.preventDefault();
+  }
+};
