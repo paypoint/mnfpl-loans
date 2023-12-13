@@ -26,13 +26,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertModal } from "@/components/modals/alert-modal";
 
 import "./style.css";
-import { getBase64 } from "@/lib/utils";
+import { cn, getBase64 } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const index: FC = () => {
-  const [step, setStep] = useState(5);
+  const [step, setStep] = useState(1);
   const [countDownTimer, setCountDownTimer] = useState(50);
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [bankList, setBankList] = useState<[BankList]>();
+  const [isLoading, setIsLoading] = useState(false);
   const [selfieImage, setSelfieImage] = useState<FileWithPreview[] | null>(
     null
   );
@@ -433,10 +435,11 @@ const index: FC = () => {
   const sendOTP = async () => {
     const body = { MobileNumber: formValues.mobile_no.value };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-
+    setIsLoading(true);
     await api.app
       .sendOTP({ requestBody: encryptedBody })
       .then((res: AxiosResponse<SendOTPAPIResponseType>) => {
+        setIsLoading(false);
         const { data } = res;
         if (data.status === "S") {
           toast.success(data.message);
@@ -446,6 +449,7 @@ const index: FC = () => {
         }
       })
       .catch((error: AxiosError) => {
+        setIsLoading(false);
         setOpen(true);
         toast.error(error.message, { duration: 2000 });
       });
@@ -457,11 +461,13 @@ const index: FC = () => {
       OTP: formValues.otp.value,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
     await api.app
       .verifyOTP({
         requestBody: encryptedBody,
       })
       .then((res: AxiosResponse<SendOTPAPIResponseType>) => {
+        setIsLoading(false);
         const { data } = res;
         if (data.status === "S") {
           toast.success(data.message);
@@ -472,6 +478,7 @@ const index: FC = () => {
         }
       })
       .catch((error: AxiosError) => {
+        setIsLoading(false);
         setOpen(true);
         toast.error(error.message, { duration: 2000 });
       });
@@ -482,7 +489,7 @@ const index: FC = () => {
       MerchantID: formValues.merchant_id.value,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-
+    setIsLoading(true);
     await api.app
       .businessMerchantDetails({
         requestBody: encryptedBody,
@@ -492,6 +499,7 @@ const index: FC = () => {
           res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
         ) => {
           const { data } = res;
+          setIsLoading(false);
           if (data.Status === "Success") {
             // toast.success(data.Message);
             const details: ParsedMerchantDetails = JSON.parse(data.data);
@@ -516,6 +524,7 @@ const index: FC = () => {
         }
       )
       .catch((error: AxiosError) => {
+        setIsLoading(false);
         setOpen(true);
         toast.error(error.message, { duration: 2000 });
       });
@@ -526,7 +535,7 @@ const index: FC = () => {
       MerchantID: formValues.merchant_id.value,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-
+    setIsLoading(true);
     await api.app
       .businessBankDetails({
         requestBody: encryptedBody,
@@ -536,6 +545,7 @@ const index: FC = () => {
           res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
         ) => {
           const { data } = res;
+          setIsLoading(false);
           if (data.Status === "Success") {
             const _banklist: [BankList] = JSON.parse(data.data);
             setBankList(_banklist);
@@ -545,6 +555,7 @@ const index: FC = () => {
         }
       )
       .catch((error: AxiosError) => {
+        setIsLoading(false);
         setOpen(true);
         toast.error(error.message, { duration: 2000 });
       });
@@ -555,7 +566,7 @@ const index: FC = () => {
       MerchantID: formValues.merchant_id.value,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-
+    setIsLoading(true);
     await api.app
       .businessAddressDetails({
         requestBody: encryptedBody,
@@ -565,6 +576,7 @@ const index: FC = () => {
           res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
         ) => {
           const { data } = res;
+          setIsLoading(false);
           if (data.Status === "Success") {
             const details: ParsedMerchantAddressDetails = JSON.parse(data.data);
             let _formValues = { ...formValues };
@@ -579,6 +591,7 @@ const index: FC = () => {
         }
       )
       .catch((error: AxiosError) => {
+        setIsLoading(false);
         setOpen(true);
         toast.error(error.message, { duration: 2000 });
       });
@@ -592,7 +605,7 @@ const index: FC = () => {
       DocID: id,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-
+    setIsLoading(false);
     await api.app
       .savekycdocuments({
         requestBody: encryptedBody,
@@ -602,6 +615,7 @@ const index: FC = () => {
           res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
         ) => {
           const { data } = res;
+          setIsLoading(true);
           if (data.Status === "Success") {
             // const details: ParsedMerchantAddressDetails = JSON.parse(data.data);
             // let _formValues = { ...formValues };
@@ -615,6 +629,7 @@ const index: FC = () => {
         }
       )
       .catch((error: AxiosError) => {
+        setIsLoading(false);
         setOpen(true);
         toast.error(error.message, { duration: 2000 });
       });
@@ -633,7 +648,7 @@ const index: FC = () => {
   };
 
   return (
-    <body>
+    <>
       <AlertModal
         isOpen={open}
         onClose={() => setOpen(false)}
@@ -771,41 +786,32 @@ const index: FC = () => {
                       <div className="check_box">
                         <div className="check">
                           <div className="form-check form-check-inline">
-                            <input
+                            <Checkbox
                               id="termsCondition1"
                               className="form-check-input"
-                              type="checkbox"
                               name="termsCondition1"
                               defaultValue="true"
                               required
-                              onChange={(e) => {
-                                onInputChange(
-                                  "termsCondition1",
-                                  e.target.checked
-                                );
+                              onCheckedChange={(checked) => {
+                                onInputChange("termsCondition1", checked);
                               }}
                             />
                             <label
                               htmlFor="termsCondition1"
                               className="form-check-label"
                             >
-                              Lorem ipsum dolor sit amet consectetur adipisicing
-                              elit.
+                              Accept terms and conditions.
                             </label>
                           </div>
                           <div className="form-check form-check-inline mb-3">
-                            <input
+                            <Checkbox
                               id="termsCondition2"
                               className="form-check-input"
-                              type="checkbox"
                               name="termsCondition2"
                               defaultValue="true"
                               required
-                              onChange={(e) => {
-                                onInputChange(
-                                  "termsCondition2",
-                                  e.target.checked
-                                );
+                              onCheckedChange={(checked) => {
+                                onInputChange("termsCondition2", checked);
                               }}
                             />
                             <label
@@ -824,7 +830,11 @@ const index: FC = () => {
                         disabled={!offers}
                         style={{ opacity: offers ? "" : "0.7" }}
                         onClick={(e) => handleNext(e)}
-                        className="firstNext next"
+                        // className="firstNext next"
+                        className={cn(
+                          "firstNext next",
+                          !offers && "animate-pulse"
+                        )}
                       >
                         Apply Now
                       </button>
@@ -868,8 +878,13 @@ const index: FC = () => {
                     </div>
                     <div className="field btns">
                       <button
+                        disabled={isLoading}
+                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
-                        className="next-1 next"
+                        className={cn(
+                          "next-2 next",
+                          isLoading && "animate-pulse"
+                        )}
                       >
                         send otp
                       </button>
@@ -924,8 +939,13 @@ const index: FC = () => {
                     </div>
                     <div className="field btns">
                       <button
+                        disabled={isLoading}
+                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
-                        className="next-2 next"
+                        className={cn(
+                          "next-2 next",
+                          isLoading && "animate-pulse"
+                        )}
                       >
                         verify
                       </button>
@@ -1130,20 +1150,18 @@ const index: FC = () => {
                                 ""
                               )}
                               <div className="form-check form-check-inline">
-                                <input
-                                  id="termsCondition1"
+                                <Checkbox
+                                  id="sameasabove"
                                   className="form-check-input"
-                                  type="checkbox"
-                                  name="termsCondition1"
-                                  defaultValue="true"
+                                  name="sameasabove"
                                   required
-                                  onChange={(e) => {
-                                    onSameAsAboveClick(e.target.checked);
+                                  onCheckedChange={(checked) => {
+                                    onSameAsAboveClick(checked as boolean);
                                   }}
                                 />
                                 <label
-                                  htmlFor="termsCondition1"
-                                  className="form-check-label mt-1"
+                                  htmlFor="sameasabove"
+                                  className="form-check-label mt-2"
                                 >
                                   Same as above
                                 </label>
@@ -1342,8 +1360,13 @@ const index: FC = () => {
                     </div>
                     <div className="field btns">
                       <button
+                        disabled={isLoading}
+                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
-                        className="next-2 next"
+                        className={cn(
+                          "next-2 next",
+                          isLoading && "animate-pulse"
+                        )}
                       >
                         Proceed
                       </button>
@@ -1362,7 +1385,12 @@ const index: FC = () => {
 
                     <div className="field btns">
                       <button
-                        className="next-4 next"
+                        className={cn(
+                          "next-4 next",
+                          isLoading && "animate-pulse"
+                        )}
+                        disabled={isLoading}
+                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
                       >
                         Proceed
@@ -1381,8 +1409,13 @@ const index: FC = () => {
                     />
                     <div className="field btns">
                       <button
+                        disabled={isLoading}
+                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
-                        className="next-4 next"
+                        className={cn(
+                          "next-4 next",
+                          isLoading && "animate-pulse"
+                        )}
                       >
                         capture
                       </button>
@@ -1401,8 +1434,13 @@ const index: FC = () => {
 
                     <div className="field btns">
                       <button
+                        disabled={isLoading}
+                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
-                        className="next-4 next"
+                        className={cn(
+                          "next-4 next",
+                          isLoading && "animate-pulse"
+                        )}
                       >
                         capture
                       </button>
@@ -1635,8 +1673,13 @@ const index: FC = () => {
                     </div>
                     <div className="field btns">
                       <button
+                        disabled={isLoading}
+                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
-                        className="next-4 next"
+                        className={cn(
+                          "next-4 next",
+                          isLoading && "animate-pulse"
+                        )}
                       >
                         confirm
                       </button>
@@ -1696,7 +1739,12 @@ const index: FC = () => {
                       </div>
                     </div>
                     <div className="field btns">
-                      <button onClick={(e) => handleNext(e)} className="submit">
+                      <button
+                        disabled={isLoading}
+                        style={{ opacity: isLoading ? "0.7" : "" }}
+                        onClick={(e) => handleNext(e)}
+                        className="submit"
+                      >
                         i accept
                       </button>
                     </div>
@@ -1707,7 +1755,7 @@ const index: FC = () => {
           </div>
         </div>
       </div>
-    </body>
+    </>
   );
 };
 
