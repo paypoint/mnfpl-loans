@@ -29,10 +29,11 @@ import { useAlert } from "@/components/modals/alert-modal";
 import "./style.css";
 import { cn, getBase64 } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 
 const index: FC = () => {
   const [step, setStep] = useState(1);
-  const [countDownTimer, setCountDownTimer] = useState(50);
+  const [countDownTimer, setCountDownTimer] = useState(120);
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [bankList, setBankList] = useState<[BankList]>();
   const [isLoading, setIsLoading] = useState(false);
@@ -448,7 +449,7 @@ const index: FC = () => {
       });
   };
 
-  const sendOTP = async () => {
+  const sendOTP = async (resend?: boolean) => {
     const body = { MobileNumber: formValues.mobile_no.value };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
@@ -459,7 +460,14 @@ const index: FC = () => {
         const { data } = res;
         if (data.status === "S") {
           toast.success(data.message);
-          setStep((prevStep) => prevStep + 1);
+          if (resend) {
+            setCountDownTimer(120);
+            setInterval(() => {
+              setCountDownTimer((PrevCountDown) => PrevCountDown - 1);
+            }, 1000);
+          } else {
+            setStep((prevStep) => prevStep + 1);
+          }
         } else {
           toast.error(data.message);
         }
@@ -950,11 +958,39 @@ const index: FC = () => {
                         ""
                       )}
                       <h4 className="mt-4">Did't Recieved OTP ?</h4>
-
-                      <h5>
-                        Please Wait ( 00:
-                        {countDownTimer < 0 ? "00" : countDownTimer} )
-                      </h5>
+                      {countDownTimer > 60 && (
+                        <h5>
+                          Please Wait ( 01:
+                          {countDownTimer - 60 < 10
+                            ? `0${countDownTimer - 60}`
+                            : countDownTimer - 60}{" "}
+                          )
+                        </h5>
+                      )}
+                      {countDownTimer < 0 ? (
+                        <div className="flex justify-center">
+                          <Button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              sendOTP(true);
+                            }}
+                            className=" border border-purple-900 "
+                            variant={"outline"}
+                          >
+                            Resend
+                          </Button>
+                        </div>
+                      ) : (
+                        countDownTimer <= 60 && (
+                          <h5>
+                            Please Wait ( 00:
+                            {countDownTimer < 10
+                              ? `0${countDownTimer}`
+                              : countDownTimer}{" "}
+                            )
+                          </h5>
+                        )
+                      )}
                     </div>
                     <div className="field btns">
                       <button
