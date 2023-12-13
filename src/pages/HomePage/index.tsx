@@ -16,6 +16,7 @@ import { FileDialog } from "@/components/ui/file-dialog";
 import {
   BankList,
   FileWithPreview,
+  GeoLocationAPIResponeObject,
   GetBusinessMerchantDetailsAPIResponseType,
   GetOffersAPIResponseType,
   ParsedMerchantAddressDetails,
@@ -23,7 +24,7 @@ import {
   SendOTPAPIResponseType,
 } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertModal } from "@/components/modals/alert-modal";
+import { useAlert } from "@/components/modals/alert-modal";
 
 import "./style.css";
 import { cn, getBase64 } from "@/lib/utils";
@@ -44,7 +45,7 @@ const index: FC = () => {
   const [addressProof, setAddressProof] = useState<FileWithPreview[] | null>(
     null
   );
-  const [open, setOpen] = useState(false);
+  const [showAlert, AlertModal] = useAlert();
 
   const defaultFormValues = {
     //step-1
@@ -87,11 +88,11 @@ const index: FC = () => {
       value: "",
       error: false,
     },
-    address_business: {
+    business_address: {
       value: "",
       error: false,
     },
-    address_current: {
+    current_address: {
       value: "",
       error: false,
     },
@@ -142,6 +143,10 @@ const index: FC = () => {
     },
     //from api
     merchant_id: {
+      value: "",
+      error: false,
+    },
+    ip_address: {
       value: "",
       error: false,
     },
@@ -235,8 +240,8 @@ const index: FC = () => {
       Object.keys(_formValues).forEach((key) => {
         if (
           key === "nominee" ||
-          key === "address_business" ||
-          key === "address_current" ||
+          key === "business_address" ||
+          key === "current_address" ||
           key === "full_name"
         ) {
           let hasError = !validations.isRequired(_formValues[key].value);
@@ -379,12 +384,12 @@ const index: FC = () => {
   const onSameAsAboveClick = (value: boolean) => {
     const _formValues = { ...formValues };
     if (value) {
-      _formValues.address_current.value = _formValues.address_business.value;
+      _formValues.current_address.value = _formValues.business_address.value;
       _formValues.current_pincode.value =
         _formValues.business_address_pincode.value;
       setFormValues(_formValues);
     } else {
-      _formValues.address_current.value = "";
+      _formValues.current_address.value = "";
       _formValues.current_pincode.value = "";
       setFormValues(_formValues);
     }
@@ -400,8 +405,17 @@ const index: FC = () => {
   const relationDropDown = ["Father", "Mother", "Daughter"];
 
   useEffect(() => {
+    getIPAddress();
     getOffers();
   }, []);
+
+  const getIPAddress = async () => {
+    const response = await fetch("https://geolocation-db.com/json/");
+    const data: GeoLocationAPIResponeObject = await response.json();
+    let _formValues = { ...formValues };
+    _formValues.ip_address.value = data.IPv4;
+    setFormValues(_formValues);
+  };
 
   const getOffers = async () => {
     const body = {
@@ -427,8 +441,10 @@ const index: FC = () => {
         }
       })
       .catch((error: AxiosError) => {
-        setOpen(true);
-        toast.error(error.message, { duration: 2000 });
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
       });
   };
 
@@ -450,8 +466,10 @@ const index: FC = () => {
       })
       .catch((error: AxiosError) => {
         setIsLoading(false);
-        setOpen(true);
-        toast.error(error.message, { duration: 2000 });
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
       });
   };
 
@@ -479,8 +497,10 @@ const index: FC = () => {
       })
       .catch((error: AxiosError) => {
         setIsLoading(false);
-        setOpen(true);
-        toast.error(error.message, { duration: 2000 });
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
       });
   };
 
@@ -525,8 +545,10 @@ const index: FC = () => {
       )
       .catch((error: AxiosError) => {
         setIsLoading(false);
-        setOpen(true);
-        toast.error(error.message, { duration: 2000 });
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
       });
   };
 
@@ -556,8 +578,10 @@ const index: FC = () => {
       )
       .catch((error: AxiosError) => {
         setIsLoading(false);
-        setOpen(true);
-        toast.error(error.message, { duration: 2000 });
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
       });
   };
 
@@ -581,7 +605,7 @@ const index: FC = () => {
             const details: ParsedMerchantAddressDetails = JSON.parse(data.data);
             let _formValues = { ...formValues };
             _formValues.business_address_pincode.value = details.PinCode;
-            _formValues.address_business.value =
+            _formValues.business_address.value =
               details.Address1 + details.Address2;
 
             setFormValues(_formValues);
@@ -592,8 +616,10 @@ const index: FC = () => {
       )
       .catch((error: AxiosError) => {
         setIsLoading(false);
-        setOpen(true);
-        toast.error(error.message, { duration: 2000 });
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
       });
   };
 
@@ -605,7 +631,7 @@ const index: FC = () => {
       DocID: id,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-    setIsLoading(false);
+    setIsLoading(true);
     await api.app
       .savekycdocuments({
         requestBody: encryptedBody,
@@ -615,14 +641,8 @@ const index: FC = () => {
           res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
         ) => {
           const { data } = res;
-          setIsLoading(true);
+          setIsLoading(false);
           if (data.Status === "Success") {
-            // const details: ParsedMerchantAddressDetails = JSON.parse(data.data);
-            // let _formValues = { ...formValues };
-            // _formValues.business_address_pincode.value = details.PinCode;
-            // _formValues.address_business.value =
-            //   details.Address1 + details.Address2;
-            // setFormValues(_formValues);
           } else {
             toast.error(data.Message);
           }
@@ -630,8 +650,10 @@ const index: FC = () => {
       )
       .catch((error: AxiosError) => {
         setIsLoading(false);
-        setOpen(true);
-        toast.error(error.message, { duration: 2000 });
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
       });
   };
   const onlyNumber = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -649,12 +671,10 @@ const index: FC = () => {
 
   return (
     <>
-      <AlertModal
-        isOpen={open}
-        onClose={() => setOpen(false)}
-        title={"Something went wrong"}
-        description={"Please retry after some time"}
-      />
+      {AlertModal({
+        title: "",
+        description: "",
+      })}
       <div className="container">
         <div className="row">
           <div className="col-md-12">
@@ -830,7 +850,6 @@ const index: FC = () => {
                         disabled={!offers}
                         style={{ opacity: offers ? "" : "0.7" }}
                         onClick={(e) => handleNext(e)}
-                        // className="firstNext next"
                         className={cn(
                           "firstNext next",
                           !offers && "animate-pulse"
@@ -1054,25 +1073,25 @@ const index: FC = () => {
                           </div> */}
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
-                              <label htmlFor="address_business">
+                              <label htmlFor="business_address">
                                 Business Address
                               </label>
                               <textarea
-                                id="address_business"
+                                id="business_address"
                                 className="form-control"
                                 rows={1}
                                 cols={50}
-                                name="address_business"
+                                name="business_address"
                                 placeholder="Address Business"
-                                value={formValues.address_business.value}
+                                value={formValues.business_address.value}
                                 onChange={(e) =>
                                   onInputChange(
-                                    "address_business",
+                                    "business_address",
                                     e.target.value
                                   )
                                 }
                               />
-                              {formValues.address_business.error ? (
+                              {formValues.business_address.error ? (
                                 <span
                                   style={{ color: "red", fontSize: "14px" }}
                                 >
@@ -1132,15 +1151,15 @@ const index: FC = () => {
                                 cols={50}
                                 name="street-address"
                                 placeholder="Current Address"
-                                value={formValues.address_current.value}
+                                value={formValues.current_address.value}
                                 onChange={(e) =>
                                   onInputChange(
-                                    "address_current",
+                                    "current_address",
                                     e.target.value
                                   )
                                 }
                               />
-                              {formValues.address_current.error ? (
+                              {formValues.current_address.error ? (
                                 <span
                                   style={{ color: "red", fontSize: "14px" }}
                                 >
