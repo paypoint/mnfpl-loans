@@ -7,7 +7,7 @@ settings:
 dependencies:
   '@hookform/resolvers':
     specifier: ^3.3.2
-    version: 3.3.2(react-hook-form@7.48.2)
+    version: 3.3.2(react-hook-form@7.49.2)
   '@radix-ui/react-alert-dialog':
     specifier: ^1.0.5
     version: 1.0.5(@types/react-dom@18.2.17)(@types/react@18.2.45)(react-dom@18.2.0)(react@18.2.0)
@@ -60,8 +60,8 @@ dependencies:
     specifier: ^14.2.3
     version: 14.2.3(react@18.2.0)
   react-hook-form:
-    specifier: ^7.48.2
-    version: 7.48.2(react@18.2.0)
+    specifier: ^7.49.2
+    version: 7.49.2(react@18.2.0)
   react-hot-toast:
     specifier: ^2.4.1
     version: 2.4.1(csstype@3.1.2)(react-dom@18.2.0)(react@18.2.0)
@@ -633,12 +633,12 @@ packages:
     resolution: {integrity: sha512-OfX7E2oUDYxtBvsuS4e/jSn4Q9Qb6DzgeYtsAdkPZ47znpoNsMgZw0+tVijiv3uGNR6dgNlty6r9rzIzHjtd/A==}
     dev: false
 
-  /@hookform/resolvers@3.3.2(react-hook-form@7.48.2):
+  /@hookform/resolvers@3.3.2(react-hook-form@7.49.2):
     resolution: {integrity: sha512-Tw+GGPnBp+5DOsSg4ek3LCPgkBOuOgS5DsDV7qsWNH9LZc433kgsWICjlsh2J9p04H2K66hsXPPb9qn9ILdUtA==}
     peerDependencies:
       react-hook-form: ^7.0.0
     dependencies:
-      react-hook-form: 7.48.2(react@18.2.0)
+      react-hook-form: 7.49.2(react@18.2.0)
     dev: false
 
   /@humanwhocodes/config-array@0.11.13:
@@ -2679,9 +2679,9 @@ packages:
       react: 18.2.0
     dev: false
 
-  /react-hook-form@7.48.2(react@18.2.0):
-    resolution: {integrity: sha512-H0T2InFQb1hX7qKtDIZmvpU1Xfn/bdahWBN1fH19gSe4bBEqTfmlr7H3XWTaVtiK4/tpPaI1F3355GPMZYge+A==}
-    engines: {node: '>=12.22.0'}
+  /react-hook-form@7.49.2(react@18.2.0):
+    resolution: {integrity: sha512-TZcnSc17+LPPVpMRIDNVITY6w20deMdNi6iehTFLV1x8SqThXGwu93HjlUVU09pzFgZH7qZOvLMM7UYf2ShAHA==}
+    engines: {node: '>=18', pnpm: '8'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18
     dependencies:
