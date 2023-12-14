@@ -154,8 +154,8 @@ const index: FC = () => {
   };
 
   const [formValues, setFormValues] = useState(defaultFormValues);
-  type offerType = Omit<GetOffersAPIResponseType["message"], "Status">;
-  const [offers, setOffers] = useState<offerType>();
+  type OfferType = Omit<GetOffersAPIResponseType["message"], "Status">;
+  const [offers, setOffers] = useState<OfferType>();
 
   const inputRefs = Array.from({ length: 6 }, () =>
     useRef<HTMLInputElement>(null)
@@ -843,11 +843,14 @@ const index: FC = () => {
                     </div>
                     <div className="field">
                       <button
-                        disabled={!offers}
-                        style={{ opacity: offers ? "" : "0.7" }}
+                        disabled={
+                          !offers ||
+                          !formValues.termsCondition1.value ||
+                          !formValues.termsCondition2.value
+                        }
                         onClick={(e) => handleNext(e)}
                         className={cn(
-                          "firstNext next",
+                          "firstNext next disabled:opacity-70 disabled:pointer-events-none",
                           !offers && "animate-pulse"
                         )}
                       >
@@ -894,10 +897,9 @@ const index: FC = () => {
                     <div className="field btns">
                       <button
                         disabled={isLoading}
-                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
                         className={cn(
-                          "next-2 next",
+                          "next-2 next disabled:opacity-70 disabled:pointer-events-none",
                           isLoading && "animate-pulse"
                         )}
                       >
@@ -983,10 +985,9 @@ const index: FC = () => {
                     <div className="field btns">
                       <button
                         disabled={isLoading}
-                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
                         className={cn(
-                          "next-2 next",
+                          "next-2 next disabled:opacity-70 disabled:pointer-events-none",
                           isLoading && "animate-pulse"
                         )}
                       >
@@ -1404,10 +1405,9 @@ const index: FC = () => {
                     <div className="field btns">
                       <button
                         disabled={isLoading}
-                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
                         className={cn(
-                          "next-2 next",
+                          "next-2 next disabled:opacity-70 disabled:pointer-events-none",
                           isLoading && "animate-pulse"
                         )}
                       >
@@ -1429,11 +1429,10 @@ const index: FC = () => {
                     <div className="field btns">
                       <button
                         className={cn(
-                          "next-4 next",
+                          "next-4 next disabled:opacity-70 disabled:pointer-events-none",
                           isLoading && "animate-pulse"
                         )}
                         disabled={isLoading}
-                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
                       >
                         Proceed
@@ -1453,10 +1452,9 @@ const index: FC = () => {
                     <div className="field btns">
                       <button
                         disabled={isLoading}
-                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
                         className={cn(
-                          "next-4 next",
+                          "next-4 next disabled:opacity-70 disabled:pointer-events-none",
                           isLoading && "animate-pulse"
                         )}
                       >
@@ -1478,10 +1476,9 @@ const index: FC = () => {
                     <div className="field btns">
                       <button
                         disabled={isLoading}
-                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
                         className={cn(
-                          "next-4 next",
+                          "next-4 next disabled:opacity-70 disabled:pointer-events-none",
                           isLoading && "animate-pulse"
                         )}
                       >
@@ -1717,10 +1714,9 @@ const index: FC = () => {
                     <div className="field btns">
                       <button
                         disabled={isLoading}
-                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
                         className={cn(
-                          "next-4 next",
+                          "next-4 next disabled:opacity-70 disabled:pointer-events-none",
                           isLoading && "animate-pulse"
                         )}
                       >
@@ -1784,9 +1780,8 @@ const index: FC = () => {
                     <div className="field btns">
                       <button
                         disabled={isLoading}
-                        style={{ opacity: isLoading ? "0.7" : "" }}
                         onClick={(e) => handleNext(e)}
-                        className="submit"
+                        className="submit disabled:opacity-70 disabled:pointer-events-none"
                       >
                         i accept
                       </button>
