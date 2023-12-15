@@ -28,9 +28,10 @@ import { AlertModal } from "@/components/modals/alert-modal";
 
 import "./style.css";
 import preprocessImage from "@/lib/preprocess";
+import { findPanNumber } from "@/lib/utils";
 
 const index: FC = () => {
-  const [step, setStep] = useState(5);
+  const [step, setStep] = useState(6);
   const [countDownTimer, setCountDownTimer] = useState(50);
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [bankList, setBankList] = useState<[BankList]>();
@@ -305,14 +306,14 @@ const index: FC = () => {
       }
     } else if (step === 5) {
       if (selfieImage) {
-        handleClick();
-        // setStep((prevStep) => prevStep + 1);
+        setStep((prevStep) => prevStep + 1);
       } else {
         alert("Please upload selfie");
       }
     } else if (step === 6) {
       if (panCardImage) {
-        setStep((prevStep) => prevStep + 1);
+        await startOCR();
+        // setStep((prevStep) => prevStep + 1);
       } else {
         alert("Please upload pan card image");
       }
@@ -632,7 +633,7 @@ const index: FC = () => {
     }
   };
 
-  const handleClick = () => {
+  const startOCR = async () => {
     // let filePath = selfieImage?.[0]?.preview!;
     // debugger;
     const canvas = canvasRef.current;
@@ -642,7 +643,7 @@ const index: FC = () => {
     ctx.putImageData(preprocessImage(canvas!), 0, 0);
     const dataUrl = canvas?.toDataURL("image/jpeg")!;
 
-    Tesseract.recognize(dataUrl, "eng", {
+    await Tesseract.recognize(dataUrl, "eng", {
       logger: (m) => console.log(m),
     })
       .catch((err) => {
@@ -654,7 +655,14 @@ const index: FC = () => {
         // let confidence = result.confidence
         //@ts-ignore
         let text = result.data.text;
+
         console.log("text ", text);
+        if (text.length > 10) {
+          let panNumber = findPanNumber(text);
+          alert(panNumber);
+        } else {
+          console.log("text not found");
+        }
         // setText(text);
       });
   };
@@ -1386,25 +1394,6 @@ const index: FC = () => {
                       title={"Click Your Selfie"}
                       description={"Capture Clear Image of Yourself"}
                     />
-                    {selfieImage ? (
-                      <>
-                        <img
-                          src={selfieImage[0].preview}
-                          className="App-logo"
-                          alt="logo"
-                          ref={imageRef}
-                        />
-                        <h3>Canvas</h3>
-                        <canvas
-                          ref={canvasRef}
-                          width={700}
-                          height={250}
-                        ></canvas>
-                        <h3>Extracted text</h3>
-                      </>
-                    ) : (
-                      ""
-                    )}
 
                     <div className="field btns">
                       <button
@@ -1425,6 +1414,27 @@ const index: FC = () => {
                       title={"PAN Card"}
                       description={"Capture Clear Image of Your PAN Card"}
                     />
+                    {panCardImage ? (
+                      <>
+                        <img
+                          hidden
+                          src={panCardImage[0]?.preview}
+                          className="App-logo"
+                          alt="logo"
+                          ref={imageRef}
+                        />
+
+                        <canvas
+                          hidden
+                          ref={canvasRef}
+                          width={700}
+                          height={250}
+                        ></canvas>
+                      </>
+                    ) : (
+                      ""
+                    )}
+
                     <div className="field btns">
                       <button
                         onClick={(e) => handleNext(e)}
