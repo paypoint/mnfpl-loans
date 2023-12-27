@@ -32,7 +32,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 
 const index: FC = () => {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(4);
   const [countDownTimer, setCountDownTimer] = useState(120);
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [bankList, setBankList] = useState<[BankList]>();
@@ -117,7 +117,7 @@ const index: FC = () => {
       value: "",
       error: false,
     },
-    relation: {
+    nominee_relation: {
       value: "",
       error: false,
     },
@@ -303,7 +303,8 @@ const index: FC = () => {
         }
       });
       if (!formObjectHasError) {
-        setStep((prevStep) => prevStep + 1);
+        // setStep((prevStep) => prevStep + 1);
+        updateBusinessBankDetails();
         console.log(formValues);
       } else {
         setFormValues(_formValues);
@@ -313,7 +314,10 @@ const index: FC = () => {
         // setStep((prevStep) => prevStep + 1);
 
         await getBase64(selfieImage[0])
-          .then(async (res) => await uploadDocument("2", res as string))
+          .then(
+            async (res) =>
+              await uploadDocument("2", res as string, selfieImage[0].name)
+          )
           .catch((err) => console.log(err));
       } else {
         alert("Please upload selfie");
@@ -397,7 +401,11 @@ const index: FC = () => {
   };
 
   const houseDropDown = ["Owned", "Rented"];
-  const genderDropdDown = ["Male", "Female", "Other"];
+  const genderDropdDown = [
+    { key: "M", value: "Male" },
+    { key: "F", value: "Female" },
+    { key: "O", value: "Other" },
+  ];
   const bankDropDown = [
     "HDFC Bank",
     "State Bank of India Bank",
@@ -420,7 +428,7 @@ const index: FC = () => {
 
   const getOffers = async () => {
     const body = {
-      RefID: "1334338946318021960dbc7fc4-aa0d-4b49-8f46-ee03dc2260ac",
+      RefID: "1334338946318021960dbc7fc4-aa0d-4b49-8f46-ee03dc2260ac", // get this from url
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
 
@@ -560,7 +568,7 @@ const index: FC = () => {
       });
   };
 
-  const getBussinessBankDetails = async () => {
+  const getBusinessBankDetails = async () => {
     const body = {
       MerchantID: formValues.merchant_id.value,
     };
@@ -593,6 +601,50 @@ const index: FC = () => {
       });
   };
 
+  const updateBusinessBankDetails = async () => {
+    const body = {
+      MerchantID: formValues.merchant_id.value,
+      customer_name: formValues.full_name.value,
+      mobile_no: formValues.mobile_no.value,
+      pan: "EB",
+      loan_amount: "30000",
+      dob: formValues.dob.value,
+      gender: formValues.gender.value,
+      house: "Houseno318, room no JK",
+      emergency: formValues.emergency_contact_number.value,
+      email: formValues.email.value,
+      nomineeName: formValues.nominee.value,
+      nomineeRelation: formValues.nominee_relation.value,
+      bPinCode: formValues.business_address_pincode.value,
+      bAddress1: formValues.business_address.value,
+      bAddress2: "",
+      cPinCode: formValues.current_pincode.value,
+      cAddress1: formValues.current_address.value,
+      cAddress2: "",
+    };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .businessAddressDetails({
+        requestBody: encryptedBody,
+      })
+      .then(async (res: AxiosResponse<SendOTPAPIResponseType>) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "S") {
+          setStep((prevStep) => prevStep + 1);
+        } else {
+          toast.error(data.message);
+        }
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
+  };
   const getBusinessAddressDetails = async () => {
     const body = {
       MerchantID: formValues.merchant_id.value,
@@ -631,11 +683,22 @@ const index: FC = () => {
       });
   };
 
-  const uploadDocument = async (id: "1" | "2" | "3", image: string) => {
+  /**
+   * Document upload api.
+   * @param id 1 - pancard , 2 - selfie , 3 - aadhar e-kyc .
+   * @param image image to be uploaded .
+   * @param imagename name of image to be uploaded .
+   */
+  const uploadDocument = async (
+    id: "1" | "2" | "3",
+    image: string,
+    imagename: string
+  ) => {
     const body = {
       Customer_code: "7e77a7d4",
       Application_ID: "123",
       DocumentFileImage: image,
+      DocumentFilename: imagename,
       DocID: id,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1255,10 +1318,10 @@ const index: FC = () => {
                                   onInputChange("gender", e.target.value)
                                 }
                               >
-                                {genderDropdDown.map((i, id) => {
+                                {genderDropdDown.map((gender, id) => {
                                   return (
-                                    <option key={id} value={i}>
-                                      {i}
+                                    <option key={id} value={gender.key}>
+                                      {gender.value}
                                     </option>
                                   );
                                 })}
@@ -1386,7 +1449,10 @@ const index: FC = () => {
                                 className="form-control"
                                 name="relation"
                                 onChange={(e) =>
-                                  onInputChange("relation", e.target.value)
+                                  onInputChange(
+                                    "nominee_relation",
+                                    e.target.value
+                                  )
                                 }
                               >
                                 {relationDropDown.map((i, id) => {

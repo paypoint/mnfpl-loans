@@ -49,6 +49,12 @@ class App {
     });
   }
 
+  updateBusinessMerchantDetails({ requestBody }: RequestBody) {
+    return client.post("/update_businessMerchantDetails", {
+      requestBody,
+    });
+  }
+
   savekycdocuments({ requestBody }: RequestBody) {
     return client.post("/savekycdocuments", {
       requestBody,
