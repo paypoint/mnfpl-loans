@@ -154,8 +154,7 @@ const index: FC = () => {
   };
 
   const [formValues, setFormValues] = useState(defaultFormValues);
-  type OfferType = Omit<GetOffersAPIResponseType["message"], "Status">;
-  const [offers, setOffers] = useState<OfferType>();
+  const [offers, setOffers] = useState<GetOffersAPIResponseType["message"]>();
 
   const inputRefs = Array.from({ length: 6 }, () =>
     useRef<HTMLInputElement>(null)
