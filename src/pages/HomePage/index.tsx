@@ -31,6 +31,8 @@ import "./style.css";
 import { cn, getBase64, onlyNumberValues } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 const index: FC = () => {
   const [step, setStep] = useState(7);
@@ -1612,55 +1614,61 @@ const index: FC = () => {
                           })}
                         </tbody>
                       </table> */}
-                      {bankList?.map((i, id) => (
-                        <article
-                          key={id}
-                          className="flex items-start space-x-6 p-6"
-                        >
-                          <div className="min-w-0 relative flex-auto">
-                            <h2 className="font-semibold text-[#5322ba] truncate pr-20">
-                              {i.AccountHolderName}
-                            </h2>
-                            <dl className="mt-2 flex flex-wrap text-sm leading-6 font-medium">
-                              <div className="absolute top-0 right-0 flex items-center space-x-1">
-                                <input
-                                  type="radio"
-                                  className="form-check-input"
-                                  name=""
-                                  id=""
-                                  defaultValue="checkedValue"
-                                />
-                              </div>
-                              <div>
-                                <dt className="sr-only">Bank name</dt>
-                                <dd className="px-1.5 ring-1 ring-slate-200 rounded">
-                                  {i.Bank}
-                                </dd>
-                              </div>
-                              <div className="ml-2">
-                                <dt className="sr-only">Bank Account Number</dt>
-                                <dd className="flex items-center">
-                                  <svg
-                                    width="2"
-                                    height="2"
-                                    fill="currentColor"
-                                    className="mx-2 text-slate-300"
-                                    aria-hidden="true"
-                                  >
-                                    <circle cx="1" cy="1" r="1" />
-                                  </svg>
-                                  {i.AccountNumber}
-                                </dd>
-                              </div>
+                      <RadioGroup>
+                        {bankList?.map((i, id) => (
+                          <article
+                            key={id}
+                            className="flex items-start space-x-6 p-6"
+                          >
+                            <div className="min-w-0 relative flex-auto">
+                              <Label htmlFor={i.AccountNumber}>
+                                <h2 className="font-semibold text-[#5322ba] truncate pr-20">
+                                  {i.AccountHolderName}
+                                </h2>
+                              </Label>
 
-                              <div className="flex-none w-full mt-2 font-normal">
-                                <dt className="sr-only">Ifsc code</dt>
-                                <dd className="text-slate-400">{i.IFSCCode}</dd>
-                              </div>
-                            </dl>
-                          </div>
-                        </article>
-                      ))}
+                              <dl className="mt-2 flex flex-wrap text-sm leading-6 font-medium">
+                                <div className="absolute top-0 right-0 flex items-center space-x-1">
+                                  <RadioGroupItem
+                                    value={i.AccountNumber}
+                                    id={i.AccountNumber}
+                                  />
+                                </div>
+                                <div>
+                                  <dt className="sr-only">Bank name</dt>
+                                  <dd className="px-1.5 ring-1 ring-slate-200 rounded">
+                                    {i.Bank}
+                                  </dd>
+                                </div>
+                                <div className="ml-2">
+                                  <dt className="sr-only">
+                                    Bank Account Number
+                                  </dt>
+                                  <dd className="flex items-center">
+                                    <svg
+                                      width="2"
+                                      height="2"
+                                      fill="currentColor"
+                                      className="mx-2 text-slate-300"
+                                      aria-hidden="true"
+                                    >
+                                      <circle cx="1" cy="1" r="1" />
+                                    </svg>
+                                    {i.AccountNumber}
+                                  </dd>
+                                </div>
+
+                                <div className="flex-none w-full mt-2 font-normal">
+                                  <dt className="sr-only">Ifsc code</dt>
+                                  <dd className="text-slate-400">
+                                    {i.IFSCCode}
+                                  </dd>
+                                </div>
+                              </dl>
+                            </div>
+                          </article>
+                        ))}
+                      </RadioGroup>
                       <h5>
                         Only Banks That Support Auto repayments will Show up
                       </h5>
