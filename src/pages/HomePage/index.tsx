@@ -19,6 +19,7 @@ import {
   GeoLocationAPIResponeObject,
   GetBusinessMerchantDetailsAPIResponseType,
   GetOffersAPIResponseType,
+  OfferDetails,
   ParsedMerchantAddressDetails,
   ParsedMerchantDetails,
   SendOTPAPIResponseType,
@@ -32,7 +33,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 
 const index: FC = () => {
-  const [step, setStep] = useState(4);
+  const [step, setStep] = useState(7);
   const [countDownTimer, setCountDownTimer] = useState(120);
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [bankList, setBankList] = useState<[BankList]>();
@@ -78,7 +79,7 @@ const index: FC = () => {
       error: false,
     },
     gender: {
-      value: "",
+      value: "M",
       error: false,
     },
     pan_number: {
@@ -106,7 +107,7 @@ const index: FC = () => {
       error: false,
     },
     house: {
-      value: "",
+      value: "Owned",
       error: false,
     },
     nominee: {
@@ -118,7 +119,7 @@ const index: FC = () => {
       error: false,
     },
     nominee_relation: {
-      value: "",
+      value: "Father",
       error: false,
     },
     //step-8
@@ -154,7 +155,7 @@ const index: FC = () => {
   };
 
   const [formValues, setFormValues] = useState(defaultFormValues);
-  const [offers, setOffers] = useState<GetOffersAPIResponseType["message"]>();
+  const [offers, setOffers] = useState<OfferDetails>();
 
   const inputRefs = Array.from({ length: 6 }, () =>
     useRef<HTMLInputElement>(null)
@@ -218,10 +219,6 @@ const index: FC = () => {
         _formValues.mobile_no.error = false;
         setFormValues(_formValues);
         await sendOTP();
-        // setStep((prevStep) => prevStep + 1);
-        setInterval(() => {
-          setCountDownTimer((PrevCountDown) => PrevCountDown - 1);
-        }, 1000);
       }
     } else if (step === 3) {
       let otp = otpValues.join("");
@@ -230,7 +227,6 @@ const index: FC = () => {
         _formValues.otp.error = false;
         setFormValues(_formValues);
         await verifyOTP();
-        // setStep((prevStep) => prevStep + 1);
       } else {
         _formValues.otp.error = true;
         setFormValues(_formValues);
@@ -303,7 +299,7 @@ const index: FC = () => {
       });
       if (!formObjectHasError) {
         // setStep((prevStep) => prevStep + 1);
-        updateBusinessBankDetails();
+        updateBusinessMerchantDetails();
         console.log(formValues);
       } else {
         setFormValues(_formValues);
@@ -323,16 +319,29 @@ const index: FC = () => {
       }
     } else if (step === 6) {
       if (panCardImage) {
-        setStep((prevStep) => prevStep + 1);
+        await getBase64(panCardImage[0])
+          .then(
+            async (res) =>
+              await uploadDocument("1", res as string, panCardImage[0].name)
+          )
+          .catch((err) => console.log(err));
       } else {
         alert("Please upload pan card image");
       }
     } else if (step === 7) {
-      if (addressProof) {
-        setStep((prevStep) => prevStep + 1);
-      } else {
-        alert("Please upload address proof image");
-      }
+      getBusinessBankDetails();
+
+      setStep((prevStep) => prevStep + 1);
+      // if (addressProof) {
+      //   await getBase64(addressProof[0])
+      //     .then(
+      //       async (res) =>
+      //         await uploadDocument("3", res as string, addressProof[0].name)
+      //     )
+      //     .catch((err) => console.log(err));
+      // } else {
+      //   alert("Please upload address proof image");
+      // }
     } else if (step === 8) {
       let formObjectHasError = false;
       Object.keys(_formValues).forEach((key) => {
@@ -415,6 +424,7 @@ const index: FC = () => {
   useEffect(() => {
     getIPAddress();
     getOffers();
+    // getPersonalDetails();
   }, []);
 
   const getIPAddress = async () => {
@@ -437,12 +447,12 @@ const index: FC = () => {
       })
       .then((res: AxiosResponse<GetOffersAPIResponseType>) => {
         const { data } = res;
-
-        if (data.status === "S") {
-          setOffers(data.message);
+        if (data.status === "Success") {
+          const offerDetails: OfferDetails = JSON.parse(data.message);
+          setOffers(offerDetails);
           let _formValues = { ...formValues };
-          _formValues.mobile_no.value = data.message.mobileNumber;
-          _formValues.merchant_id.value = data.message.merchantID;
+          _formValues.mobile_no.value = offerDetails.MobileNumber;
+          _formValues.merchant_id.value = offerDetails.MerchantID;
           setFormValues(_formValues);
         } else {
           toast.error(data.message.toString());
@@ -465,13 +475,13 @@ const index: FC = () => {
       .then((res: AxiosResponse<SendOTPAPIResponseType>) => {
         setIsLoading(false);
         const { data } = res;
-        if (data.status === "S") {
+        if (data.status === "Success") {
+          setInterval(() => {
+            setCountDownTimer((PrevCountDown) => PrevCountDown - 1);
+          }, 1000);
           toast.success(data.message);
           if (resend) {
             setCountDownTimer(120);
-            setInterval(() => {
-              setCountDownTimer((PrevCountDown) => PrevCountDown - 1);
-            }, 1000);
           } else {
             setStep((prevStep) => prevStep + 1);
           }
@@ -502,7 +512,7 @@ const index: FC = () => {
       .then((res: AxiosResponse<SendOTPAPIResponseType>) => {
         setIsLoading(false);
         const { data } = res;
-        if (data.status === "S") {
+        if (data.status === "Success") {
           toast.success(data.message);
           setStep((prevStep) => prevStep + 1);
           getPersonalDetails();
@@ -535,7 +545,7 @@ const index: FC = () => {
         ) => {
           const { data } = res;
           setIsLoading(false);
-          if (data.Status === "Success") {
+          if (data.status === "Success") {
             // toast.success(data.Message);
             const details: ParsedMerchantDetails = JSON.parse(data.data);
             const inputDate = new Date(details.DateOfBirth);
@@ -554,7 +564,7 @@ const index: FC = () => {
             await getBusinessAddressDetails();
             // setStep((prevStep) => prevStep + 1);
           } else {
-            toast.error(data.Message);
+            toast.error(data.message);
           }
         }
       )
@@ -569,7 +579,7 @@ const index: FC = () => {
 
   const getBusinessBankDetails = async () => {
     const body = {
-      MerchantID: formValues.merchant_id.value,
+      MerchantID: "7e77a7d4" || formValues.merchant_id.value,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
@@ -583,11 +593,11 @@ const index: FC = () => {
         ) => {
           const { data } = res;
           setIsLoading(false);
-          if (data.Status === "Success") {
+          if (data.status === "Success") {
             const _banklist: [BankList] = JSON.parse(data.data);
             setBankList(_banklist);
           } else {
-            toast.error(data.Message);
+            toast.error(data.message);
           }
         }
       )
@@ -600,16 +610,16 @@ const index: FC = () => {
       });
   };
 
-  const updateBusinessBankDetails = async () => {
+  const updateBusinessMerchantDetails = async () => {
     const body = {
       MerchantID: formValues.merchant_id.value,
       customer_name: formValues.full_name.value,
       mobile_no: formValues.mobile_no.value,
-      pan: "EB",
-      loan_amount: "30000",
+      pan: formValues.pan_number.value,
+      loan_amount: offers?.LoanAmount,
       dob: formValues.dob.value,
       gender: formValues.gender.value,
-      house: "Houseno318, room no JK",
+      house: formValues.house.value,
       emergency: formValues.emergency_contact_number.value,
       email: formValues.email.value,
       nomineeName: formValues.nominee.value,
@@ -622,15 +632,16 @@ const index: FC = () => {
       cAddress2: "",
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    debugger;
     setIsLoading(true);
     await api.app
-      .businessAddressDetails({
+      .updateBusinessMerchantDetails({
         requestBody: encryptedBody,
       })
       .then(async (res: AxiosResponse<SendOTPAPIResponseType>) => {
         const { data } = res;
         setIsLoading(false);
-        if (data.status === "S") {
+        if (data.status === "Success") {
           setStep((prevStep) => prevStep + 1);
         } else {
           toast.error(data.message);
@@ -660,7 +671,7 @@ const index: FC = () => {
         ) => {
           const { data } = res;
           setIsLoading(false);
-          if (data.Status === "Success") {
+          if (data.status === "Success") {
             const details: ParsedMerchantAddressDetails = JSON.parse(data.data);
             let _formValues = { ...formValues };
             _formValues.business_address_pincode.value = details.PinCode;
@@ -669,7 +680,7 @@ const index: FC = () => {
 
             setFormValues(_formValues);
           } else {
-            toast.error(data.Message);
+            toast.error(data.message);
           }
         }
       )
@@ -694,12 +705,14 @@ const index: FC = () => {
     imagename: string
   ) => {
     const body = {
-      Customer_code: "7e77a7d4",
+      MerchantID: "7e77a7d4" || formValues.merchant_id.value,
       Application_ID: "123",
       DocumentFileImage: image,
       DocumentFilename: imagename,
       DocID: id,
     };
+
+    debugger;
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
@@ -712,9 +725,18 @@ const index: FC = () => {
         ) => {
           const { data } = res;
           setIsLoading(false);
-          if (data.Status === "Success") {
+          if (data.status === "Success") {
+            toast.success(
+              `${
+                id === "1" ? "Pancard" : id === "2" ? "Selfie" : "Adress proof"
+              } uploaded successfully`
+            );
+            if (id === "3") {
+              getBusinessBankDetails();
+            }
+            setStep((prevStep) => prevStep + 1);
           } else {
-            toast.error(data.Message);
+            toast.error(data.message);
           }
         }
       )
@@ -845,13 +867,13 @@ const index: FC = () => {
                           <div className="contenttext">
                             <p>
                               <i className="fa fa-inr" aria-hidden="true" />
-                              {offers.loanAmount}
+                              {offers.LoanAmount}
                             </p>
-                            <strong>Tenor : {offers.tenor}</strong>
+                            <strong>Tenor : {offers.Tenor}</strong>
                             <span>
                               Expriy Date :
                               {format(
-                                new Date(offers.expiryDate),
+                                new Date(offers.ExpiryDate),
                                 "dd/MM/yyyy"
                               )}
                             </span>
@@ -1566,7 +1588,7 @@ const index: FC = () => {
                       className="main_step_8"
                       style={{ height: 350, overflow: "auto" }}
                     >
-                      <table className="table table-light">
+                      {/* <table className="table table-light">
                         <tbody>
                           {bankList?.map((i, id) => {
                             return (
@@ -1589,14 +1611,14 @@ const index: FC = () => {
                             );
                           })}
                         </tbody>
-                      </table>
+                      </table> */}
                       {bankList?.map((i, id) => (
                         <article
                           key={id}
                           className="flex items-start space-x-6 p-6"
                         >
                           <div className="min-w-0 relative flex-auto">
-                            <h2 className="font-semibold text-slate-900 truncate pr-20">
+                            <h2 className="font-semibold text-[#5322ba] truncate pr-20">
                               {i.AccountHolderName}
                             </h2>
                             <dl className="mt-2 flex flex-wrap text-sm leading-6 font-medium">

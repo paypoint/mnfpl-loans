@@ -4,24 +4,18 @@ export type FileWithPreview = FileWithPath & {
 };
 
 export type GetOffersAPIResponseType = {
-  status: "S" | "F";
-  message: {
-    loanAmount: string;
-    expiryDate: string;
-    mobileNumber: string;
-    tenor: number;
-    merchantID: string;
-  };
+  status: "Success" | "Fail";
+  message: string;
 };
 
 export type SendOTPAPIResponseType = {
-  status: "S" | "F";
+  status: "Success" | "Fail";
   message: string;
 };
 
 export type GetBusinessMerchantDetailsAPIResponseType = {
-  Status: "Success" | "Fail";
-  Message: string;
+  status: "Success" | "Fail";
+  message: string;
   data: string;
 };
 
@@ -88,4 +82,12 @@ export type BankList = {
   BusinessType: string;
   Remark: string;
   IdentificationCode: string;
+};
+
+export type OfferDetails = {
+  LoanAmount: string;
+  ExpiryDate: string;
+  MobileNumber: string;
+  Tenor: number;
+  MerchantID: string;
 };
