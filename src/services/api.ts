@@ -1,4 +1,5 @@
 import { siteConfig } from "@/lib/config";
+import { APIEndPoints } from "@/types";
 import axios from "axios";
 
 const baseURL = siteConfig.API_STAGE_URL;
@@ -10,53 +11,11 @@ const client = axios.create({
   },
 });
 
-type RequestBody = { requestBody: string };
+type Request = { url: APIEndPoints; requestBody: string };
 
 class App {
-  getOffers({ requestBody }: RequestBody) {
-    return client.post("/GetOffers", {
-      requestBody,
-    });
-  }
-
-  sendOTP({ requestBody }: RequestBody) {
-    return client.post("/SendOTP", {
-      requestBody,
-    });
-  }
-
-  verifyOTP({ requestBody }: RequestBody) {
-    return client.post("/OTPVerify", {
-      requestBody,
-    });
-  }
-
-  businessBankDetails({ requestBody }: RequestBody) {
-    return client.post("/BusinessBankDetails", {
-      requestBody,
-    });
-  }
-
-  businessAddressDetails({ requestBody }: RequestBody) {
-    return client.post("/BusinessAddressDetails", {
-      requestBody,
-    });
-  }
-
-  businessMerchantDetails({ requestBody }: RequestBody) {
-    return client.post("/BusinessMerchantDetails", {
-      requestBody,
-    });
-  }
-
-  updateBusinessMerchantDetails({ requestBody }: RequestBody) {
-    return client.post("/update_businessMerchantDetails", {
-      requestBody,
-    });
-  }
-
-  savekycdocuments({ requestBody }: RequestBody) {
-    return client.post("/savekycdocuments", {
+  post({ url, requestBody }: Request) {
+    return client.post(url, {
       requestBody,
     });
   }

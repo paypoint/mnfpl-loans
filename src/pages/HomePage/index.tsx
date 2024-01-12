@@ -18,11 +18,11 @@ import {
   FileWithPreview,
   GeoLocationAPIResponeObject,
   GetBusinessMerchantDetailsAPIResponseType,
-  GetOffersAPIResponseType,
   OfferDetails,
   ParsedMerchantAddressDetails,
   ParsedMerchantDetails,
-  SendOTPAPIResponseType,
+  APIResponseType,
+  AadharGetotpAPIRespnseType,
 } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAlert } from "@/components/modals/alert-modal";
@@ -33,6 +33,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 const index: FC = () => {
   const [step, setStep] = useState(7);
@@ -124,6 +125,15 @@ const index: FC = () => {
       value: "Father",
       error: false,
     },
+    //step-7
+    aadhar_no: {
+      value: "",
+      error: false,
+    },
+    aadhar_otp: {
+      value: "",
+      error: false,
+    },
     //step-8
     bank_account: {
       value: "",
@@ -151,6 +161,10 @@ const index: FC = () => {
       error: false,
     },
     ip_address: {
+      value: "",
+      error: false,
+    },
+    client_id: {
       value: "",
       error: false,
     },
@@ -331,9 +345,24 @@ const index: FC = () => {
         alert("Please upload pan card image");
       }
     } else if (step === 7) {
-      getBusinessBankDetails();
+      let formObjectHasError = false;
+      Object.keys(_formValues).forEach((key) => {
+        if (key === "aadhar_otp") {
+          let hasError = !validations.isOTPValid(_formValues[key].value);
+          _formValues[key].error = !validations.isOTPValid(
+            _formValues[key].value
+          );
+          if (hasError) {
+            formObjectHasError = true;
+          }
+        }
+      });
+      if (!formObjectHasError) {
+        validateAadharOTP();
+      } else {
+        setFormValues(_formValues);
+      }
 
-      setStep((prevStep) => prevStep + 1);
       // if (addressProof) {
       //   await getBase64(addressProof[0])
       //     .then(
@@ -444,10 +473,11 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
 
     await api.app
-      .getOffers({
+      .post({
+        url: "/GetOffers",
         requestBody: encryptedBody,
       })
-      .then((res: AxiosResponse<GetOffersAPIResponseType>) => {
+      .then((res: AxiosResponse<APIResponseType>) => {
         const { data } = res;
         if (data.status === "Success") {
           const offerDetails: OfferDetails = JSON.parse(data.message);
@@ -457,7 +487,7 @@ const index: FC = () => {
           _formValues.merchant_id.value = offerDetails.MerchantID;
           setFormValues(_formValues);
         } else {
-          toast.error(data.message.toString());
+          toast.error(data.message);
         }
       })
       .catch((error: AxiosError) => {
@@ -473,8 +503,12 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .sendOTP({ requestBody: encryptedBody })
-      .then((res: AxiosResponse<SendOTPAPIResponseType>) => {
+
+      .post({
+        url: "/SendOTP",
+        requestBody: encryptedBody,
+      })
+      .then((res: AxiosResponse<APIResponseType>) => {
         setIsLoading(false);
         const { data } = res;
         if (data.status === "Success") {
@@ -508,10 +542,11 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .verifyOTP({
+      .post({
+        url: "/OTPVerify",
         requestBody: encryptedBody,
       })
-      .then((res: AxiosResponse<SendOTPAPIResponseType>) => {
+      .then((res: AxiosResponse<APIResponseType>) => {
         setIsLoading(false);
         const { data } = res;
         if (data.status === "Success") {
@@ -538,7 +573,8 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .businessMerchantDetails({
+      .post({
+        url: "/BusinessMerchantDetails",
         requestBody: encryptedBody,
       })
       .then(
@@ -586,7 +622,9 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .businessBankDetails({
+
+      .post({
+        url: "/BusinessBankDetails",
         requestBody: encryptedBody,
       })
       .then(
@@ -637,10 +675,11 @@ const index: FC = () => {
     debugger;
     setIsLoading(true);
     await api.app
-      .updateBusinessMerchantDetails({
+      .post({
+        url: "/update_businessMerchantDetails",
         requestBody: encryptedBody,
       })
-      .then(async (res: AxiosResponse<SendOTPAPIResponseType>) => {
+      .then(async (res: AxiosResponse<APIResponseType>) => {
         const { data } = res;
         setIsLoading(false);
         if (data.status === "Success") {
@@ -657,6 +696,7 @@ const index: FC = () => {
         });
       });
   };
+
   const getBusinessAddressDetails = async () => {
     const body = {
       MerchantID: formValues.merchant_id.value,
@@ -664,7 +704,8 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .businessAddressDetails({
+      .post({
+        url: "/BusinessAddressDetails",
         requestBody: encryptedBody,
       })
       .then(
@@ -718,7 +759,8 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .savekycdocuments({
+      .post({
+        url: "/savekycdocuments",
         requestBody: encryptedBody,
       })
       .then(
@@ -750,6 +792,79 @@ const index: FC = () => {
         });
       });
   };
+
+  const generateAadharOTP = async () => {
+    const body = {
+      AadhaarNo: "852156641623",
+      MerchantID: "7e77a7d4" || formValues.merchant_id.value,
+      ApplicantID: "",
+    };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post({
+        url: "/aadhargetotp",
+        requestBody: encryptedBody,
+      })
+      .then((res: AxiosResponse<AadharGetotpAPIRespnseType>) => {
+        const { data } = res;
+        if (data.status === "Success") {
+          toast.success("OTP sent");
+          let _formValues = { ...formValues };
+          _formValues.client_id.value = data.client_id;
+          setFormValues(_formValues);
+        } else {
+          toast.error(data.message);
+        }
+      })
+      .catch((error: AxiosError) => {
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      })
+      .finally(() => setIsLoading(false));
+  };
+
+  const validateAadharOTP = async () => {
+    const body = {
+      clientId: formValues.client_id.value,
+      OTP: formValues.aadhar_otp.value,
+      MerchantID: "7e77a7d4" || formValues.merchant_id.value,
+      ApplicantID: "",
+      MobileNo: "",
+    };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post({
+        url: "/aadharotpvalidate",
+        requestBody: encryptedBody,
+      })
+      .then((res: AxiosResponse<AadharGetotpAPIRespnseType>) => {
+        const { data } = res;
+        if (data.status === "Success") {
+          toast.success("Aadhar verified successfully");
+          getBusinessBankDetails();
+
+          setStep((prevStep) => prevStep + 1);
+        } else {
+          toast.error(data.message);
+        }
+      })
+      .catch((error: AxiosError) => {
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      })
+      .finally(() => setIsLoading(false));
+  };
+  useEffect(() => {
+    if (formValues.aadhar_no.value.length >= 12) {
+      generateAadharOTP();
+    }
+  }, [formValues.aadhar_no.value]);
 
   return (
     <>
@@ -1554,17 +1669,76 @@ const index: FC = () => {
                 )}
                 {step === 7 && (
                   <div className="page">
-                    <FileDialog
+                    <div className="col-md-12 mt-2">
+                      <div className="form-group">
+                        <label htmlFor="enter_aadhar_number">
+                          Aadhar number
+                        </label>
+                        <input
+                          className="form-control"
+                          type="text"
+                          name="enter_aadhar_number"
+                          defaultValue=""
+                          placeholder="Enter aadhar number"
+                          id="enter_aadhar_number"
+                          required
+                          maxLength={12}
+                          onKeyDown={(e) => onlyNumberValues(e)}
+                          onChange={(e) =>
+                            onInputChange("aadhar_no", e.target.value)
+                          }
+                        />
+                        {formValues.aadhar_no.error ? (
+                          <span style={{ color: "red", fontSize: "14px" }}>
+                            Please enter correct aadhar number
+                          </span>
+                        ) : (
+                          ""
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="col-md-12 mt-2">
+                      <div className="form-group">
+                        <label htmlFor="aadhar_otp">Aadhar OTP</label>
+                        <input
+                          readOnly={formValues.aadhar_no.value.length < 12}
+                          className="form-control"
+                          type="text"
+                          name="aadhar_otp"
+                          defaultValue=""
+                          placeholder="Enter aadhar otp"
+                          id="aadhar_otp"
+                          autoComplete="one-time-code"
+                          required
+                          maxLength={6}
+                          onKeyDown={(e) => onlyNumberValues(e)}
+                          onChange={(e) =>
+                            onInputChange("aadhar_otp", e.target.value)
+                          }
+                        />
+                        {formValues.aadhar_otp.error ? (
+                          <span style={{ color: "red", fontSize: "14px" }}>
+                            Please enter correct otp
+                          </span>
+                        ) : (
+                          ""
+                        )}
+                      </div>
+                    </div>
+                    {/* <FileDialog
                       files={addressProof}
                       setFiles={setAddressProof}
                       image={Screen_7}
                       title={"Proof of Address (Front)"}
                       description={"Capture Clear Image of Your Voter ID"}
-                    />
+                    /> */}
 
                     <div className="field btns">
                       <button
-                        disabled={isLoading}
+                        disabled={
+                          isLoading || formValues.aadhar_no.value.length < 12
+                        }
                         onClick={(e) => handleNext(e)}
                         className={cn(
                           "next-4 next disabled:opacity-70 disabled:pointer-events-none",

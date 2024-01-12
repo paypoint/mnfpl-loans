@@ -3,21 +3,17 @@ export type FileWithPreview = FileWithPath & {
   preview: string;
 };
 
-export type GetOffersAPIResponseType = {
+export type APIResponseType = {
   status: "Success" | "Fail";
   message: string;
 };
-
-export type SendOTPAPIResponseType = {
-  status: "Success" | "Fail";
-  message: string;
-};
-
 export type GetBusinessMerchantDetailsAPIResponseType = {
-  status: "Success" | "Fail";
-  message: string;
   data: string;
-};
+} & APIResponseType;
+
+export type AadharGetotpAPIRespnseType = {
+  client_id: string;
+} & APIResponseType;
 
 export type GeoLocationAPIResponeObject = {
   country_code: string;
@@ -91,3 +87,15 @@ export type OfferDetails = {
   Tenor: number;
   MerchantID: string;
 };
+
+export type APIEndPoints =
+  | "/GetOffers"
+  | "/SendOTP"
+  | "/OTPVerify"
+  | "/BusinessBankDetails"
+  | "/BusinessAddressDetails"
+  | "/BusinessMerchantDetails"
+  | "/update_businessMerchantDetails"
+  | "/savekycdocuments"
+  | "/aadhargetotp"
+  | "/aadharotpvalidate";
