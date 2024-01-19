@@ -9,7 +9,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   // <React.StrictMode>
   <BrowserRouter>
     <Toaster />
-    <App />
+    <div vaul-drawer-wrapper="" className="bg-white min-h-[100vh]">
+      <App />
+    </div>
   </BrowserRouter>
   // </React.StrictMode>
 );
