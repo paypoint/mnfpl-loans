@@ -197,7 +197,7 @@ form .page .btns button.next {
 .step_1 {
   background: url(../../assets/images/home_bg.png) center no-repeat;
   background-size: cover;
-  min-height: 450px;
+  min-height: 470px;
   border-radius: 15px;
   position: relative;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
@@ -218,7 +218,7 @@ form .page .btns button.next {
 .contenttext p {
   font-size: 35px;
   color: #fff;
-  margin-bottom: 60px;
+  margin-bottom: 50px;
 }
 
 .contenttext strong {

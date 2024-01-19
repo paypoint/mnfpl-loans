@@ -34,9 +34,10 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { DrawerDemo } from "@/components/DrawerDemo";
 
 const index: FC = () => {
-  const [step, setStep] = useState(7);
+  const [step, setStep] = useState(1);
   const [countDownTimer, setCountDownTimer] = useState(120);
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [bankList, setBankList] = useState<[BankList]>();
@@ -860,9 +861,20 @@ const index: FC = () => {
       })
       .finally(() => setIsLoading(false));
   };
+
   useEffect(() => {
     if (formValues.aadhar_no.value.length >= 12) {
-      generateAadharOTP();
+      if (isNaN(Number(formValues.aadhar_no.value))) {
+        let _formValues = { ...formValues };
+        _formValues.aadhar_no.error = true;
+        setFormValues(_formValues);
+        toast.error("Please enter valid aadhar number");
+      } else {
+        let _formValues = { ...formValues };
+        _formValues.aadhar_no.error = false;
+        setFormValues(_formValues);
+        generateAadharOTP();
+      }
     }
   }, [formValues.aadhar_no.value]);
 
@@ -982,22 +994,27 @@ const index: FC = () => {
                             <img src={coin} alt="coin-image" />
                           </div>
                           <div className="contenttext">
+                            {/* <label>Your loan amount</label> */}
                             <p>
+                              Your loan amount <br />
                               <i className="fa fa-inr" aria-hidden="true" />
-                              {offers.LoanAmount}
+                              {" " + Math.round(Number(offers.LoanAmount))}
                             </p>
-                            <strong>Tenor : {offers.Tenor}</strong>
+                            <strong>
+                              Tenor: {Math.round(offers.Tenor)} days
+                            </strong>
                             <span>
-                              Expriy Date :
-                              {format(
-                                new Date(offers.ExpiryDate),
-                                "dd/MM/yyyy"
-                              )}
+                              Expriy Date:
+                              {" " +
+                                format(
+                                  new Date(offers.ExpiryDate),
+                                  "dd/MM/yyyy"
+                                )}
                             </span>
                           </div>
                         </div>
                       ) : (
-                        <Skeleton className="bg-cover min-h-[450px] relative shadow-[0_3px_6px_rgba(0,0,0,0.16),0_3px_6px_rgba(0,0,0,0.23)] m-[15px] rounded-[15px]" />
+                        <Skeleton className="bg-cover min-h-[470px] relative shadow-[0_3px_6px_rgba(0,0,0,0.16),0_3px_6px_rgba(0,0,0,0.23)] m-[15px] rounded-[15px]" />
                       )}
 
                       <div className="check_box">
@@ -1057,6 +1074,7 @@ const index: FC = () => {
                       >
                         Apply Now
                       </button>
+                      <DrawerDemo />
                     </div>
                   </div>
                 )}
@@ -1113,7 +1131,7 @@ const index: FC = () => {
                   <div className="page">
                     <div className="main_step_3">
                       <h4>Verification</h4>
-                      <h5>We Have Sent OTP on Your Registred Mobile Number</h5>
+                      <h5>We Have Sent OTP on your given Mobile Number</h5>
                       <img src={Second_screen} alt="enter-mobile-otp-image" />
                       <div className="mt-5 otp_box col-md-8 mx-auto">
                         {[...Array(6)].map((_, index) => (
@@ -1702,7 +1720,10 @@ const index: FC = () => {
                       <div className="form-group">
                         <label htmlFor="aadhar_otp">Aadhar OTP</label>
                         <input
-                          readOnly={formValues.aadhar_no.value.length < 12}
+                          readOnly={
+                            formValues.aadhar_no.error ||
+                            formValues.aadhar_no.value.length < 12
+                          }
                           className="form-control"
                           type="text"
                           name="aadhar_otp"
