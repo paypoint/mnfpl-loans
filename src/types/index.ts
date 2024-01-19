@@ -8,8 +8,48 @@ export type APIResponseType = {
   message: string;
 };
 export type GetBusinessMerchantDetailsAPIResponseType = {
-  data: string;
+  data: BusinessMerchantDetailsDataKey;
 } & APIResponseType;
+
+export type BusinessMerchantDetailsDataKey = {
+  BusinessDetailsResEntity: {
+    IdentificationCode: string;
+    Salutation: string;
+    FirstName: string;
+    MiddleName: string;
+    LastName: string;
+    Business: string;
+    DateOfBirth: string;
+    Mobile: string;
+    EmailId: string;
+    BusinessID: number;
+    CreatedOn: string;
+    PANNo: string;
+    AadhaarNo: string;
+    AadharMobile: string;
+    BCStatus: string;
+    Status: number;
+  };
+  BusinessAddressResEntity: {
+    CityID: number;
+    StateID: number;
+    category: string;
+    Address1: string;
+    Address2: string;
+    Area: string;
+    City: string;
+    District: string;
+    State: string;
+    Country: string;
+    Region: string;
+    PinCode: string;
+    UpdateOn: string;
+    LNG: string;
+    LAT: string;
+    DistrictId: string | null;
+    UpdateByName: string | null;
+  };
+};
 
 export type AadharGetotpAPIRespnseType = {
   client_id: string;
@@ -93,7 +133,7 @@ export type APIEndPoints =
   | "/SendOTP"
   | "/OTPVerify"
   | "/BusinessBankDetails"
-  | "/BusinessAddressDetails"
+  // | "/BusinessAddressDetails" <-- deprecated
   | "/BusinessMerchantDetails"
   | "/update_businessMerchantDetails"
   | "/savekycdocuments"

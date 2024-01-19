@@ -586,21 +586,27 @@ const index: FC = () => {
           setIsLoading(false);
           if (data.status === "Success") {
             // toast.success(data.Message);
-            const details: ParsedMerchantDetails = JSON.parse(data.data);
-            const inputDate = new Date(details.DateOfBirth);
+            const BusinessDetailsResEntity = data.data.BusinessDetailsResEntity;
+            const BusinessAddressResEntity = data.data.BusinessAddressResEntity;
+            const inputDate = new Date(BusinessDetailsResEntity.DateOfBirth);
             const formattedDate = format(inputDate, "yyyy-MM-dd");
             let _formValues = { ...formValues };
             _formValues.dob.value = formattedDate;
-            _formValues.email.value = details.EmailId;
-            _formValues.pan_number.value = details.PANNo;
+            _formValues.email.value = BusinessDetailsResEntity.EmailId;
+            _formValues.pan_number.value = BusinessDetailsResEntity.PANNo;
             _formValues.full_name.value =
-              details.FirstName.trim() +
+              BusinessDetailsResEntity.FirstName.trim() +
               " " +
-              details.MiddleName.trim() +
+              BusinessDetailsResEntity.MiddleName.trim() +
               " " +
-              details.LastName.trim();
+              BusinessDetailsResEntity.LastName.trim();
+            _formValues.business_address_pincode.value =
+              BusinessAddressResEntity.PinCode;
+            _formValues.business_address.value =
+              BusinessAddressResEntity.Address1 +
+              BusinessAddressResEntity.Address2;
             setFormValues(_formValues);
-            await getBusinessAddressDetails();
+            // await getBusinessAddressDetails();
             // setStep((prevStep) => prevStep + 1);
           } else {
             toast.error(data.message);
@@ -628,20 +634,16 @@ const index: FC = () => {
         url: "/BusinessBankDetails",
         requestBody: encryptedBody,
       })
-      .then(
-        async (
-          res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
-        ) => {
-          const { data } = res;
-          setIsLoading(false);
-          if (data.status === "Success") {
-            const _banklist: [BankList] = JSON.parse(data.data);
-            setBankList(_banklist);
-          } else {
-            toast.error(data.message);
-          }
+      .then(async (res: AxiosResponse<any>) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
+          const _banklist: [BankList] = JSON.parse(data.data);
+          setBankList(_banklist);
+        } else {
+          toast.error(data.message);
         }
-      )
+      })
       .catch((error: AxiosError) => {
         setIsLoading(false);
         showAlert({
@@ -698,44 +700,44 @@ const index: FC = () => {
       });
   };
 
-  const getBusinessAddressDetails = async () => {
-    const body = {
-      MerchantID: formValues.merchant_id.value,
-    };
-    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-    setIsLoading(true);
-    await api.app
-      .post({
-        url: "/BusinessAddressDetails",
-        requestBody: encryptedBody,
-      })
-      .then(
-        async (
-          res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
-        ) => {
-          const { data } = res;
-          setIsLoading(false);
-          if (data.status === "Success") {
-            const details: ParsedMerchantAddressDetails = JSON.parse(data.data);
-            let _formValues = { ...formValues };
-            _formValues.business_address_pincode.value = details.PinCode;
-            _formValues.business_address.value =
-              details.Address1 + details.Address2;
+  // const getBusinessAddressDetails = async () => {
+  //   const body = {
+  //     MerchantID: formValues.merchant_id.value,
+  //   };
+  //   const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+  //   setIsLoading(true);
+  //   await api.app
+  //     .post({
+  //       url: "/BusinessAddressDetails",
+  //       requestBody: encryptedBody,
+  //     })
+  //     .then(
+  //       async (
+  //         res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
+  //       ) => {
+  //         const { data } = res;
+  //         setIsLoading(false);
+  //         if (data.status === "Success") {
+  //           const details: ParsedMerchantAddressDetails = JSON.parse(data.data);
+  //           let _formValues = { ...formValues };
+  //           _formValues.business_address_pincode.value = details.PinCode;
+  //           _formValues.business_address.value =
+  //             details.Address1 + details.Address2;
 
-            setFormValues(_formValues);
-          } else {
-            toast.error(data.message);
-          }
-        }
-      )
-      .catch((error: AxiosError) => {
-        setIsLoading(false);
-        showAlert({
-          title: error.message,
-          description: "Please try after some time",
-        });
-      });
-  };
+  //           setFormValues(_formValues);
+  //         } else {
+  //           toast.error(data.message);
+  //         }
+  //       }
+  //     )
+  //     .catch((error: AxiosError) => {
+  //       setIsLoading(false);
+  //       showAlert({
+  //         title: error.message,
+  //         description: "Please try after some time",
+  //       });
+  //     });
+  // };
 
   /**
    * Document upload api.
