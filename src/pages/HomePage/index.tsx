@@ -472,7 +472,7 @@ const index: FC = () => {
     getIPAddress();
     getOffers();
     getSteps();
-
+    setOpenDrawer(true);
     // getPersonalDetails();
   }, []);
 
@@ -1119,7 +1119,7 @@ const index: FC = () => {
                           <div className="contenttext">
                             {/* <label>Your loan amount</label> */}
                             <p>
-                              Your loan amount <br />
+                              Offered loan amount <br />
                               <i className="fa fa-inr" aria-hidden="true" />
                               {" " + offers.LoanAmount + " "}{" "}
                               <Dialog open={open} onOpenChange={setOpen}>
@@ -1140,7 +1140,7 @@ const index: FC = () => {
                                   <DialogHeader>
                                     <DialogTitle>Edit loan amount</DialogTitle>
                                     <DialogDescription>
-                                      Edited amount should not be greater than
+                                      New amount should not be greater than
                                       <b className="text-black/70">
                                         {" " + offers.LoanAmount}
                                       </b>
@@ -1223,6 +1223,8 @@ const index: FC = () => {
                         <div className="check">
                           <div className="form-check form-check-inline">
                             <Checkbox
+                              checked={formValues.termsCondition1.value}
+                              // value={formValues.termsCondition1.value}
                               id="termsCondition1"
                               className="form-check-input"
                               name="termsCondition1"
@@ -1242,7 +1244,7 @@ const index: FC = () => {
                               Accept terms and conditions.
                             </label>
                           </div>
-                          <div className="form-check form-check-inline mb-3">
+                          {/* <div className="form-check form-check-inline mb-3">
                             <Checkbox
                               id="termsCondition2"
                               className="form-check-input"
@@ -1263,16 +1265,15 @@ const index: FC = () => {
                               Lorem ipsum dolor sit amet consectetur adipisicing
                               elit. Nobis ev
                             </label>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                     </div>
                     <div className="field">
                       <button
                         disabled={
-                          !offers ||
-                          !formValues.termsCondition1.value ||
-                          !formValues.termsCondition2.value
+                          !offers || !formValues.termsCondition1.value
+                          // || !formValues.termsCondition2.value
                         }
                         onClick={(e) => handleNext(e)}
                         className={cn(
@@ -1292,444 +1293,747 @@ const index: FC = () => {
                         shouldScaleBackground
                       >
                         <DrawerContent>
-                          <div className="mx-auto h-[90vh] overflow-auto w-full">
+                          <div className="mx-auto h-[85vh] overflow-auto w-full">
                             <DrawerHeader>
                               <DrawerTitle>Terms And Conditions</DrawerTitle>
                               {/* <DrawerDescription>Set your daily activity goal.</DrawerDescription> */}
                             </DrawerHeader>
-                            <div className="p-4 pb-0 max-w-4xl mx-auto">
-                              Please read the following Terms and Conditions of
-                              service that you agree to, when you access
-                              www.paypointz.com ("website"), a service offered
-                              by Pay Point India Network Private Limited or
-                              through the assistance of an agent of Pay Point
-                              India Network Private Limited. The Terms and
-                              Conditions (as may be amended from time to time,
-                              the "Agreement") is a legal contract between you
-                              being, an individual customer, user, or
-                              beneficiary of this service of at least 18 years
-                              of age, and Pay Point India Network Private
-                              Limited (Pay Point India) having its registered
-                              office at 'A' Wing 203, Supreme Business Park,
-                              Hiranandani Garden, Powai, Mumbai 400076,
-                              Maharashtra - India feedback@paypointindia.com |
-                              +91 22 4050 8888 / 4068 8088. All services are
-                              rendered by Pay Point India through its platform
-                              under the brand name 'PaypointZ' & 'Tatkal Rupya'.
-                              Hence all the rights, benefits, liabilities &
-                              obligations under the following terms & conditions
-                              shall accrue to the benefit of Pay Point India.
-                              (together with its subsidiaries and other
-                              affiliates, "us", "We", "Tatkal Rupya", or
-                              "PaypointZ"), regarding your use of our Services
-                              regarding Semi Closed Wallet of online PaypointZ
-                              or such other services which may be added from
-                              time to time (all such services are individually
-                              or collectively are referred as Service or
-                              Services as they case may be). Service can be used
-                              by you subject to your adherence with the terms
-                              and conditions set forth below including relevant
-                              policies. PaypointZ reserves the right, at its
-                              sole discretion, to revise, portions of these
-                              terms and conditions any time without further
-                              notice. You shall re-visit the "Terms &
-                              Conditions" link from time to time to stay abreast
-                              of any changes that the "Site" may introduce.
-                              Quality of Services Pay Point India agrees to
-                              provide you products at the press of a button. Pay
-                              Point India is committed to investigate the cause
-                              of non-performance with all parties involved.
-                              However, no refunds will be made to your PaypointZ
-                              balance unless it is clearly established that Pay
-                              Point India was responsible. Link to other
-                              websites Pay Point India may provide links to
-                              other websites that are maintained by third
-                              parties. Pay Point India is not responsible and/or
-                              liable for any information available on these
-                              third party websites. Links to third party sites
-                              are provided by web site as a convenience to
-                              user(s) and Pay Point India has not have any
-                              control over such sites i.e. content and resources
-                              provided by them. Pay Point India may allow
-                              user(s) access to content, products or services
-                              offered by third parties through hyper links (in
-                              the form of word link, banners, channels or
-                              otherwise) to such Third Party’s web site. You are
-                              cautioned to read such sites’ terms and conditions
-                              and/or privacy policies before using such sites in
-                              order to be aware of the terms and conditions of
-                              your use of such sites. Pay Point India believes
-                              that user(s) acknowledge that it has no control
-                              over such third party’s site, does not monitor
-                              such sites, and Pay Point India shall not be
-                              responsible or liable to anyone for such third
-                              party site, or any content, products or services
-                              made available on such a site. Limited Warranty
-                              Pay Point India concedes to provide efficient,
-                              reliable, timely and satisfactory service to the
-                              best of its resources and skills. Pay Point India
-                              makes no warranty that the website will be
-                              uninterrupted, error free, and virus free or free
-                              from any malicious content. The Website is
-                              provided on an "as is where is" and "as available"
-                              basis. In any case of unsatisfactory service by
-                              Pay Point India, it agrees to take proper
-                              corrective action on the basis of decision taken
-                              by Pay Point India. Limitation of Liability and
-                              Damages In no event will Pay Point India or its
-                              contractors, agents, licensors, partners,
-                              officers, directors, suppliers be liable to you
-                              for any special, indirect, incidental,
-                              consequential, punitive, reliance, or exemplary
-                              damages (including without limitation lost
-                              business opportunities, lost revenues, or loss of
-                              anticipated profits or any other pecuniary or
-                              non-pecuniary loss or damage of any nature
-                              whatsoever) arising out of or relating to (i) this
-                              agreement, (ii) the services, the site or any
-                              reference site, or (iii) your use or inability to
-                              use the services, the site (including any and all
-                              materials) or any reference sites, even if Pay
-                              Point India or a it’s authorized representative
-                              has been advised of the possibility of such
-                              damages. In no event will Pay Point India or any
-                              of its contractors, directors, employees, agents,
-                              third party partners, licensors or suppliers’
-                              total liability to you for all damages,
-                              liabilities, losses, and causes of action arising
-                              out of or relating to (i) this Agreement, (ii) the
-                              Services, (iii) your use or inability to use the
-                              Services or the Site (including any and all
-                              Materials) or any Reference Sites, or. You
-                              acknowledge and agree that Pay Point India has
-                              offered its products and services, set its prices,
-                              and entered into this agreement in reliance upon
-                              the warranty disclaimers and the limitations of
-                              liability set forth herein, that the warranty
-                              disclaimers and the limitations of liability set
-                              forth herein reflect a reasonable and fair
-                              allocation of risk between you and Pay Point
-                              India, and that the warranty disclaimers and the
-                              limitations of liability set forth herein form an
-                              essential basis of the bargain between you and Pay
-                              Point India. It would not be able to provide the
-                              services to you on an economically reasonable
-                              basis without these limitations. Applicable law
-                              may not allow the limitation or exclusion of
-                              liability or incidental or consequential damages,
-                              so the above limitations or exclusions may not
-                              apply to you. In such cases, Pay Point India’s
-                              liability will be limited to the fullest extent
-                              permitted by applicable law. This paragraph shall
-                              survive termination of this Agreement.
-                              Indemnification You agree to indemnify, save, and
-                              hold Pay Point India, its affiliates, contractors,
-                              employees, officers, directors, agents and its
-                              third party suppliers, licensors, and partners
-                              harmless from any and all claims, losses, damages,
-                              and liabilities, costs and expenses, including
-                              without limitation legal fees and expenses,
-                              arising out of or related to your use or misuse of
-                              the Services or of the Site, any violation by you
-                              of this Agreement, or any breach of the
-                              representations, warranties, and covenants made by
-                              you herein. Pay Point India reserves the right, at
-                              your expense, to assume the exclusive defense and
-                              control of any matter for which you are required
-                              to indemnify Pay Point India, including rights to
-                              settle, and you agree to cooperate with Pay Point
-                              India’s defense and settlement of these claims.
-                              Pay Point India will use reasonable efforts to
-                              notify you of any claim, action, or proceeding
-                              brought by a third party that is subject to the
-                              foregoing indemnification upon becoming aware of
-                              it. This paragraph shall survive termination of
-                              this Agreement. Ownership; Proprietary Rights The
-                              Services and the Site are owned and operated by
-                              Pay Point India and/or third party licensors. The
-                              visual interfaces, graphics, design, compilation,
-                              information, computer code (including source code
-                              and object code), products, software, services,
-                              and all other elements of the Services and the
-                              Site provided by Pay Point India (the “Materials”)
-                              are protected by Indian copyright, trade dress,
-                              patent, and trademark laws, international
-                              conventions, and all other relevant intellectual
-                              property and proprietary rights, and applicable
-                              laws. As between you and Pay Point India, all
-                              Materials, trademarks, service marks, and trade
-                              names contained on the Site are the property of
-                              Pay Point India and/or third party licensors or
-                              suppliers. You agree not to remove, obscure, or
-                              alter Pay Point India or any third party’s
-                              copyright, patent, trademark, or other proprietary
-                              rights notices affixed to or contained within or
-                              accessed in conjunction with or through the
-                              Services. Except as expressly authorized by Pay
-                              Point India, you agree not to sell, license,
-                              distribute, copy, modify, publicly perform or
-                              display, transmit, publish, edit, adapt, create
-                              derivative works from, or otherwise make
-                              unauthorized use of the Materials. Pay Point India
-                              reserves all rights not expressly granted in this
-                              Agreement. If you have comments regarding the
-                              Services and the Site or ideas on how to improve
-                              it, please contact customer service. Please note
-                              that by doing so, you hereby irrevocably assign to
-                              Pay Point India, and shall assign to it, all
-                              right, title and interest in and to all ideas and
-                              suggestions and any and all worldwide intellectual
-                              property rights associated therewith. You agree to
-                              perform such acts and execute such documents as
-                              may be reasonably necessary to perfect the
-                              foregoing rights. Severability The Services and
-                              the Site are owned and operated by Pay Point India
-                              and/or third party If any provision of this
-                              Agreement is held to be unlawful, void, invalid or
-                              otherwise unenforceable, then that provision will
-                              be limited or eliminated from this Agreement to
-                              the minimum extent required, and the remaining
-                              provisions will remain valid and enforceable.
-                              Terms and conditions of usage of Prepaid Cards:
-                              This prepaid payment instrument (Prepaid Card) is
-                              governed by the Payment and Settlement Systems
-                              Act, 2007 & Regulations made thereunder, Issuance
-                              and Operation of Pre-paid Payment Instruments in
-                              India (Reserve Bank) Directions, 2009 (“RBI
-                              Guidelines”) and is also subject to directions /
-                              instructions issued by the Reserve Bank of India
-                              (RBI) from time to time in respect of redemption,
-                              repayment, usage etc. and Pay Point India Network
-                              Private Ltd. (Pay Point India) does not hold any
-                              responsibility to the cardholder in such
-                              circumstances. This Prepaid Card should be
-                              utilized by individuals above 18 years of age. You
-                              agree to provide information that is true,
-                              accurate and complete. You also agree to provide
-                              correct and accurate credit/ debit card details to
-                              the approved payment gateway for availing Services
-                              on the Website and associated Applications. You
-                              shall not use a credit/ debit card unlawfully. You
-                              will be solely responsible for the security and
-                              confidentiality of your credit/ debit card
-                              details. Pay Point India expressly disclaims all
-                              liabilities that may arise as a consequence of any
-                              unauthorized use of credit/ debit card. Any
-                              suspicious activity may lead to blockage of the
-                              account. The maximum value of a Prepaid Card is
-                              Rs. 10,000 and Rs. 1,00,000 in case all additional
-                              services are enabled on it after submitting
-                              requisite KYC documents. Pay Point India may use
-                              the KYC submitted by you for business purposes.
-                              You hereby consent to (i) receiving e-newsletters
-                              as well as other communications containing offers
-                              etc. and (ii) Pay Point India providing your
-                              information to sponsor/s and/or companies
-                              associated with it for the purpose of providing
-                              you with offers and/or information. You hereby
-                              agree to use this Prepaid Card for all
-                              transactions with prescribed merchants for the
-                              products/services as mentioned by the merchant on
-                              its website and further agree not to use it for
-                              any unlawful purpose/activities. You will neither
-                              abate nor be a party to any illegal/criminal/money
-                              laundering/terrorist activities undertaken by
-                              using this Prepaid Card. Pay Point India shall not
-                              be responsible for any fraud or misuse of this
-                              Prepaid Card and you agree to be personally liable
-                              for any and all costs, taxes, charges, claims or
-                              liabilities of any nature, arising due to any such
-                              fraud or misuse of the Prepaid Card. You hereby
-                              declare that your name does not at anytime appear
-                              in the consolidated list of Terrorist Individuals
-                              / Organisations (Al Qaida or the Taliban) as
-                              circulated by RBI from time to time. Pay Point
-                              India shall not be liable / responsible for any
-                              defect in the product / merchandise / goods or
-                              services purchased / availed using this Prepaid
-                              Card. Any dispute or claim regarding the product /
-                              merchandise / goods or services purchased /
-                              availed on the website of the merchant using this
-                              Prepaid Card must be resolved with the designated
-                              merchants. Pay Point India does not own any
-                              responsibility to the cardholder in such
-                              circumstances. Pay Point India may charge payment
-                              gateway service fees to you for use of this
-                              Prepaid Card on the designated merchants. The said
-                              fees will not exceed 2.5% of the total transaction
-                              value. Additionally, if used or loaded at a retail
-                              agent of Pay Point India Network Pvt. Limited, a
-                              convenience fee of INR 10 per transaction will be
-                              charged. This Prepaid Card is valid for 18 months
-                              from the date of its first usage or 18 months from
-                              date of issue, whichever is earlier. Any
-                              unutilized balance remaining in this Prepaid Card
-                              after the date of expiry will stand forfeited as
-                              per the RBI Guidelines. In case the Prepaid Card
-                              is lost or misplaced, you shall promptly inform
-                              Pay Point India in writing (letter/e-mail). The
-                              Prepaid Card shall then be blocked and Pay Point
-                              India may issue new card as per prescribed
-                              procedure in this regard with the balance amount
-                              for a nominal charge as may be prescribed by Pay
-                              Point India from time to time. Any duplication of
-                              this Prepaid Card will be subject to cancellation.
-                              This Prepaid Card cannot be used for transactions
-                              in foreign currency. This Prepaid Card can be used
-                              only for online/on mobile/IVRS transactions with
-                              the merchants governed by Indian laws. This
-                              Prepaid Card is not transferable. Pay Point India
-                              reserves the right at any time to refuse for any
-                              reason whatsoever, the use of the Prepaid Card on
-                              the website/mobile application/IVRS of designated
-                              merchants. You shall promptly inform Pay Point
-                              India of any change of your name, mailing address,
-                              e-mail address or any other required data provided
-                              for the issuance of this Prepaid Card and submit
-                              the fresh KYC documents in respect of such change,
-                              as may be demanded by Pay Point India. For
-                              resolving any dispute, Pay Point India has
-                              formalized “Customer Grievance Redressal Policy”
-                              which is available on the website of All disputes
-                              arising out of any transaction pertaining to the
-                              use of this Prepaid Card shall be subject to this
-                              policy. Any further litigation shall be governed
-                              by exclusive jurisdiction of the courts in Mumbai.
-                              All transactions done by using this Prepaid Card
-                              are subject to applicable Indian laws. Pay Point
-                              India reserves the right to amend, alter, delete,
-                              insert and revise these terms and conditions
-                              without any prior notice/intimation to customer.
-                              We have the right, but not the obligation, to take
-                              any of the following actions in our sole
-                              discretion at any time and for any reason without
-                              giving you any prior notice: Restrict, suspend, or
-                              terminate your access to all or any part of our
-                              Services; Change, suspend, or discontinue all or
-                              any part of our Services; Refuse, move, or remove
-                              any material that you submit to our sites for any
-                              reason; Refuse, move, or remove any content that
-                              is available on our sites; Deactivate or delete
-                              your accounts and all related information and
-                              files in your account; Establish general practices
-                              and limits concerning use of our sites. You agree
-                              that we will not be liable to you or any third
-                              party for taking any of these actions Charges
-                              Applicable: All the charges as applicable in the
-                              usage of Paypointz Wallet are available on the
-                              link below: Applicable Charges Notices: All
-                              notices or demands to or upon web site shall be
-                              effective if in writing and shall be duly made
-                              when sent to Pay Point India on the following
-                              Address: To: Pay Point India Network Pvt. Ltd, A
-                              Wing, 203, Supreme Business Park,Hiranandani
-                              Garden, Powai, Mumbai - 400076 Maharashtra, India.
-                              feedback@paypointindia.com | +91 22 4068 8088 All
-                              notices or demands to or upon a User(s) shall be
-                              effective if either delivered personally, sent by
-                              courier, certified mail, by facsimile or email to
-                              the last-known correspondence, fax or email
-                              address provided by the User(s) to web site, or by
-                              posting such notice or demand on an area of the
-                              web site that is publicly accessible without a
-                              charge. Arbitration Pay Point India may elect to
-                              resolve any dispute, controversy or claim arising
-                              out of or relating to this Agreement or Service
-                              provided in connection with this Agreement by
-                              binding arbitration in accordance with the
-                              provisions of the Indian Arbitration &
-                              Conciliation Act, 1996. Any such dispute,
-                              controversy or claim shall be arbitrated on an
-                              individual basis and shall not be consolidated in
-                              any arbitration with any claim or controversy of
-                              any other party. The arbitration shall be
-                              conducted in Mumbai, India and judgment on the
-                              arbitration award may be entered in any court
-                              having jurisdiction thereof. Either you or We may
-                              seek any interim or preliminary relief from a
-                              court of competent jurisdiction in Mumbai, India,
-                              necessary to protect the rights or the property of
-                              you or PaypointZ (or its agents, suppliers, and
-                              subcontractors), pending the completion of
-                              arbitration. Any arbitration shall be
-                              confidential, and neither you nor we may disclose
-                              the existence, content or results of any
-                              arbitration, except as may be required by law or
-                              for purposes of the arbitration award. All
-                              administrative fees and expenses of arbitration
-                              will be divided equally between you and us. In all
-                              arbitrations, each party will bear the expense of
-                              its own lawyers and preparation. The language of
-                              Arbitration shall be English. Governing Law: Terms
-                              and condition of use shall be governed in all
-                              respect by the laws of Indian Territory. Pay Point
-                              India considers itself and intended to be subject
-                              to the jurisdiction only of the Courts of Mumbai,
-                              Maharashtra, India. The parties to these Terms of
-                              use hereby submit to the exclusive jurisdiction of
-                              the courts of Mumbai, Maharashtra, India.
-                            </div>
-                            <div className="p-4   bg-zinc-100 border-t border-zinc-200 mt-auto">
-                              <div className="flex flex-col gap-6 justify-between max-w-xl mx-auto">
-                                <Button className="w-full">Agree</Button>
-
-                                <Button className="w-full" variant="outline">
-                                  Cancel
-                                </Button>
-                                {/* <a
-                                  className="text-xs text-zinc-600 flex items-center gap-0.25"
-                                  href="https://github.com/emilkowalski/vaul"
-                                  target="_blank"
-                                >
-                                  GitHub
-                                  <svg
-                                    fill="none"
-                                    height="16"
-                                    stroke="currentColor"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    viewBox="0 0 24 24"
-                                    width="16"
-                                    aria-hidden="true"
-                                    className="w-3 h-3 ml-1"
-                                  >
-                                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
-                                    <path d="M15 3h6v6"></path>
-                                    <path d="M10 14L21 3"></path>
-                                  </svg>
-                                </a>
-                                <a
-                                  className="text-xs text-zinc-600 flex items-center gap-0.25"
-                                  href="https://twitter.com/emilkowalski_"
-                                  target="_blank"
-                                >
-                                  Twitter
-                                  <svg
-                                    fill="none"
-                                    height="16"
-                                    stroke="currentColor"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    viewBox="0 0 24 24"
-                                    width="16"
-                                    aria-hidden="true"
-                                    className="w-3 h-3 ml-1"
-                                  >
-                                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
-                                    <path d="M15 3h6v6"></path>
-                                    <path d="M10 14L21 3"></path>
-                                  </svg>
-                                </a> */}
+                            <div className="modal-body p-0">
+                              <div
+                                className="col-sm-12"
+                                id="staticBackdropAadharWrap"
+                                style={{
+                                  padding: "10px 50px",
+                                  height: 590,
+                                  minHeight: 200,
+                                  overflowY: "scroll",
+                                  textAlign: "justify",
+                                }}
+                              >
+                                {" "}
+                                <div>
+                                  <div className="container">
+                                    <div style={{ textAlign: "right" }}>
+                                      <img
+                                        src="https://ekyc.mnclgroup.com/images/logo-1.png"
+                                        alt="Monarch"
+                                      />
+                                    </div>
+                                    <div>
+                                      <h3 style={{ textAlign: "center" }}>
+                                        <strong>
+                                          <u>
+                                            Monarch Networth Finserve Pvt Ltd
+                                          </u>
+                                        </strong>
+                                      </h3>
+                                      <h3 style={{ textAlign: "center" }}>
+                                        <strong>
+                                          <u>General Terms &amp; Conditions</u>
+                                        </strong>
+                                      </h3>
+                                      <p>
+                                        This Agreement sets forth the terms and
+                                        conditions that apply to the access and
+                                        use of the Monarch Networth Finserve Pvt
+                                        Ltd’s Website, Mobile Application
+                                        (collectively be referred to as
+                                        "Website") which is managed and operated
+                                        by Monarch Networth Finserve Pvt
+                                        Ltd&nbsp;(hereinafter collectively be
+                                        referred to as "Company"/ "Monarch
+                                        Networth Finserve Pvt Ltd"),
+                                        incorporated under the laws of India and
+                                        registered under the Companies Act,
+                                        1956.
+                                      </p>
+                                      <p>
+                                        This document/agreement (referred to as
+                                        “Agreement”) is an electronic record in
+                                        terms of Information Technology Act,
+                                        2000 and generated by a computer system
+                                        and does not require any physical or
+                                        digital signatures. This document is
+                                        published in accordance with the
+                                        provisions of Rule 3 of the Information
+                                        Technology (Intermediaries guidelines)
+                                        2011, that provides for the due
+                                        diligence to be exercised for the access
+                                        or usage of this Website.
+                                      </p>
+                                      <p>
+                                        PLEASE READ THE FOLLOWING TERMS AND
+                                        CONDITIONS CAREFULLY. YOUR ACCEPTANCE OF
+                                        TERMS CONTAINED HEREIN CONSTITUTES THE
+                                        AGREEMENT BETWEEN YOU AND THE COMPANY
+                                        FOR THE PURPOSE AS DEFINED HEREUNDER.
+                                      </p>
+                                      <h4>
+                                        <strong>Customer Due Diligence</strong>
+                                      </h4>
+                                      <p>
+                                        Company may undertake client/customer
+                                        due diligence measures and seek
+                                        mandatory information required for KYC
+                                        purpose which as a customer you are
+                                        obliged to give while facilitating your
+                                        request of loan/credit card/mutual fund
+                                        and other financial product requirements
+                                        with the banks/financial institutions,
+                                        in accordance with applicable Prevention
+                                        of Money Laundering Act (“PMLA”) and
+                                        rules.
+                                      </p>
+                                      <p>
+                                        You agree and authorize the Company to
+                                        share your data with Statutory bodies
+                                        /rating agencies/ credit bureaus
+                                        /banks/financial institutions,
+                                        governmental/regulatory authorities.
+                                      </p>
+                                      <h4>
+                                        <strong>Fees, Charges and taxes</strong>
+                                      </h4>
+                                      <p>
+                                        Company may charge up to 3% facilitation
+                                        fee/processing fee/platform/convenience
+                                        fee to provide services requested by
+                                        you. Details of the same shall be
+                                        available during the completion of the
+                                        customer journey on the website.
+                                      </p>
+                                      <p>
+                                        You shall bear all applicable taxes if
+                                        the Fees are subject to any type of
+                                        goods and sales tax, income tax, duty or
+                                        other governmental tax or levy.
+                                      </p>
+                                      <h4>
+                                        <strong>Eligibility</strong>
+                                      </h4>
+                                      <p>
+                                        You confirm that you are a resident of
+                                        India, above 18 (Eighteen) years of age,
+                                        and have the capacity to contract as
+                                        specified under the Indian Contract Act,
+                                        1872, while availing the Services
+                                        offered by the Company.
+                                      </p>
+                                      <h4>
+                                        <strong>KEY FACT STATEMENT</strong>
+                                      </h4>
+                                      <h4>
+                                        <strong>Annual Percentage Rate</strong>
+                                      </h4>
+                                      <p>
+                                        The Services offered by the Company
+                                        shall attract the Annual Percentage Rate
+                                        (APR) which includes but not limited to
+                                        Processing/Facilitation/Platform/Convenience
+                                        Fee, Group Insurance Premium, applicable
+                                        taxes subject to any types of Goods
+                                        &amp; Sales Tax, Income Tax, Duty, or
+                                        other Governmental Tax.
+                                      </p>
+                                      <p>
+                                        You agree and consent the acceptance of
+                                        the APR displayed to you while
+                                        completing the journey on the Website
+                                        for the Application of Services.
+                                      </p>
+                                      <h4>
+                                        <strong>Recovery Mechanism</strong>
+                                      </h4>
+                                      <p>
+                                        Customer agrees and consents the
+                                        acceptance of the following terms &amp;
+                                        conditions of the recovery &amp;
+                                        repayment.
+                                      </p>
+                                      <ol>
+                                        <li>
+                                          Term/Frequency of the repayment of
+                                          Equal installments which has been
+                                          displayed during the journey on the
+                                          Website for Application of Services
+                                        </li>
+                                        <li>
+                                          Receive the notifications in relation
+                                          to the repayment schedule via various
+                                          modes of communication.
+                                        </li>
+                                        <li>
+                                          Reporting of credit records of the
+                                          Customer to the Credit Information
+                                          Companies (CIC)
+                                        </li>
+                                        <li>
+                                          Share information with the third-party
+                                          websites, applications, partners or
+                                          associates to facilitate the various
+                                          modes of payments.
+                                        </li>
+                                        <li>
+                                          Late Payment Fee of Rs. 10 per day may
+                                          be levied in case of delay of
+                                          repayment from the due date according
+                                          to defined repayment schedule.
+                                        </li>
+                                        <li>
+                                          Cash Handling Fee of Rs.250 and Rs.25
+                                          per visit may be levied in case if
+                                          repayments collected from Home or Shop
+                                          location and via the modes of cash at
+                                          Centres respectively.
+                                        </li>
+                                      </ol>
+                                      <p>
+                                        Company does not intend to involve or
+                                        get into the association with the
+                                        third-party websites, applications,
+                                        partners, or associates for the purpose
+                                        of the recovery, however Customer shall
+                                        be notified in advance in case of future
+                                        involvement.
+                                      </p>
+                                      <p>
+                                        Dedicated Customer Support Desk for
+                                        Queries, Request, and Complaints is
+                                        operational for Customers through below
+                                        mentioned modes.
+                                      </p>
+                                      <ol>
+                                        <li>Email at support@mnclgroup.com</li>
+                                        <li>
+                                          “Write to us” at Monarch Networth
+                                          Finserve Pvt Ltd Website - &nbsp;
+                                          <a
+                                            href="https://www.mnclgroup.com/"
+                                            target="_blank"
+                                          >
+                                            <u>www.mnclgroup.com</u>
+                                          </a>
+                                        </li>
+                                        <li>
+                                          Customer Support Helpline - +91
+                                          9033839897
+                                        </li>
+                                      </ol>
+                                      <p>
+                                        Customer may reach out to Grievance
+                                        Officer in case not satisfied with the
+                                        resolution offered by the dedicated
+                                        Customer Support Desk through below
+                                        mentioned means.
+                                      </p>
+                                      <ol>
+                                        <li>
+                                          Email at anshit.acharya@mnclgroup.com
+                                        </li>
+                                        <li>
+                                          “Escalate you query” at Monarch
+                                          Networth Finserve Pvt Ltd Website -{" "}
+                                          <a
+                                            href="https://www.mnclgroup.com/"
+                                            target="_blank"
+                                          >
+                                            <u>www.mnclgroup.com</u>
+                                          </a>
+                                        </li>
+                                        <li>
+                                          Grievance Support Helpline - +91
+                                          9033839897
+                                        </li>
+                                      </ol>
+                                      <p>
+                                        Assistance from the Customer Support and
+                                        the Grievance Officer shall be subject
+                                        to Customer Grievance Redressal Policy
+                                        of the Company, more details of the same
+                                        is available on the Website{" "}
+                                        <a
+                                          href="https://www.mnclgroup.com/"
+                                          target="_blank"
+                                        >
+                                          <u>www.mnclgroup.com</u>
+                                        </a>
+                                      </p>
+                                      <h4>
+                                        <strong>Look Up Period</strong>
+                                      </h4>
+                                      <p>
+                                        Customer had been facilitated with the
+                                        Look Up period of Three (3) Days during
+                                        which Customer can revoke the Services
+                                        availed.
+                                      </p>
+                                      <p>
+                                        Customer shall be required to repay the
+                                        Principal &amp; Proportionate Interest
+                                        (from the date of disbursement till the
+                                        date of the repayment) according to the
+                                        Annual Percentage Rate (APR).
+                                      </p>
+                                      <p>
+                                        Customer may reach out dedicated
+                                        Customer Support Desk of the Company for
+                                        requesting to revoke the Services ,
+                                        response to which shall be provided
+                                        according to the to Customer Grievance
+                                        Redressal Policy of the Company, more
+                                        details of the same shall be available
+                                        on the Website{" "}
+                                        <a
+                                          href="https://www.mnclgroup.com/"
+                                          target="_blank"
+                                        >
+                                          <u>www.mnclgroup.com</u>
+                                        </a>
+                                      </p>
+                                      <h4>
+                                        <strong>Group Insurance Policy</strong>
+                                      </h4>
+                                      <p>
+                                        The company may further offer you group
+                                        insurance coverage from Insurance
+                                        partners for which Monarch Networth
+                                        Finserve Pvt Ltd&nbsp;. shall be the
+                                        Master Policy Holder ("MPH") provided
+                                        you are a customer of the Company. Such
+                                        insurance coverage shall be governed by
+                                        terms &amp; conditions of Insurer and as
+                                        per the guidelines issued by the
+                                        Insurance Regulatory and Development
+                                        Authority of India ("IRDAI").
+                                      </p>
+                                      <h4>
+                                        <strong>Indemnity</strong>
+                                      </h4>
+                                      <p>
+                                        You indemnify and hold Company (and its
+                                        affiliates, officers, directors, agents
+                                        and employees) harmless from any and
+                                        against any claims, causes of action,
+                                        demands, recoveries, losses, damages,
+                                        fines, penalties or other costs or
+                                        expenses of any kind or nature,
+                                        including reasonable attorneys' fees, or
+                                        arising out of or related to your breach
+                                        of Terms &amp; Conditions, your
+                                        violation of any law or the rights of a
+                                        third party, or your use of the Website.
+                                      </p>
+                                      <h4>
+                                        <strong>License and Access</strong>
+                                      </h4>
+                                      <p>
+                                        You acknowledge and agree that the
+                                        Company owns all legal right, title and
+                                        interest in and to the Services,
+                                        including any intellectual property
+                                        rights which subsist in the Services
+                                        (whether those rights are registered or
+                                        not). You further acknowledge that the
+                                        Services may contain information which
+                                        is designated confidential by Company
+                                        and that you shall not disclose such
+                                        information without Company`s prior
+                                        written consent.
+                                      </p>
+                                      <p>
+                                        By sharing or submitting any content
+                                        including any data and information on
+                                        the Website, you agree that you shall be
+                                        solely responsible for all content you
+                                        post on the Website and Company shall
+                                        not be responsible for any content you
+                                        make available on or through the
+                                        Website. At Company`s sole discretion,
+                                        such content may be included in the
+                                        Service and ancillary services (in whole
+                                        or in part or in a modified form). With
+                                        respect to such content, you submit or
+                                        make available on the Website, you grant
+                                        Company a perpetual, irrevocable,
+                                        non-terminable, worldwide, royalty-free
+                                        and non-exclusive license to use, copy,
+                                        distribute, publicly display, modify,
+                                        create derivative works, and sublicense
+                                        such materials or any part of such
+                                        content. You agree that you are fully
+                                        responsible for the content you submit.
+                                        You are prohibited from posting or
+                                        transmitting to or from this Website:
+                                        (i) any unlawful, threatening, libelous,
+                                        defamatory, obscene, pornographic, or
+                                        other material or content that would
+                                        violate rights of publicity and/or
+                                        privacy or that would violate any law;
+                                        (ii) any commercial material or content
+                                        (including, but not limited to,
+                                        solicitation of funds, advertising, or
+                                        marketing of any good or services); and
+                                        (iii) any material or content that
+                                        infringes, misappropriates or violates
+                                        any copyright, trademark, patent right
+                                        or other proprietary right of any third
+                                        party. Youshall be solely liable for any
+                                        damages resulting from any violation of
+                                        the foregoing restrictions, or any other
+                                        harm resulting from your posting of
+                                        content to this Website.
+                                      </p>
+                                      <h4>
+                                        <strong>Limitation of Liability</strong>
+                                      </h4>
+                                      <p>
+                                        You expressly understand and agree that
+                                        the Company (including its subsidiaries,
+                                        affiliates, directors, officers,
+                                        employees, representatives and
+                                        providers) shall not be liable for any
+                                        direct, indirect, incidental, special,
+                                        consequential or exemplary damages,
+                                        including but not limited to damages for
+                                        loss of profits, opportunity, goodwill,
+                                        use, data or other intangible losses,
+                                        even if Company has been advised of the
+                                        possibility of such damages, resulting
+                                        from (i) any failure or delay (including
+                                        without limitation the use of or
+                                        inability to use any component of the
+                                        Website), or (ii) any use of the Website
+                                        or content, or (iii) the performance or
+                                        non-performance by us or any provider,
+                                        even if we have been advised of the
+                                        possibility of damages to such parties
+                                        or any other party, or (b) any damages
+                                        to or viruses that may infect your
+                                        computer equipment or other property as
+                                        the result of your access to the Website
+                                        or your downloading of any content from
+                                        the Website.
+                                      </p>
+                                      <p>
+                                        Notwithstanding the above, if the
+                                        Company is found liable for any proven
+                                        and actual loss or damage which arises
+                                        out of or in any way connected with any
+                                        of the occurrences described above, then
+                                        you agree that the liability of Company
+                                        shall be restricted to, in the
+                                        aggregate, any Facilitation/
+                                        Processing/Convenience/Platform fees
+                                        paid by you to the Company in connection
+                                        with such transaction(s)/ Services on
+                                        this Website, if applicable.
+                                      </p>
+                                      <h4>
+                                        <strong>Privacy Policy</strong>
+                                      </h4>
+                                      <p>
+                                        By using the Website, you hereby consent
+                                        to the use of your information as we
+                                        have outlined in our Privacy Policy.
+                                        This Privacy Policy explains how Company
+                                        treats your personal information when
+                                        you access the Website and use other
+                                        ancillary Services. You can access the
+                                        Privacy policy by visiting the company’s
+                                        official website.
+                                      </p>
+                                      <h4>
+                                        <strong>Third-Party Links</strong>
+                                      </h4>
+                                      <p>
+                                        The company’s Platform may refer to or
+                                        may contain, links to third-party
+                                        websites, applications, services and
+                                        resources but it does not mean we are
+                                        endorsing such channels. We provide
+                                        these links only as a convenience to You
+                                        to avail certain services, the Company
+                                        makes no representation or warranty of
+                                        any kind regarding the accuracy,
+                                        reliability, effectiveness, or
+                                        correctness of any aspect of any
+                                        third-party services, and consequently,
+                                        the Company is not responsible for the
+                                        content, products or services that are
+                                        available from third-party services. You
+                                        are responsible for reading and
+                                        understanding the terms and conditions
+                                        and privacy policy that applies to the
+                                        use of any third-party services, and You
+                                        acknowledge sole responsibility and
+                                        assume all risk arising from use of any
+                                        third-party services.
+                                      </p>
+                                      <h4>
+                                        <strong>Consent</strong>
+                                      </h4>
+                                      <p>
+                                        The consent for the collection of Data
+                                        and also for the subsequent use of the
+                                        Data is deemed to be given by You when
+                                        You decide to avail yourself of the
+                                        Services.
+                                      </p>
+                                      <p>
+                                        You are authorizing Company to
+                                        share/disclose, any/all information,
+                                        documents including KYC and any other
+                                        document which has been provided on
+                                        Company’s platform with third party for
+                                        KYC verification, including its
+                                        subsidiaries, affiliates or partners for
+                                        related purposes that Company may deem
+                                        fit to offer services.
+                                      </p>
+                                      <p>
+                                        You consent that you yourself or with
+                                        the assistance from the Company, at your
+                                        own discretion had initiated the journey
+                                        on the Website for availing the
+                                        Services.
+                                      </p>
+                                      <p>
+                                        You consent that information furnished
+                                        while completing the journey on the
+                                        Website for the Application of Services
+                                        are true &amp; accurate and no material
+                                        information has been withheld or
+                                        suppressed. In case any information is
+                                        found to be false or untrue or
+                                        misleading or misrepresenting, the
+                                        Customer might be held liable for it.
+                                      </p>
+                                      <p>
+                                        Company may enter into the agreement
+                                        with the third party for facilitation of
+                                        the Services (hereinafter may be
+                                        referred to as “Partner”), Customer
+                                        hereby agrees to avail the Services
+                                        without any objection to the involvement
+                                        of the Partner(s). Customer agrees that
+                                        information disclosed by the Customer
+                                        including KYC may also be rendered and
+                                        stored with the Partner(s) for
+                                        facilitation of the Services.
+                                      </p>
+                                      <p>
+                                        You understand that that Company and the
+                                        Partner(s) are entitled to reject the
+                                        application submitted for the Services
+                                        at their sole discretion, further
+                                        disbursement and transactions will be
+                                        governed by the rules of the Company
+                                        which may be in force from time to time.
+                                      </p>
+                                      <p>
+                                        You agree that Loan shall be disbursed
+                                        in the Bank Account registered by you
+                                        while submitting the application for
+                                        this loan on the Website.
+                                      </p>
+                                      <p>
+                                        You agree to enroll &amp; sign for
+                                        National Automated Clearing House (NACH)
+                                        Mandate as prescribed and implemented by
+                                        the National Payments Corporate of India
+                                        (NPCI) during the journey for the
+                                        Application of Services, authorizing the
+                                        Company to deduct the Equated
+                                        installment from the Bank Account
+                                        registered by you during the journey for
+                                        the Application of Services.
+                                      </p>
+                                      <p>
+                                        You agree that Services shall be used
+                                        for the stated purpose and will not be
+                                        used for any speculative, antisocial, or
+                                        illegal purpose.
+                                      </p>
+                                      <p>
+                                        You consent that the Document, KYC &amp;
+                                        Information submitted for the
+                                        application of the Services shall not be
+                                        returned, under any circumstances.
+                                        <strong>
+                                          &nbsp;Communication Policy
+                                        </strong>
+                                      </p>
+                                      <p>
+                                        As part of use of the Services, you may
+                                        receive notifications, reminder, offers,
+                                        discounts and general information from
+                                        Company and the Partner(s) via text
+                                        messages, WhatsApp messages, Calls, or
+                                        by emails, for the purpose of
+                                        facilitating the Services offered by the
+                                        Company or the Partner, or for the
+                                        information or reminders for the
+                                        repayments or for collecting feedback
+                                        regarding services. The User
+                                        acknowledges that the SMS service
+                                        provided by Company is an additional
+                                        facility provided for the User’s
+                                        convenience and that it may be
+                                        susceptible to error, omission and/ or
+                                        inaccuracy. You agree and accept that
+                                        this consent overwrites the restrictions
+                                        applicable according to registration
+                                        with DNC or NDNC Registry laid down by
+                                        the telecom service providers or Telecom
+                                        Regulatory Authority of India (TRAI).
+                                      </p>
+                                      <p>
+                                        You agree and authorize Company to share
+                                        your information with its group
+                                        companies and other third parties, in so
+                                        far as required for joint marketing
+                                        purposes/offering various
+                                        services/report generations and/or to
+                                        similar services to provide you with
+                                        various value-added services, in
+                                        association with the Services selected
+                                        by you or otherwise.
+                                      </p>
+                                      <h4>
+                                        <strong>Bureau Consent</strong>
+                                      </h4>
+                                      <p>
+                                        You agree and authorise company to pull
+                                        your cibil bureau status and detailed
+                                        report.
+                                      </p>
+                                      <h4>
+                                        <strong>GOVERNING LAW</strong>
+                                      </h4>
+                                      <p>
+                                        This Terms of Use shall be governed by
+                                        and construed in accordance with the
+                                        laws of India, without regard to its
+                                        conflict of law provisions and the
+                                        exclusive jurisdiction of competent
+                                        courts in Mumbai, India.
+                                      </p>
+                                      <h4>
+                                        <strong>FORCE MAJEURE</strong>
+                                      </h4>
+                                      <p>
+                                        The company shall not be liable for
+                                        failure to perform its obligations under
+                                        these Terms of Use to the extent such
+                                        failure is due to causes beyond its
+                                        reasonable control. In the event of a
+                                        force majeure, the Company if unable to
+                                        perform shall notify the User in writing
+                                        of the events creating the force
+                                        majeure. For the purposes of these Terms
+                                        of Use, force majeure events shall
+                                        include, but not be limited to, acts of
+                                        God, failures or disruptions, orders or
+                                        restrictions, war or warlike conditions,
+                                        hostilities, sanctions, mobilizations,
+                                        blockades, embargoes, detentions,
+                                        revolutions, riots, looting, strikes,
+                                        stoppages of labor, lockouts or other
+                                        labor troubles, earthquakes, fires or
+                                        accidents and epidemics.
+                                      </p>
+                                      <h4>
+                                        <strong>
+                                          Customer Grievance Redressal
+                                        </strong>
+                                      </h4>
+                                      <p>
+                                        You may contact us with any enquiry,
+                                        complaints or concerns by reaching to
+                                        our customer care at:
+                                      </p>
+                                      <ul>
+                                        <li>
+                                          Customer care number: +91 9033839897
+                                        </li>
+                                        <li>
+                                          Customer Care Email- cs@mnclgroup.com
+                                        </li>
+                                      </ul>
+                                      <p>&nbsp;</p>
+                                      <h4>
+                                        <strong>ACCEPTANCE</strong>
+                                      </h4>
+                                      <ol>
+                                        <li>
+                                          I declare that I from my own judgment
+                                          and wisdom had agreed to the Terms and
+                                          Conditions of the Services detailed
+                                          herein this document, in no matter the
+                                          Company or the Partner has influenced
+                                          you for availing the Services or agree
+                                          to the Terms and Conditions detailed
+                                          herein this document.
+                                        </li>
+                                        <li>
+                                          I declare that I have duly read the
+                                          document and fully understand the
+                                          Terms and Conditions detailed herein.
+                                        </li>
+                                        <li>
+                                          I understand by completing the journey
+                                          for the Application for the
+                                          Loan/Credit/Financial Services on the
+                                          Website, I am signing this document
+                                          electronically.
+                                        </li>
+                                      </ol>
+                                    </div>
+                                    <p>&nbsp;</p>
+                                    <p>&nbsp;</p>
+                                    <p>&nbsp;</p>
+                                    <p>&nbsp;</p>
+                                    <div>
+                                      <strong>Registered office - </strong>
+                                      Office no.901/902, 9th Floor, Atlanta
+                                      Centre, Opp.Udyog Bhavan, Sonawala Lane,
+                                      Goregaon (East), Mumbai City,
+                                      &nbsp;Maharashtra, India, 400063
+                                      <br /> <strong>
+                                        Website
+                                      </strong>&nbsp;–{" "}
+                                      <a
+                                        href="https://www.mnclgroup.com/"
+                                        target="_blank"
+                                      >
+                                        <u>www.mnclgroup.com</u>
+                                      </a>
+                                      <br /> <strong>Telephone-</strong> +91
+                                      -22-6202 1600
+                                      <br /> <strong>Email </strong>
+                                      <a href="mailto:Id-cs@mnclgroup.com">
+                                        <strong>
+                                          <u>Id-cs@mnclgroup.com</u>
+                                        </strong>
+                                      </a>
+                                      <br /> <strong>CIN-</strong>{" "}
+                                      U65900MH1996PTC100919
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                            {/* <DrawerFooter>
-            <Button>Submit</Button>
-            <DrawerClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DrawerClose>
-          </DrawerFooter> */}
+                            <div className="flex flex-wrap items-center justify-end rounded-br-[calc(0.3rem_-_1px)] rounded-bl-[calc(0.3rem_-_1px)] p-3 border-t-[#dee2e6] border-t border-solid mx-auto">
+                              <div className="flex flex-wrap items-center w-full  justify-center max-w-xl">
+                                <Button
+                                  onClick={() => setOpenDrawer(false)}
+                                  type="button"
+                                  variant={"outline"}
+                                >
+                                  Close
+                                </Button>
+                              </div>
+                            </div>
                           </div>
                         </DrawerContent>
                       </Drawer>
