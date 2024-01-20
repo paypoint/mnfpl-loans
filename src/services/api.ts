@@ -19,6 +19,12 @@ class App {
       requestBody,
     });
   }
+
+  get({ url, requestBody }: Request) {
+    return client.get(url, {
+      data: requestBody,
+    });
+  }
 }
 
 let app = new App();

@@ -121,7 +121,7 @@ export type BankList = {
 };
 
 export type OfferDetails = {
-  LoanAmount: string;
+  LoanAmount: number;
   ExpiryDate: string;
   MobileNumber: string;
   Tenor: number;
@@ -138,4 +138,7 @@ export type APIEndPoints =
   | "/update_businessMerchantDetails"
   | "/savekycdocuments"
   | "/aadhargetotp"
-  | "/aadharotpvalidate";
+  | "/aadharotpvalidate"
+  // TODO
+  | "/getloanedi"
+  | "/getapplicantmerchantdetails";
