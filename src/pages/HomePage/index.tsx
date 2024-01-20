@@ -472,7 +472,6 @@ const index: FC = () => {
     getIPAddress();
     getOffers();
     getSteps();
-    setOpenDrawer(true);
     // getPersonalDetails();
   }, []);
 
@@ -1130,7 +1129,7 @@ const index: FC = () => {
                                     type="button"
                                   >
                                     <i
-                                      style={{ fontSize: "22px" }}
+                                      style={{ fontSize: "20px" }}
                                       className="fa fa-pen"
                                       aria-hidden="true"
                                     />
