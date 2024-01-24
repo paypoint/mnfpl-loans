@@ -1128,7 +1128,7 @@ const index: FC = () => {
                           </div>
                         </div>
                       ) : (
-                        <Skeleton className="bg-cover min-h-[470px] relative shadow-[0_3px_6px_rgba(0,0,0,0.16),0_3px_6px_rgba(0,0,0,0.23)] m-[15px] rounded-[15px]" />
+                        <Skeleton className="bg-cover min-h-[480px] relative shadow-[0_3px_6px_rgba(0,0,0,0.16),0_3px_6px_rgba(0,0,0,0.23)] m-[15px] rounded-[15px]" />
                       )}
 
                       <div className="check_box">
