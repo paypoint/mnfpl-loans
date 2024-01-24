@@ -20,9 +20,9 @@ class App {
     });
   }
 
-  get({ url, requestBody }: Request) {
+  get({ url }: Request) {
     return client.get(url, {
-      data: requestBody,
+      data: {},
     });
   }
 }

@@ -51,6 +51,30 @@ export type BusinessMerchantDetailsDataKey = {
   };
 };
 
+export type GetLoanediAPIResponseType = {
+  data: {
+    BusinessIdentity: null;
+    LoanUID: null;
+    ExpiryDate: null;
+    BatchID: null;
+    loanAmount: number;
+    interest: number;
+    processingFee: number;
+    gst: number;
+    insuranceFee: number;
+    tenor: number;
+    noOfCycels: number;
+    totalInterest: number;
+    upfrontInterest: number;
+    upfrontFees: number;
+    totalUpfront: number;
+    netDisbursement: number;
+    totalPaidbyCustomer: number;
+    emi: number;
+    LoanRefID: null;
+  };
+} & APIResponseType;
+
 export type AadharGetotpAPIRespnseType = {
   client_id: string;
 } & APIResponseType;
@@ -126,6 +150,8 @@ export type OfferDetails = {
   MobileNumber: string;
   Tenor: number;
   MerchantID: string;
+  ProductId: number;
+  ApplicationID: string;
 };
 
 export type APIEndPoints =
@@ -139,6 +165,5 @@ export type APIEndPoints =
   | "/savekycdocuments"
   | "/aadhargetotp"
   | "/aadharotpvalidate"
-  // TODO
   | "/getloanedi"
   | "/getapplicantmerchantdetails";

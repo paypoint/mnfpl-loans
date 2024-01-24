@@ -20,6 +20,7 @@ import {
   OfferDetails,
   APIResponseType,
   AadharGetotpAPIRespnseType,
+  GetLoanediAPIResponseType,
 } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAlert } from "@/components/modals/alert-modal";
@@ -44,12 +45,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Plus, X } from "lucide-react";
+import Stepper from "@/components/Stepper";
 
 const index: FC = () => {
   const [step, setStep] = useState(1);
   const [openDrawer, setOpenDrawer] = useState(false);
+  const [showLoanDetails, setShowLoanDetails] = useState(false);
   const [open, setOpen] = useState(false);
   const [countDownTimer, setCountDownTimer] = useState(120);
+  const [aadharOTPcountDownTimer, setAadharOTPcountDownTimer] = useState(60);
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [bankList, setBankList] = useState<[BankList]>();
   const [isLoading, setIsLoading] = useState(false);
@@ -229,14 +234,11 @@ const index: FC = () => {
     let _formValues = { ...formValues };
     if (step === 1) {
       let termsCondition1HasError = !_formValues.termsCondition1.value;
-      let termsCondition2HasError = !_formValues.termsCondition2.value;
+      // let termsCondition2HasError = !_formValues.termsCondition2.value;
       if (termsCondition1HasError) {
         _formValues.termsCondition1.error = true;
         setFormValues(_formValues);
-      } else if (termsCondition2HasError) {
-        _formValues.termsCondition2.error = true;
-        setFormValues(_formValues);
-      } else if (!termsCondition1HasError && !termsCondition2HasError) {
+      } else {
         setStep((prevStep) => prevStep + 1);
       }
     } else if (step === 2) {
@@ -420,7 +422,7 @@ const index: FC = () => {
         }
       });
       if (!formObjectHasError) {
-        setStep((prevStep) => prevStep + 1);
+        setStep((prevStep) => prevStep + 2);
       } else {
         setFormValues(_formValues);
       }
@@ -772,7 +774,7 @@ const index: FC = () => {
     const body = {
       // hcoded
       MerchantID: "7e77a7d4" || formValues.merchant_id.value,
-      Application_ID: "123",
+      Application_ID: offers?.ApplicationID,
       DocumentFileImage: image,
       DocumentFilename: imagename,
       DocID: id,
@@ -834,6 +836,8 @@ const index: FC = () => {
         const { data } = res;
         if (data.status === "Success") {
           toast.success("OTP sent");
+          setAadharOTPcountDownTimer(60);
+          startAadharOTPTimer();
           let _formValues = { ...formValues };
           _formValues.client_id.value = data.client_id;
           setFormValues(_formValues);
@@ -906,8 +910,8 @@ const index: FC = () => {
     const body = {
       // hcoded
       MerchantID: "7e77a7d4" || formValues.merchant_id.value,
-      ApplicationID: "M0000000001",
-      LoanAmount: "9000" || offers?.LoanAmount,
+      ApplicationID: offers?.ApplicationID,
+      LoanAmount: offers?.LoanAmount,
     };
     debugger;
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -936,19 +940,29 @@ const index: FC = () => {
   const getLoanEDI = async () => {
     const body = {
       // hcoded
+
       LoanAmount: formValues.edit_loan_amount.value,
-      ProductId: "",
+      ProductId: offers?.ProductId,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    debugger;
     setIsLoading(true);
     await api.app
-      .get({
+      .post({
         url: "/getloanedi",
         requestBody: encryptedBody,
       })
-      .then((res: AxiosResponse<AadharGetotpAPIRespnseType>) => {
+      .then((res: AxiosResponse<GetLoanediAPIResponseType>) => {
         const { data } = res;
         if (data.status === "Success") {
+          //    let _formValues = { ...formValues };
+          // _formValues..error = false;
+          // setFormValues(_formValues);
+          let offerDetails = offers;
+          if (!offerDetails) return;
+          offerDetails.LoanAmount = Math.round(data.data.loanAmount);
+          offerDetails.Tenor = Math.round(data.data.tenor);
+          setOffers(offerDetails);
         } else {
           toast.error(data.message);
         }
@@ -986,6 +1000,12 @@ const index: FC = () => {
       setFormValues(_formValues);
     }
   };
+
+  const startAadharOTPTimer = () => {
+    setInterval(() => {
+      setAadharOTPcountDownTimer((PrevCountDown) => PrevCountDown - 1);
+    }, 1000);
+  };
   return (
     <>
       {AlertModal({
@@ -994,114 +1014,7 @@ const index: FC = () => {
       })}
       <div className="container">
         {/* steps */}
-        <div className="row">
-          <div className="col-md-12">
-            <div className="progress-bar bg-white">
-              <div className="step">
-                <p>Home</p>
-                <div className="bullet">
-                  <i className="fa fa-home" aria-hidden="true" />
-                  <div className="check fas fa-check" />
-                </div>
-              </div>
-              <div className="step">
-                <p>Number</p>
-                <div className="bullet">
-                  <i
-                    className={`fas fa-mobile-alt ${
-                      step > 1 ? "" : "inactive"
-                    } `}
-                  />
-                  <div className="check fas fa-check" />
-                </div>
-              </div>
-              <div className="step">
-                <p>OTP</p>
-                <div className="bullet">
-                  <i
-                    className={`fas fa-key ${step > 2 ? "" : "inactive"} `}
-                    aria-hidden="true"
-                  />
-                  <div className="check fas fa-check" />
-                </div>
-              </div>
-              <div className="step">
-                <p>Personal Details</p>
-                <div className="bullet">
-                  <i
-                    className={`fas fa-user ${step > 3 ? "" : "inactive"} `}
-                    aria-hidden="true"
-                  />
-                  <div className="check fas fa-check" />
-                </div>
-              </div>
-              <div className="step">
-                <p>Selfie</p>
-                <div className="bullet">
-                  <i
-                    className={`fas fa-camera ${step > 4 ? "" : "inactive"} `}
-                  />
-                  <div className="check fas fa-check" />
-                </div>
-              </div>
-              <div className="step">
-                <p>PAN</p>
-                <div className="bullet">
-                  <i
-                    className={`fas fa-id-card ${step > 5 ? "" : "inactive"} `}
-                    aria-hidden="true"
-                  />
-                  <div className="check fas fa-check" />
-                </div>
-              </div>
-              <div className="step">
-                <p>Add. Proof</p>
-                <div className="bullet">
-                  <i
-                    className={`fas fa-address-card ${
-                      step > 6 ? "" : "inactive"
-                    } `}
-                    aria-hidden="true"
-                  />
-                  <div className="check fas fa-check" />
-                </div>
-              </div>
-              <div className="step">
-                <p>A/c Details</p>
-                <div className="bullet">
-                  <i
-                    className={`fas fa-user ${step > 7 ? "" : "inactive"} `}
-                    aria-hidden="true"
-                  />
-                  <div className="check fas fa-check" />
-                </div>
-              </div>
-
-              <div className="step">
-                <p>E-Sign</p>
-                <div className="bullet">
-                  <i
-                    className={`fas fa-file-signature ${
-                      step > 8 ? "" : "inactive"
-                    } `}
-                  />
-                  <div className="check fas fa-check" />
-                </div>
-              </div>
-              <div className="step">
-                <p>Confirm</p>
-                <div className="bullet">
-                  <i
-                    className={`fas fa-check-double ${
-                      step > 9 ? "" : "inactive"
-                    } `}
-                  />
-                  <div className="check fas fa-check" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Stepper step={step} />
         {/* main page */}
         <div className="row">
           <div className="col-md-6 mx-auto">
@@ -1139,7 +1052,7 @@ const index: FC = () => {
                                   <DialogHeader>
                                     <DialogTitle>Edit loan amount</DialogTitle>
                                     <DialogDescription>
-                                      New amount should not be greater than
+                                      Edited amount should not be greater than
                                       <b className="text-black/70">
                                         {" " + offers.LoanAmount}
                                       </b>
@@ -2284,7 +2197,7 @@ const index: FC = () => {
                               <textarea
                                 id="business_address"
                                 className="form-control"
-                                rows={1}
+                                rows={2}
                                 cols={50}
                                 name="business_address"
                                 placeholder="Address Business"
@@ -2352,7 +2265,7 @@ const index: FC = () => {
                               <textarea
                                 id="street-address"
                                 className="form-control"
-                                rows={1}
+                                rows={2}
                                 cols={50}
                                 name="street-address"
                                 placeholder="Current Address"
@@ -2676,7 +2589,6 @@ const index: FC = () => {
                         )}
                       </div>
                     </div>
-
                     <div className="col-md-12 mt-2">
                       <div className="form-group">
                         <label htmlFor="aadhar_otp">Aadhar OTP</label>
@@ -2707,7 +2619,34 @@ const index: FC = () => {
                           ""
                         )}
                       </div>
-                    </div>
+                    </div>{" "}
+                    {aadharOTPcountDownTimer < 60 && (
+                      <div className="flex p-4 justify-end">
+                        {aadharOTPcountDownTimer < 60 &&
+                        aadharOTPcountDownTimer > 0 ? (
+                          <h5>
+                            Please Wait 00:
+                            {aadharOTPcountDownTimer < 10
+                              ? `0${aadharOTPcountDownTimer}`
+                              : aadharOTPcountDownTimer}
+                          </h5>
+                        ) : (
+                          ""
+                        )}
+                        {aadharOTPcountDownTimer <= 0 && (
+                          <Button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              generateAadharOTP();
+                            }}
+                            className="border border-purple-900 "
+                            variant={"outline"}
+                          >
+                            Resend
+                          </Button>
+                        )}
+                      </div>
+                    )}
                     {/* <FileDialog
                       files={addressProof}
                       setFiles={setAddressProof}
@@ -2715,7 +2654,6 @@ const index: FC = () => {
                       title={"Proof of Address (Front)"}
                       description={"Capture Clear Image of Your Voter ID"}
                     /> */}
-
                     <div className="field btns">
                       <button
                         disabled={
@@ -2908,7 +2846,7 @@ const index: FC = () => {
                             </label>
                             <input
                               className="form-control"
-                              type="password"
+                              // type="password"
                               name="account_number"
                               defaultValue=""
                               placeholder="Account Number"
