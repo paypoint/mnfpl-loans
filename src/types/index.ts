@@ -7,6 +7,12 @@ export type APIResponseType = {
   status: "Success" | "Fail";
   message: string;
 };
+
+export type GetOffersResponseType = {
+  status: "Success" | "Fail";
+  message: OfferDetails;
+};
+
 export type GetBusinessMerchantDetailsAPIResponseType = {
   data: BusinessMerchantDetailsDataKey;
 } & APIResponseType;
@@ -51,7 +57,7 @@ export type BusinessMerchantDetailsDataKey = {
   };
 };
 
-export type GetLoanediAPIResponseType = {
+export type GetRegenerateloanoffersResponseType = {
   data: {
     BusinessIdentity: null;
     LoanUID: null;
@@ -77,6 +83,10 @@ export type GetLoanediAPIResponseType = {
 
 export type AadharGetotpAPIRespnseType = {
   client_id: string;
+} & APIResponseType;
+
+export type GetBankListAPI = {
+  data: BankList[];
 } & APIResponseType;
 
 export type GeoLocationAPIResponeObject = {
@@ -145,6 +155,7 @@ export type BankList = {
 };
 
 export type OfferDetails = {
+  LoanOffered: number;
   LoanAmount: number;
   ExpiryDate: string;
   MobileNumber: string;
@@ -165,5 +176,6 @@ export type APIEndPoints =
   | "/savekycdocuments"
   | "/aadhargetotp"
   | "/aadharotpvalidate"
-  | "/getloanedi"
-  | "/getapplicantmerchantdetails";
+  | "/regenerateloanoffers"
+  | "/getapplicantmerchantdetails"
+  | "/validatepan";

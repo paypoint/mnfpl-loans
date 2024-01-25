@@ -14,14 +14,14 @@ const client = axios.create({
 type Request = { url: APIEndPoints; requestBody: string };
 
 class App {
-  post({ url, requestBody }: Request) {
-    return client.post(url, {
+  post<TResponse>({ url, requestBody }: Request) {
+    return client.post<TResponse>(url, {
       requestBody,
     });
   }
 
-  get({ url }: Request) {
-    return client.get(url, {
+  get<TResponse>({ url }: Request) {
+    return client.get<TResponse>(url, {
       data: {},
     });
   }

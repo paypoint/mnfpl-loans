@@ -1,5 +1,5 @@
 import { FC, useEffect, useRef, useState } from "react";
-import { AxiosError, AxiosResponse } from "axios";
+import { type AxiosError } from "axios";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
 
@@ -20,7 +20,9 @@ import {
   OfferDetails,
   APIResponseType,
   AadharGetotpAPIRespnseType,
-  GetLoanediAPIResponseType,
+  GetRegenerateloanoffersResponseType,
+  GetOffersResponseType,
+  GetBankListAPI,
 } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAlert } from "@/components/modals/alert-modal";
@@ -49,14 +51,14 @@ import { Plus, X } from "lucide-react";
 import Stepper from "@/components/Stepper";
 
 const index: FC = () => {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(6);
   const [openDrawer, setOpenDrawer] = useState(false);
   const [showLoanDetails, setShowLoanDetails] = useState(false);
   const [open, setOpen] = useState(false);
   const [countDownTimer, setCountDownTimer] = useState(120);
   const [aadharOTPcountDownTimer, setAadharOTPcountDownTimer] = useState(60);
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
-  const [bankList, setBankList] = useState<[BankList]>();
+  const [bankList, setBankList] = useState<BankList[]>();
   const [isLoading, setIsLoading] = useState(false);
   const [selfieImage, setSelfieImage] = useState<FileWithPreview[] | null>(
     null
@@ -156,7 +158,7 @@ const index: FC = () => {
       error: false,
     },
     //step-8
-    bank_account: {
+    bank_name: {
       value: "",
       error: false,
     },
@@ -352,15 +354,31 @@ const index: FC = () => {
         alert("Please upload selfie");
       }
     } else if (step === 6) {
-      if (panCardImage) {
-        await getBase64(panCardImage[0])
-          .then(
-            async (res) =>
-              await uploadDocument("1", res as string, panCardImage[0].name)
-          )
-          .catch((err) => console.log(err));
+      let formObjectHasError = false;
+      Object.keys(_formValues).forEach((key) => {
+        if (key === "pan_number") {
+          let hasError = !validations.isPANCardValid(_formValues[key].value);
+          _formValues[key].error = !validations.isPANCardValid(
+            _formValues[key].value
+          );
+          if (hasError) {
+            formObjectHasError = true;
+          }
+        }
+      });
+      if (!formObjectHasError) {
+        if (panCardImage) {
+          await getBase64(panCardImage[0])
+            .then(
+              async (res) =>
+                await uploadDocument("1", res as string, panCardImage[0].name)
+            )
+            .catch((err) => console.log(err));
+        } else {
+          alert("Please upload pan card image");
+        }
       } else {
-        alert("Please upload pan card image");
+        setFormValues(_formValues);
       }
     } else if (step === 7) {
       let formObjectHasError = false;
@@ -473,7 +491,8 @@ const index: FC = () => {
   useEffect(() => {
     getIPAddress();
     getOffers();
-    getSteps();
+    // getBusinessBankDetails();
+    // getSteps();
     // getPersonalDetails();
   }, []);
 
@@ -492,23 +511,29 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
 
     await api.app
-      .post({
+      .post<GetOffersResponseType>({
         url: "/GetOffers",
         requestBody: encryptedBody,
       })
-      .then((res: AxiosResponse<APIResponseType>) => {
+      .then((res) => {
         const { data } = res;
         if (data.status === "Success") {
-          let offerDetails: OfferDetails = JSON.parse(data.message);
+          let offerDetails = data.message;
           offerDetails.LoanAmount = Math.round(Number(offerDetails.LoanAmount));
           offerDetails.Tenor = Math.round(Number(offerDetails.Tenor));
+
           setOffers(offerDetails);
           let _formValues = { ...formValues };
           _formValues.mobile_no.value = offerDetails.MobileNumber;
           _formValues.merchant_id.value = offerDetails.MerchantID;
           setFormValues(_formValues);
+          getSteps(
+            data.message.MerchantID,
+            data.message.ApplicationID,
+            data.message.LoanAmount.toString()
+          );
         } else {
-          toast.error(data.message);
+          toast.error(`${data.message}`);
         }
       })
       .catch((error: AxiosError) => {
@@ -525,11 +550,11 @@ const index: FC = () => {
     setIsLoading(true);
     await api.app
 
-      .post({
+      .post<APIResponseType>({
         url: "/SendOTP",
         requestBody: encryptedBody,
       })
-      .then((res: AxiosResponse<APIResponseType>) => {
+      .then((res) => {
         setIsLoading(false);
         const { data } = res;
         if (data.status === "Success") {
@@ -563,11 +588,11 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .post({
+      .post<APIResponseType>({
         url: "/OTPVerify",
         requestBody: encryptedBody,
       })
-      .then((res: AxiosResponse<APIResponseType>) => {
+      .then((res) => {
         setIsLoading(false);
         const { data } = res;
         if (data.status === "Success") {
@@ -594,45 +619,41 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .post({
+      .post<GetBusinessMerchantDetailsAPIResponseType>({
         url: "/BusinessMerchantDetails",
         requestBody: encryptedBody,
       })
-      .then(
-        async (
-          res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
-        ) => {
-          const { data } = res;
-          setIsLoading(false);
-          if (data.status === "Success") {
-            // toast.success(data.Message);
-            const BusinessDetailsResEntity = data.data.BusinessDetailsResEntity;
-            const BusinessAddressResEntity = data.data.BusinessAddressResEntity;
-            const inputDate = new Date(BusinessDetailsResEntity.DateOfBirth);
-            const formattedDate = format(inputDate, "yyyy-MM-dd");
-            let _formValues = { ...formValues };
-            _formValues.dob.value = formattedDate;
-            _formValues.email.value = BusinessDetailsResEntity.EmailId;
-            _formValues.pan_number.value = BusinessDetailsResEntity.PANNo;
-            _formValues.full_name.value =
-              BusinessDetailsResEntity.FirstName.trim() +
-              " " +
-              BusinessDetailsResEntity.MiddleName.trim() +
-              " " +
-              BusinessDetailsResEntity.LastName.trim();
-            _formValues.business_address_pincode.value =
-              BusinessAddressResEntity.PinCode;
-            _formValues.business_address.value =
-              BusinessAddressResEntity.Address1 +
-              BusinessAddressResEntity.Address2;
-            setFormValues(_formValues);
-            // await getBusinessAddressDetails();
-            // setStep((prevStep) => prevStep + 1);
-          } else {
-            toast.error(data.message);
-          }
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
+          // toast.success(data.Message);
+          const BusinessDetailsResEntity = data.data.BusinessDetailsResEntity;
+          const BusinessAddressResEntity = data.data.BusinessAddressResEntity;
+          const inputDate = new Date(BusinessDetailsResEntity.DateOfBirth);
+          const formattedDate = format(inputDate, "yyyy-MM-dd");
+          let _formValues = { ...formValues };
+          _formValues.dob.value = formattedDate;
+          _formValues.email.value = BusinessDetailsResEntity.EmailId;
+          _formValues.pan_number.value = BusinessDetailsResEntity.PANNo;
+          _formValues.full_name.value =
+            BusinessDetailsResEntity.FirstName.trim() +
+            " " +
+            BusinessDetailsResEntity.MiddleName.trim() +
+            " " +
+            BusinessDetailsResEntity.LastName.trim();
+          _formValues.business_address_pincode.value =
+            BusinessAddressResEntity.PinCode;
+          _formValues.business_address.value =
+            BusinessAddressResEntity.Address1 +
+            BusinessAddressResEntity.Address2;
+          setFormValues(_formValues);
+          // await getBusinessAddressDetails();
+          // setStep((prevStep) => prevStep + 1);
+        } else {
+          toast.error(data.message);
         }
-      )
+      })
       .catch((error: AxiosError) => {
         setIsLoading(false);
         showAlert({
@@ -650,17 +671,27 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-
-      .post({
+      .post<GetBankListAPI>({
         url: "/BusinessBankDetails",
         requestBody: encryptedBody,
       })
-      .then(async (res: AxiosResponse<any>) => {
+      .then(async (res) => {
         const { data } = res;
         setIsLoading(false);
         if (data.status === "Success") {
-          const _banklist: [BankList] = JSON.parse(data.data);
+          const _banklist: BankList[] = data.data;
           setBankList(_banklist);
+          let _formValues = { ...formValues };
+          if (_banklist?.[0]) {
+            _formValues.bank_name.value = _banklist[0].Bank;
+            _formValues.ifsc_code.value = _banklist[0].IFSCCode;
+            _formValues.account_holder_name.value =
+              _banklist[0].AccountHolderName;
+            _formValues.account_number.value = _banklist[0].AccountNumber;
+            _formValues.confirm_account_number.value =
+              _banklist[0].AccountNumber;
+            setFormValues(_formValues);
+          }
         } else {
           toast.error(data.message);
         }
@@ -699,11 +730,11 @@ const index: FC = () => {
     debugger;
     setIsLoading(true);
     await api.app
-      .post({
+      .post<APIResponseType>({
         url: "/update_businessMerchantDetails",
         requestBody: encryptedBody,
       })
-      .then(async (res: AxiosResponse<APIResponseType>) => {
+      .then(async (res) => {
         const { data } = res;
         setIsLoading(false);
         if (data.status === "Success") {
@@ -773,42 +804,78 @@ const index: FC = () => {
   ) => {
     const body = {
       // hcoded
-      MerchantID: "7e77a7d4" || formValues.merchant_id.value,
+      MerchantID: formValues.merchant_id.value || "7e77a7d4",
       Application_ID: offers?.ApplicationID,
       DocumentFileImage: image,
       DocumentFilename: imagename,
       DocID: id,
+      DocNumber: id === "1" ? formValues.pan_number.value : "",
     };
 
     debugger;
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .post({
+      .post<GetBusinessMerchantDetailsAPIResponseType>({
         url: "/savekycdocuments",
         requestBody: encryptedBody,
       })
-      .then(
-        async (
-          res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
-        ) => {
-          const { data } = res;
-          setIsLoading(false);
-          if (data.status === "Success") {
-            toast.success(
-              `${
-                id === "1" ? "Pancard" : id === "2" ? "Selfie" : "Adress proof"
-              } uploaded successfully`
-            );
-            if (id === "3") {
-              getBusinessBankDetails();
-            }
-            setStep((prevStep) => prevStep + 1);
-          } else {
-            toast.error(data.message);
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
+          toast.success(
+            `${
+              id === "1" ? "Pancard" : id === "2" ? "Selfie" : "Adress proof"
+            } uploaded successfully`
+          );
+          if (id === "3") {
+            getBusinessBankDetails();
           }
+          setStep((prevStep) => prevStep + 1);
+        } else {
+          toast.error(data.message);
         }
-      )
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
+  };
+
+  const validatepan = async (image: string, imagename: string) => {
+    const body = {
+      // hcoded
+      MerchantID: formValues.merchant_id.value || "7e77a7d4",
+      Application_ID: offers?.ApplicationID,
+      DocumentFileImage: image,
+      DocumentFilename: imagename,
+      DocID: "1",
+      PANNo: "",
+    };
+
+    debugger;
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<GetBusinessMerchantDetailsAPIResponseType>({
+        url: "/validatepan",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
+          toast.success("Pan card  uploaded successfully");
+
+          setStep((prevStep) => prevStep + 1);
+        } else {
+          toast.error(data.message);
+        }
+      })
       .catch((error: AxiosError) => {
         setIsLoading(false);
         showAlert({
@@ -822,17 +889,17 @@ const index: FC = () => {
     const body = {
       AadhaarNo: formValues.aadhar_no.value,
       // hcoded
-      MerchantID: "7e77a7d4" || formValues.merchant_id.value,
-      ApplicantID: "",
+      MerchantID: formValues.merchant_id.value || "7e77a7d4",
+      ApplicantID: offers?.ApplicationID,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .post({
+      .post<AadharGetotpAPIRespnseType>({
         url: "/aadhargetotp",
         requestBody: encryptedBody,
       })
-      .then((res: AxiosResponse<AadharGetotpAPIRespnseType>) => {
+      .then((res) => {
         const { data } = res;
         if (data.status === "Success") {
           toast.success("OTP sent");
@@ -859,18 +926,18 @@ const index: FC = () => {
       clientId: formValues.client_id.value,
       OTP: formValues.aadhar_otp.value,
       // hcoded
-      MerchantID: "7e77a7d4" || formValues.merchant_id.value,
-      ApplicantID: "",
+      MerchantID: formValues.merchant_id.value || "7e77a7d4",
+      ApplicantID: offers?.ApplicationID,
       MobileNo: "",
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .post({
+      .post<AadharGetotpAPIRespnseType>({
         url: "/aadharotpvalidate",
         requestBody: encryptedBody,
       })
-      .then((res: AxiosResponse<AadharGetotpAPIRespnseType>) => {
+      .then((res) => {
         const { data } = res;
         if (data.status === "Success") {
           toast.success("Aadhar verified successfully");
@@ -906,22 +973,26 @@ const index: FC = () => {
     }
   }, [formValues.aadhar_no.value]);
 
-  const getSteps = async () => {
+  const getSteps = async (
+    MerchantID: string,
+    ApplicationID: string,
+    LoanAmount: string
+  ) => {
     const body = {
       // hcoded
-      MerchantID: "7e77a7d4" || formValues.merchant_id.value,
-      ApplicationID: offers?.ApplicationID,
-      LoanAmount: offers?.LoanAmount,
+      MerchantID: MerchantID || formValues.merchant_id.value,
+      ApplicationID: offers?.ApplicationID || ApplicationID,
+      LoanAmount: offers?.LoanAmount || LoanAmount,
     };
     debugger;
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .post({
+      .post<AadharGetotpAPIRespnseType>({
         url: "/getapplicantmerchantdetails",
         requestBody: encryptedBody,
       })
-      .then((res: AxiosResponse<AadharGetotpAPIRespnseType>) => {
+      .then((res) => {
         const { data } = res;
         if (data.status === "Success") {
         } else {
@@ -937,22 +1008,23 @@ const index: FC = () => {
       .finally(() => setIsLoading(false));
   };
 
-  const getLoanEDI = async () => {
+  const regenerateloanoffers = async () => {
     const body = {
       // hcoded
-
+      MerchantID: offers?.MerchantID,
       LoanAmount: formValues.edit_loan_amount.value,
       ProductId: offers?.ProductId,
+      LoanOffered: offers?.LoanOffered,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     debugger;
     setIsLoading(true);
     await api.app
-      .post({
-        url: "/getloanedi",
+      .post<GetRegenerateloanoffersResponseType>({
+        url: "/regenerateloanoffers",
         requestBody: encryptedBody,
       })
-      .then((res: AxiosResponse<GetLoanediAPIResponseType>) => {
+      .then((res) => {
         const { data } = res;
         if (data.status === "Success") {
           //    let _formValues = { ...formValues };
@@ -995,7 +1067,7 @@ const index: FC = () => {
     });
     if (!formObjectHasError) {
       setOpen(false);
-      getLoanEDI();
+      regenerateloanoffers();
     } else {
       setFormValues(_formValues);
     }
@@ -1006,6 +1078,20 @@ const index: FC = () => {
       setAadharOTPcountDownTimer((PrevCountDown) => PrevCountDown - 1);
     }, 1000);
   };
+
+  const onSelectBank = (accountNumber: string) => {
+    console.log(accountNumber);
+    const selectedBank = bankList?.filter(
+      ({ AccountNumber }) => AccountNumber === accountNumber
+    )!;
+    let _formValues = { ...formValues };
+    _formValues.bank_name.value = selectedBank[0].Bank;
+    _formValues.ifsc_code.value = selectedBank[0].IFSCCode;
+    _formValues.account_holder_name.value = selectedBank[0].AccountHolderName;
+    _formValues.account_number.value = selectedBank[0].AccountNumber;
+    _formValues.confirm_account_number.value = selectedBank[0].AccountNumber;
+    setFormValues(_formValues);
+  };
   return (
     <>
       {AlertModal({
@@ -1014,7 +1100,7 @@ const index: FC = () => {
       })}
       <div className="container">
         {/* steps */}
-        <Stepper step={step} />
+        <Stepper activeStep={step} />
         {/* main page */}
         <div className="row">
           <div className="col-md-6 mx-auto">
@@ -2091,17 +2177,18 @@ const index: FC = () => {
                 )}
                 {step === 4 && (
                   <div className="page">
-                    <div className="main_step_4">
+                    {/* <div className="main_step_4">
                       <h4>Personal Details</h4>
                       <h5 className="detailsAdditional">
                         Click From The Dropdown to View More Employment Status
                       </h5>
-                    </div>
+                    </div> */}
                     <div
                       className="main_step_4"
-                      style={{ height: 350, overflow: "auto" }}
+                      style={{ height: 550, overflow: "auto" }}
                     >
                       <div className="Detail_Form">
+                        <h4>Personal Details</h4>
                         <div className="row">
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
@@ -2545,6 +2632,35 @@ const index: FC = () => {
                       title={"PAN Card"}
                       description={"Capture Clear Image of Your PAN Card"}
                     />
+                    <div className="col-md-12 mt-2">
+                      <div className="form-group">
+                        <label htmlFor="pannumber">Enter PAN number</label>
+                        <input
+                          style={{
+                            textTransform: "uppercase",
+                          }}
+                          className="form-control"
+                          type="text"
+                          name=""
+                          defaultValue=""
+                          placeholder="Enter Enter PAN Number"
+                          id="pannumber"
+                          required
+                          value={formValues.pan_number.value}
+                          maxLength={10}
+                          onChange={(e) =>
+                            onInputChange("pan_number", e.target.value)
+                          }
+                        />
+                        {formValues.pan_number.error ? (
+                          <span style={{ color: "red", fontSize: "14px" }}>
+                            Please enter valid pan number
+                          </span>
+                        ) : (
+                          ""
+                        )}
+                      </div>
+                    </div>
                     <div className="field btns">
                       <button
                         disabled={isLoading}
@@ -2554,7 +2670,7 @@ const index: FC = () => {
                           isLoading && "animate-pulse"
                         )}
                       >
-                        capture
+                        Proceed
                       </button>
                     </div>
                   </div>
@@ -2665,7 +2781,7 @@ const index: FC = () => {
                           isLoading && "animate-pulse"
                         )}
                       >
-                        capture
+                        Proceed
                       </button>
                     </div>
                   </div>
@@ -2680,246 +2796,431 @@ const index: FC = () => {
                         alt="enter-account-details-image"
                       />
                     </div>
-                    <div
-                      className="main_step_8"
-                      style={{ height: 350, overflow: "auto" }}
-                    >
-                      {/* <table className="table table-light">
-                        <tbody>
-                          {bankList?.map((i, id) => {
-                            return (
-                              <tr key={id}>
-                                <td>
-                                  <div className="form-check">
-                                    <label className="form-check-label">
-                                      <input
-                                        type="radio"
-                                        className="form-check-input"
-                                        name=""
-                                        id=""
-                                        defaultValue="checkedValue"
-                                      />
-                                      {i.AccountHolderName}
-                                    </label>
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table> */}
-                      <RadioGroup>
-                        {bankList?.map((i, id) => (
-                          <article
-                            key={id}
-                            className="flex items-start space-x-6 p-6"
+                    {bankList?.[0] ? (
+                      <>
+                        <div
+                          className="main_step_8"
+                          style={{ height: 350, overflow: "auto" }}
+                        >
+                          <RadioGroup
+                            onValueChange={(accountNumber) =>
+                              onSelectBank(accountNumber)
+                            }
+                            defaultValue={bankList[0].AccountNumber}
                           >
-                            <div className="min-w-0 relative flex-auto">
-                              <Label htmlFor={i.AccountNumber}>
-                                <h2 className="font-semibold text-[#5322ba] truncate pr-20">
-                                  {i.AccountHolderName}
-                                </h2>
-                              </Label>
+                            {bankList?.map((i, id) => (
+                              <article
+                                key={id}
+                                className="flex items-start space-x-6 p-6"
+                              >
+                                <div className="min-w-0 relative flex-auto">
+                                  <Label htmlFor={i.AccountNumber}>
+                                    <h2 className="font-semibold text-[#5322ba] truncate pr-20">
+                                      {i.AccountHolderName}
+                                    </h2>
+                                  </Label>
 
-                              <dl className="mt-2 flex flex-wrap text-sm leading-6 font-medium">
-                                <div className="absolute top-0 right-0 flex items-center space-x-1">
-                                  <RadioGroupItem
-                                    value={i.AccountNumber}
-                                    id={i.AccountNumber}
-                                  />
-                                </div>
-                                <div>
-                                  <dt className="sr-only">Bank name</dt>
-                                  <dd className="px-1.5 ring-1 ring-slate-200 rounded">
-                                    {i.Bank}
-                                  </dd>
-                                </div>
-                                <div className="ml-2">
-                                  <dt className="sr-only">
-                                    Bank Account Number
-                                  </dt>
-                                  <dd className="flex items-center">
-                                    <svg
-                                      width="2"
-                                      height="2"
-                                      fill="currentColor"
-                                      className="mx-2 text-slate-300"
-                                      aria-hidden="true"
-                                    >
-                                      <circle cx="1" cy="1" r="1" />
-                                    </svg>
-                                    {i.AccountNumber}
-                                  </dd>
-                                </div>
+                                  <dl className="mt-2 flex flex-wrap text-sm leading-6 font-medium">
+                                    <div className="absolute top-0 right-0 flex items-center space-x-1">
+                                      <RadioGroupItem
+                                        value={i.AccountNumber}
+                                        id={i.AccountNumber}
+                                      />
+                                    </div>
+                                    <div>
+                                      <dt className="sr-only">Bank name</dt>
+                                      <dd className="px-1.5 ring-1 ring-slate-200 rounded">
+                                        {i.Bank}
+                                      </dd>
+                                    </div>
+                                    <div className="ml-2">
+                                      <dt className="sr-only">
+                                        Bank Account Number
+                                      </dt>
+                                      <dd className="flex items-center">
+                                        <svg
+                                          width="2"
+                                          height="2"
+                                          fill="currentColor"
+                                          className="mx-2 text-slate-300"
+                                          aria-hidden="true"
+                                        >
+                                          <circle cx="1" cy="1" r="1" />
+                                        </svg>
+                                        {i.AccountNumber}
+                                      </dd>
+                                    </div>
 
-                                <div className="flex-none w-full mt-2 font-normal">
-                                  <dt className="sr-only">Ifsc code</dt>
-                                  <dd className="text-slate-400">
-                                    {i.IFSCCode}
-                                  </dd>
+                                    <div className="flex-none w-full mt-2 font-normal">
+                                      <dt className="sr-only">Ifsc code</dt>
+                                      <dd className="text-slate-400">
+                                        {i.IFSCCode}
+                                      </dd>
+                                    </div>
+                                  </dl>
                                 </div>
-                              </dl>
+                              </article>
+                            ))}
+                          </RadioGroup>
+                          <h5>
+                            Only Banks That Support Auto repayments will Show up
+                          </h5>
+                          <div className="row">
+                            <div className="col-12">
+                              <div className="form-group">
+                                <label htmlFor="bank_name">Bank name</label>
+                                <input
+                                  readOnly
+                                  className="form-control"
+                                  type="text"
+                                  name="bank_name"
+                                  defaultValue=""
+                                  placeholder="Bank IFSC Code"
+                                  id="bank_name"
+                                  required
+                                  value={formValues.bank_name.value}
+                                  onChange={(e) =>
+                                    onInputChange("bank_name", e.target.value)
+                                  }
+                                />
+                                {formValues.bank_name.error ? (
+                                  <span
+                                    style={{ color: "red", fontSize: "14px" }}
+                                  >
+                                    Bank name should not be empty
+                                  </span>
+                                ) : (
+                                  ""
+                                )}
+                              </div>
                             </div>
-                          </article>
-                        ))}
-                      </RadioGroup>
-                      <h5>
-                        Only Banks That Support Auto repayments will Show up
-                      </h5>
-                      <div className="row">
-                        <div className="col-12">
-                          <div className="form-group">
-                            <label htmlFor="my-select">Select Your Bank</label>
-                            <select
-                              id="my-select"
-                              className="form-control"
-                              name=""
-                              onChange={(e) =>
-                                onInputChange("bank_account", e.target.value)
-                              }
-                            >
-                              {bankDropDown.map((i, id) => (
-                                <option key={id} value={i}>
-                                  {i}
-                                </option>
-                              ))}
-                            </select>
+                            <div className="col-md-6 mt-2">
+                              <div className="form-group">
+                                <label htmlFor="ifsc_code">
+                                  Bank IFSC Code
+                                </label>
+                                <input
+                                  className="form-control"
+                                  type="text"
+                                  name="ifsc_code"
+                                  defaultValue=""
+                                  placeholder="Bank IFSC Code"
+                                  id="ifsc_code"
+                                  required
+                                  value={formValues.ifsc_code.value}
+                                  onChange={(e) =>
+                                    onInputChange("ifsc_code", e.target.value)
+                                  }
+                                />
+                                {formValues.ifsc_code.error ? (
+                                  <span
+                                    style={{ color: "red", fontSize: "14px" }}
+                                  >
+                                    IFSC code should not be empty
+                                  </span>
+                                ) : (
+                                  ""
+                                )}
+                              </div>
+                            </div>
+                            <div className="col-md-6 mt-2">
+                              <div className="form-group">
+                                <label htmlFor="account_holder_name">
+                                  Account Holder Name
+                                </label>
+                                <input
+                                  className="form-control"
+                                  type="text"
+                                  name="account_holder_name"
+                                  defaultValue=""
+                                  placeholder="Account Holder Name"
+                                  id="account_holder_name"
+                                  required
+                                  value={formValues.account_holder_name.value}
+                                  onChange={(e) =>
+                                    onInputChange(
+                                      "account_holder_name",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                                {formValues.account_holder_name.error ? (
+                                  <span
+                                    style={{ color: "red", fontSize: "14px" }}
+                                  >
+                                    Account holder name should not empty
+                                  </span>
+                                ) : (
+                                  ""
+                                )}
+                              </div>
+                            </div>
+                            <div className="col-md-6 mt-2">
+                              <div className="form-group">
+                                <label htmlFor="account_number">
+                                  Account Number
+                                </label>
+                                <input
+                                  className="form-control"
+                                  // type="password"
+                                  name="account_number"
+                                  defaultValue=""
+                                  placeholder="Account Number"
+                                  id="account_number"
+                                  required
+                                  value={formValues.account_number.value}
+                                  maxLength={20}
+                                  onKeyDown={(e) => onlyNumberValues(e)}
+                                  onChange={(e) =>
+                                    onInputChange(
+                                      "account_number",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                                {formValues.account_number.error ? (
+                                  <span
+                                    style={{ color: "red", fontSize: "14px" }}
+                                  >
+                                    Please enter valid account number
+                                  </span>
+                                ) : (
+                                  ""
+                                )}
+                              </div>
+                            </div>
+                            <div className="col-md-6 mt-2">
+                              <div className="form-group">
+                                <label htmlFor="confirm_account_number">
+                                  Confirm Account Number
+                                </label>
+                                <input
+                                  className="form-control"
+                                  type="text"
+                                  name="confirm_account_number"
+                                  defaultValue=""
+                                  placeholder="Confirm Account Number"
+                                  id="confirm_account_number"
+                                  required
+                                  maxLength={20}
+                                  value={
+                                    formValues.confirm_account_number.value
+                                  }
+                                  onKeyDown={(e) => onlyNumberValues(e)}
+                                  onChange={(e) =>
+                                    onInputChange(
+                                      "confirm_account_number",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                                {formValues.confirm_account_number.error ? (
+                                  <span
+                                    style={{ color: "red", fontSize: "14px" }}
+                                  >
+                                    Account number mismatch
+                                  </span>
+                                ) : (
+                                  ""
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <div className="col-md-6 mt-2">
-                          <div className="form-group">
-                            <label htmlFor="ifsc_code">Bank IFSC Code</label>
-                            <input
-                              className="form-control"
-                              type="text"
-                              name="ifsc_code"
-                              defaultValue=""
-                              placeholder="Bank IFSC Code"
-                              id="ifsc_code"
-                              required
-                              onChange={(e) =>
-                                onInputChange("ifsc_code", e.target.value)
-                              }
-                            />
-                            {formValues.ifsc_code.error ? (
-                              <span style={{ color: "red", fontSize: "14px" }}>
-                                IFSC code should not be empty
-                              </span>
-                            ) : (
-                              ""
+                        <div className="field btns">
+                          <button
+                            disabled={isLoading}
+                            onClick={(e) => handleNext(e)}
+                            className={cn(
+                              "next-4 next disabled:opacity-70 disabled:pointer-events-none",
+                              isLoading && "animate-pulse"
                             )}
+                          >
+                            confirm
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div
+                        className="main_step_8"
+                        style={{ height: 350, overflow: "auto" }}
+                      >
+                        <h5>No bank details found please add bank account</h5>
+                        <div className="row">
+                          <div className="col-12">
+                            <div className="form-group">
+                              <label htmlFor="bank_name">Bank name</label>
+                              <input
+                                className="form-control"
+                                type="text"
+                                name="bank_name"
+                                defaultValue=""
+                                placeholder="Bank IFSC Code"
+                                id="bank_name"
+                                required
+                                value={formValues.bank_name.value}
+                                onChange={(e) =>
+                                  onInputChange("bank_name", e.target.value)
+                                }
+                              />
+                              {formValues.bank_name.error ? (
+                                <span
+                                  style={{ color: "red", fontSize: "14px" }}
+                                >
+                                  Bank name should not be empty
+                                </span>
+                              ) : (
+                                ""
+                              )}
+                            </div>
+                          </div>
+                          <div className="col-md-6 mt-2">
+                            <div className="form-group">
+                              <label htmlFor="ifsc_code">Bank IFSC Code</label>
+                              <input
+                                className="form-control"
+                                type="text"
+                                name="ifsc_code"
+                                defaultValue=""
+                                placeholder="Bank IFSC Code"
+                                id="ifsc_code"
+                                required
+                                value={formValues.ifsc_code.value}
+                                onChange={(e) =>
+                                  onInputChange("ifsc_code", e.target.value)
+                                }
+                              />
+                              {formValues.ifsc_code.error ? (
+                                <span
+                                  style={{ color: "red", fontSize: "14px" }}
+                                >
+                                  IFSC code should not be empty
+                                </span>
+                              ) : (
+                                ""
+                              )}
+                            </div>
+                          </div>
+                          <div className="col-md-6 mt-2">
+                            <div className="form-group">
+                              <label htmlFor="account_holder_name">
+                                Account Holder Name
+                              </label>
+                              <input
+                                className="form-control"
+                                type="text"
+                                name="account_holder_name"
+                                defaultValue=""
+                                placeholder="Account Holder Name"
+                                id="account_holder_name"
+                                required
+                                value={formValues.account_holder_name.value}
+                                onChange={(e) =>
+                                  onInputChange(
+                                    "account_holder_name",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                              {formValues.account_holder_name.error ? (
+                                <span
+                                  style={{ color: "red", fontSize: "14px" }}
+                                >
+                                  Account holder name should not empty
+                                </span>
+                              ) : (
+                                ""
+                              )}
+                            </div>
+                          </div>
+                          <div className="col-md-6 mt-2">
+                            <div className="form-group">
+                              <label htmlFor="account_number">
+                                Account Number
+                              </label>
+                              <input
+                                className="form-control"
+                                // type="password"
+                                name="account_number"
+                                defaultValue=""
+                                placeholder="Account Number"
+                                id="account_number"
+                                required
+                                value={formValues.account_number.value}
+                                maxLength={20}
+                                onKeyDown={(e) => onlyNumberValues(e)}
+                                onChange={(e) =>
+                                  onInputChange(
+                                    "account_number",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                              {formValues.account_number.error ? (
+                                <span
+                                  style={{ color: "red", fontSize: "14px" }}
+                                >
+                                  Please enter valid account number
+                                </span>
+                              ) : (
+                                ""
+                              )}
+                            </div>
+                          </div>
+                          <div className="col-md-6 mt-2">
+                            <div className="form-group">
+                              <label htmlFor="confirm_account_number">
+                                Confirm Account Number
+                              </label>
+                              <input
+                                className="form-control"
+                                type="text"
+                                name="confirm_account_number"
+                                defaultValue=""
+                                placeholder="Confirm Account Number"
+                                id="confirm_account_number"
+                                required
+                                maxLength={20}
+                                value={formValues.confirm_account_number.value}
+                                onKeyDown={(e) => onlyNumberValues(e)}
+                                onChange={(e) =>
+                                  onInputChange(
+                                    "confirm_account_number",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                              {formValues.confirm_account_number.error ? (
+                                <span
+                                  style={{ color: "red", fontSize: "14px" }}
+                                >
+                                  Account number mismatch
+                                </span>
+                              ) : (
+                                ""
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <div className="col-md-6 mt-2">
-                          <div className="form-group">
-                            <label htmlFor="account_holder_name">
-                              Account Holder Name
-                            </label>
-                            <input
-                              className="form-control"
-                              type="text"
-                              name="account_holder_name"
-                              defaultValue=""
-                              placeholder="Account Holder Name"
-                              id="account_holder_name"
-                              required
-                              onChange={(e) =>
-                                onInputChange(
-                                  "account_holder_name",
-                                  e.target.value
-                                )
-                              }
-                            />
-                            {formValues.account_holder_name.error ? (
-                              <span style={{ color: "red", fontSize: "14px" }}>
-                                Account holder name should not empty
-                              </span>
-                            ) : (
-                              ""
+                        <div className="field btns">
+                          <button
+                            disabled={isLoading}
+                            onClick={(e) => handleNext(e)}
+                            className={cn(
+                              "next-4 next disabled:opacity-70 disabled:pointer-events-none",
+                              isLoading && "animate-pulse"
                             )}
-                          </div>
-                        </div>
-                        <div className="col-md-6 mt-2">
-                          <div className="form-group">
-                            <label htmlFor="account_number">
-                              Account Number
-                            </label>
-                            <input
-                              className="form-control"
-                              // type="password"
-                              name="account_number"
-                              defaultValue=""
-                              placeholder="Account Number"
-                              id="account_number"
-                              required
-                              maxLength={20}
-                              onKeyDown={(e) => onlyNumberValues(e)}
-                              onChange={(e) =>
-                                onInputChange("account_number", e.target.value)
-                              }
-                            />
-                            {formValues.account_number.error ? (
-                              <span style={{ color: "red", fontSize: "14px" }}>
-                                Please enter valid account number
-                              </span>
-                            ) : (
-                              ""
-                            )}
-                          </div>
-                        </div>
-                        <div className="col-md-6 mt-2">
-                          <div className="form-group">
-                            <label htmlFor="confirm_account_number">
-                              Confirm Account Number
-                            </label>
-                            <input
-                              className="form-control"
-                              type="text"
-                              name="confirm_account_number"
-                              defaultValue=""
-                              placeholder="Confirm Account Number"
-                              id="confirm_account_number"
-                              required
-                              maxLength={20}
-                              onKeyDown={(e) => onlyNumberValues(e)}
-                              onChange={(e) =>
-                                onInputChange(
-                                  "confirm_account_number",
-                                  e.target.value
-                                )
-                              }
-                            />
-                            {formValues.confirm_account_number.error ? (
-                              <span style={{ color: "red", fontSize: "14px" }}>
-                                Account number mismatch
-                              </span>
-                            ) : (
-                              ""
-                            )}
-                          </div>
+                          >
+                            confirm
+                          </button>
                         </div>
                       </div>
-                    </div>
-                    <div className="field btns">
-                      <button
-                        disabled={isLoading}
-                        onClick={(e) => handleNext(e)}
-                        className={cn(
-                          "next-4 next disabled:opacity-70 disabled:pointer-events-none",
-                          isLoading && "animate-pulse"
-                        )}
-                      >
-                        confirm
-                      </button>
-                    </div>
+                    )}
                   </div>
                 )}
                 {step === 9 && (
                   <div className="page">
-                    <div
-                      className="main_step_9 col-md-12 pt-2"
-                      style={{ height: 350, overflow: "auto" }}
-                    >
+                    <div className="main_step_9 col-md-12 pt-2 bg-cover max-h-[32rem]  min-h-[350px] overflow-auto relative">
                       Please read the following Terms and Conditions of service
                       that you agree to, when you access www.paypointz.com
                       ("website"), a service offered by Pay Point India Network
