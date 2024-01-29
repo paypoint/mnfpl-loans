@@ -8,6 +8,55 @@ export type APIResponseType = {
   message: string;
 };
 
+export type EsignResponseType = {
+  data: string;
+  status: "Success" | "Fail";
+};
+
+export type ESignPacketsAPI = {
+  status: "Success" | "Fail";
+  data: string;
+  redirect: string;
+  post: string;
+};
+
+export type GetStepsAPIResponseType = {
+  status: "Success" | "Fail";
+  result: Steps;
+  message: string;
+};
+
+export type Steps = [
+  {
+    kycStepName: "PersonalDetails";
+    kycStepCompletionStatus: "Complete";
+  },
+  {
+    kycStepName: "Selfi_check";
+    kycStepCompletionStatus: "Pending";
+  },
+  {
+    kycStepName: "PanDetails";
+    kycStepCompletionStatus: "Pending";
+  },
+  {
+    kycStepName: "AadharDetails";
+    kycStepCompletionStatus: "Pending";
+  },
+  {
+    kycStepName: "BankDetails";
+    kycStepCompletionStatus: "Pending";
+  },
+  {
+    kycStepName: "Esign";
+    kycStepCompletionStatus: "Pending";
+  },
+  {
+    kycStepName: "Disbursed";
+    kycStepCompletionStatus: "Pending";
+  }
+];
+
 export type GetOffersResponseType = {
   status: "Success" | "Fail";
   message: OfferDetails;
@@ -178,4 +227,9 @@ export type APIEndPoints =
   | "/aadharotpvalidate"
   | "/regenerateloanoffers"
   | "/getapplicantmerchantdetails"
-  | "/validatepan";
+  // | "/validatepan" <-- deprecated
+  | "/updatebank"
+  | "/getesignrequestterms1"
+  | "/getesignrequestterms2"
+  | "/getesignrequestpackets"
+  | "/esignresponse";

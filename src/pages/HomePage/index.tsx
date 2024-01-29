@@ -23,6 +23,9 @@ import {
   GetRegenerateloanoffersResponseType,
   GetOffersResponseType,
   GetBankListAPI,
+  EsignResponseType,
+  ESignPacketsAPI,
+  GetStepsAPIResponseType,
 } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAlert } from "@/components/modals/alert-modal";
@@ -51,15 +54,21 @@ import { Plus, X } from "lucide-react";
 import Stepper from "@/components/Stepper";
 
 const index: FC = () => {
-  const [step, setStep] = useState(6);
+  const [step, setStep] = useState(1);
   const [openDrawer, setOpenDrawer] = useState(false);
   const [showLoanDetails, setShowLoanDetails] = useState(false);
   const [open, setOpen] = useState(false);
   const [countDownTimer, setCountDownTimer] = useState(120);
+  const [selectedBankID, setSelectedBankID] = useState(0);
   const [aadharOTPcountDownTimer, setAadharOTPcountDownTimer] = useState(60);
+  const [locationDetails, setLocationDetails] =
+    useState<GeoLocationAPIResponeObject>();
+  const [esignTerms, setEsignTerms] = useState<string>();
+  const [esignTerms2, setEsignTerms2] = useState<string>();
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [bankList, setBankList] = useState<BankList[]>();
   const [isLoading, setIsLoading] = useState(false);
+  const [openTermsDrawer, setOpenTermsDrawer] = useState(false);
   const [selfieImage, setSelfieImage] = useState<FileWithPreview[] | null>(
     null
   );
@@ -410,40 +419,50 @@ const index: FC = () => {
       //   alert("Please upload address proof image");
       // }
     } else if (step === 8) {
-      let formObjectHasError = false;
-      Object.keys(_formValues).forEach((key) => {
-        if (
-          key === "account_holder_name" ||
-          key === "account_number" ||
-          key === "ifsc_code"
-        ) {
-          let hasError = !validations.isRequired(_formValues[key].value);
-          _formValues[key].error = !validations.isRequired(
-            _formValues[key].value
-          );
-          if (hasError) {
-            formObjectHasError = true;
-          }
-        }
-        if (key === "confirm_account_number") {
-          let hasError = !(
-            _formValues.account_number.value ===
-            _formValues.confirm_account_number.value
-          );
-          _formValues[key].error = !(
-            _formValues.account_number.value ===
-            _formValues.confirm_account_number.value
-          );
-          if (hasError) {
-            formObjectHasError = true;
-          }
-        }
-      });
-      if (!formObjectHasError) {
-        setStep((prevStep) => prevStep + 2);
-      } else {
-        setFormValues(_formValues);
-      }
+      // let formObjectHasError = false;
+      // Object.keys(_formValues).forEach((key) => {
+      //   if (
+      //     key === "account_holder_name" ||
+      //     key === "account_number" ||
+      //     key === "ifsc_code"
+      //   ) {
+      //     let hasError = !validations.isRequired(_formValues[key].value);
+      //     _formValues[key].error = !validations.isRequired(
+      //       _formValues[key].value
+      //     );
+      //     if (hasError) {
+      //       formObjectHasError = true;
+      //     }
+      //   }
+      //   if (key === "confirm_account_number") {
+      //     let hasError = !(
+      //       _formValues.account_number.value ===
+      //       _formValues.confirm_account_number.value
+      //     );
+      //     _formValues[key].error = !(
+      //       _formValues.account_number.value ===
+      //       _formValues.confirm_account_number.value
+      //     );
+      //     if (hasError) {
+      //       formObjectHasError = true;
+      //     }
+      //   }
+      // });
+      // if (!formObjectHasError) {
+      //   setStep((prevStep) => prevStep + 1);
+      // } else {
+      //   setFormValues(_formValues);
+      // }
+      Promise.allSettled([
+        updateBank(),
+        // getEsignRequestTerms("/getesignrequestterms1"),
+      ]).then(() => setStep((prevStep) => prevStep + 2));
+      //  await updateBank();
+      //  await getEsignRequestTerms("/getesignrequestterms1")
+    } else if (step === 9) {
+      eSignCheckBoxValidtion();
+      // await getEsignRequestTerms("/getesignrequestterms2");
+      // setOpenTermsDrawer(true);
     } else if (step === 10) {
       alert("Form submitted successfully");
     } else {
@@ -499,12 +518,14 @@ const index: FC = () => {
   const getIPAddress = async () => {
     const response = await fetch("https://geolocation-db.com/json/");
     const data: GeoLocationAPIResponeObject = await response.json();
-    let _formValues = { ...formValues };
-    _formValues.ip_address.value = data.IPv4;
-    setFormValues(_formValues);
+    setLocationDetails(data);
+    // let _formValues = { ...formValues };
+    // _formValues.ip_address.value = data.IPv4;
+    // setFormValues(_formValues);
   };
 
   const getOffers = async () => {
+    //hcoded
     const body = {
       RefID: "1334338946318021960dbc7fc4-aa0d-4b49-8f46-ee03dc2260ac", // get this from url
     };
@@ -515,7 +536,7 @@ const index: FC = () => {
         url: "/GetOffers",
         requestBody: encryptedBody,
       })
-      .then((res) => {
+      .then(async (res) => {
         const { data } = res;
         if (data.status === "Success") {
           let offerDetails = data.message;
@@ -527,7 +548,7 @@ const index: FC = () => {
           _formValues.mobile_no.value = offerDetails.MobileNumber;
           _formValues.merchant_id.value = offerDetails.MerchantID;
           setFormValues(_formValues);
-          getSteps(
+          await getSteps(
             data.message.MerchantID,
             data.message.ApplicationID,
             data.message.LoanAmount.toString()
@@ -666,7 +687,7 @@ const index: FC = () => {
   const getBusinessBankDetails = async () => {
     const body = {
       // hcoded
-      MerchantID: "7e77a7d4" || formValues.merchant_id.value,
+      MerchantID: formValues.merchant_id.value || "7e77a7d4",
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
@@ -725,6 +746,7 @@ const index: FC = () => {
       cPinCode: formValues.current_pincode.value,
       cAddress1: formValues.current_address.value,
       cAddress2: "",
+      Application_ID: offers?.ApplicationID,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     debugger;
@@ -751,45 +773,6 @@ const index: FC = () => {
         });
       });
   };
-
-  // const getBusinessAddressDetails = async () => {
-  //   const body = {
-  //     MerchantID: formValues.merchant_id.value,
-  //   };
-  //   const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-  //   setIsLoading(true);
-  //   await api.app
-  //     .post({
-  //       url: "/BusinessAddressDetails",
-  //       requestBody: encryptedBody,
-  //     })
-  //     .then(
-  //       async (
-  //         res: AxiosResponse<GetBusinessMerchantDetailsAPIResponseType>
-  //       ) => {
-  //         const { data } = res;
-  //         setIsLoading(false);
-  //         if (data.status === "Success") {
-  //           const details: ParsedMerchantAddressDetails = JSON.parse(data.data);
-  //           let _formValues = { ...formValues };
-  //           _formValues.business_address_pincode.value = details.PinCode;
-  //           _formValues.business_address.value =
-  //             details.Address1 + details.Address2;
-
-  //           setFormValues(_formValues);
-  //         } else {
-  //           toast.error(data.message);
-  //         }
-  //       }
-  //     )
-  //     .catch((error: AxiosError) => {
-  //       setIsLoading(false);
-  //       showAlert({
-  //         title: error.message,
-  //         description: "Please try after some time",
-  //       });
-  //     });
-  // };
 
   /**
    * Document upload api.
@@ -832,45 +815,6 @@ const index: FC = () => {
           if (id === "3") {
             getBusinessBankDetails();
           }
-          setStep((prevStep) => prevStep + 1);
-        } else {
-          toast.error(data.message);
-        }
-      })
-      .catch((error: AxiosError) => {
-        setIsLoading(false);
-        showAlert({
-          title: error.message,
-          description: "Please try after some time",
-        });
-      });
-  };
-
-  const validatepan = async (image: string, imagename: string) => {
-    const body = {
-      // hcoded
-      MerchantID: formValues.merchant_id.value || "7e77a7d4",
-      Application_ID: offers?.ApplicationID,
-      DocumentFileImage: image,
-      DocumentFilename: imagename,
-      DocID: "1",
-      PANNo: "",
-    };
-
-    debugger;
-    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-    setIsLoading(true);
-    await api.app
-      .post<GetBusinessMerchantDetailsAPIResponseType>({
-        url: "/validatepan",
-        requestBody: encryptedBody,
-      })
-      .then(async (res) => {
-        const { data } = res;
-        setIsLoading(false);
-        if (data.status === "Success") {
-          toast.success("Pan card  uploaded successfully");
-
           setStep((prevStep) => prevStep + 1);
         } else {
           toast.error(data.message);
@@ -937,11 +881,11 @@ const index: FC = () => {
         url: "/aadharotpvalidate",
         requestBody: encryptedBody,
       })
-      .then((res) => {
+      .then(async (res) => {
         const { data } = res;
         if (data.status === "Success") {
           toast.success("Aadhar verified successfully");
-          getBusinessBankDetails();
+          await getBusinessBankDetails();
 
           setStep((prevStep) => prevStep + 1);
         } else {
@@ -988,13 +932,27 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .post<AadharGetotpAPIRespnseType>({
+      .post<GetStepsAPIResponseType>({
         url: "/getapplicantmerchantdetails",
         requestBody: encryptedBody,
       })
-      .then((res) => {
+      .then(async (res) => {
         const { data } = res;
         if (data.status === "Success") {
+          const steps = data.result;
+          const nextStep = steps.findIndex(
+            ({ kycStepCompletionStatus }) =>
+              kycStepCompletionStatus === "Pending"
+          );
+          debugger;
+          if (nextStep === 0) {
+            await getPersonalDetails();
+          } else if (nextStep === 4) {
+            await getBusinessBankDetails();
+          } else if (nextStep === 5) {
+            await getEsignRequestTerms("/getesignrequestterms1", ApplicationID);
+          }
+          setStep(nextStep + 4);
         } else {
           toast.error(data.message);
         }
@@ -1006,6 +964,23 @@ const index: FC = () => {
         });
       })
       .finally(() => setIsLoading(false));
+  };
+
+  const eSignCheckBoxValidtion = async () => {
+    var checkbox = document.getElementById("chk") as HTMLInputElement;
+    // debugger;
+    if (checkbox.checked) {
+      await getEsignRequestTerms("/getesignrequestterms2");
+      setOpenTermsDrawer(true);
+      //proceed
+      // history.push("/merchant-esign-terms");
+      // getMerchantTEsignTerms();
+    } else {
+      showAlert({
+        title: "Please click the check box",
+        description: "Agree the terms and conditions to proceed",
+      });
+    }
   };
 
   const regenerateloanoffers = async () => {
@@ -1048,6 +1023,46 @@ const index: FC = () => {
       .finally(() => setIsLoading(false));
   };
 
+  const updateBank = async () => {
+    const body = {
+      // hcoded
+      // MerchantID: formValues.merchant_id.value || "7e77a7d4",
+      Application_id: offers?.ApplicationID,
+      BankName: bankList?.[selectedBankID]?.Bank,
+      IFSCCode: bankList?.[selectedBankID]?.IFSCCode,
+      AccountNumber: bankList?.[selectedBankID]?.AccountNumber,
+      AccountType: bankList?.[selectedBankID]?.AccountType,
+      AccountHolderName: bankList?.[selectedBankID]?.AccountHolderName,
+    };
+
+    debugger;
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<APIResponseType>({
+        url: "/updatebank",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
+          toast.success("Bank added successfully");
+
+          // setStep((prevStep) => prevStep + 1);
+        } else {
+          toast.error(data.message);
+        }
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
+  };
+
   const onEditAmount = async () => {
     let _formValues = { ...formValues };
 
@@ -1079,18 +1094,124 @@ const index: FC = () => {
     }, 1000);
   };
 
-  const onSelectBank = (accountNumber: string) => {
-    console.log(accountNumber);
-    const selectedBank = bankList?.filter(
-      ({ AccountNumber }) => AccountNumber === accountNumber
-    )!;
-    let _formValues = { ...formValues };
-    _formValues.bank_name.value = selectedBank[0].Bank;
-    _formValues.ifsc_code.value = selectedBank[0].IFSCCode;
-    _formValues.account_holder_name.value = selectedBank[0].AccountHolderName;
-    _formValues.account_number.value = selectedBank[0].AccountNumber;
-    _formValues.confirm_account_number.value = selectedBank[0].AccountNumber;
-    setFormValues(_formValues);
+  const getEsignRequestTerms = async (
+    url: "/getesignrequestterms1" | "/getesignrequestterms2",
+    ApplicationID?: string
+  ) => {
+    const body = {
+      // hcoded
+      LATLNG: `${locationDetails?.latitude}~${locationDetails?.longitude}`,
+      IPAddress: locationDetails?.IPv4,
+
+      ApplicationID: ApplicationID ?? offers?.ApplicationID,
+
+      ResponseURL: "NA",
+    };
+
+    debugger;
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<EsignResponseType>({
+        url: url,
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
+          if (url === "/getesignrequestterms1") {
+            setEsignTerms(data.data);
+          } else {
+            setEsignTerms2(data.data);
+          }
+        } else {
+          toast.error(data.data);
+        }
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
+  };
+  // let a = {
+  //   "status": "Success",
+  //   "data": "{\"msg\":\"jar_file_path File Not Exists\"}",
+  //   "redirect": "https://pregw.esign.egov-nsdl.com/nsdl-esp/authenticate/esign-doc/",
+  //   "post": "ISO88591"
+  // }
+  const getEsignRequestPackets = async () => {
+    const body = {
+      // hcoded
+      LATLNG: `${locationDetails?.latitude}~${locationDetails?.longitude}`,
+      IPAddress: locationDetails?.IPv4,
+      ApplicationID: offers?.ApplicationID,
+      ResponseURL: "http://localhost:5173",
+    };
+
+    debugger;
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .postEsign<ESignPacketsAPI>({
+        url: "/getesignrequestpackets",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
+          window.open(data.redirect, "_blank", "noreferrer");
+          // setOpenTermsDrawer(false);
+        } else {
+          toast.error(data.data);
+        }
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
+  };
+
+  const esignResponse = async () => {
+    const body = {
+      // hcoded
+      LATLNG: `${locationDetails?.latitude}~${locationDetails?.longitude}`,
+      IPAddress: locationDetails?.IPv4,
+      ApplicationID: offers?.ApplicationID,
+      ResponseURL: "NA",
+    };
+
+    debugger;
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<APIResponseType>({
+        url: "/esignresponse",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
+          // setOpenTermsDrawer(false)
+        } else {
+          toast.error(data.message);
+        }
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
   };
   return (
     <>
@@ -2022,7 +2143,7 @@ const index: FC = () => {
                               </div>
                             </div>
                             <div className="flex flex-wrap items-center justify-end rounded-br-[calc(0.3rem_-_1px)] rounded-bl-[calc(0.3rem_-_1px)] p-3 border-t-[#dee2e6] border-t border-solid mx-auto">
-                              <div className="flex flex-wrap items-center w-full  justify-center max-w-xl">
+                              <div className="container flex justify-center md:justify-end">
                                 <Button
                                   onClick={() => setOpenDrawer(false)}
                                   type="button"
@@ -2800,18 +2921,18 @@ const index: FC = () => {
                       <>
                         <div
                           className="main_step_8"
-                          style={{ height: 350, overflow: "auto" }}
+                          style={{ maxHeight: 350, overflow: "auto" }}
                         >
                           <RadioGroup
-                            onValueChange={(accountNumber) =>
-                              onSelectBank(accountNumber)
+                            onValueChange={(id) =>
+                              setSelectedBankID(Number(id))
                             }
-                            defaultValue={bankList[0].AccountNumber}
+                            defaultValue={selectedBankID.toString()}
                           >
                             {bankList?.map((i, id) => (
                               <article
                                 key={id}
-                                className="flex items-start space-x-6 p-6"
+                                className="flex items-start space-x-6 p-6  ring-1 ring-slate-200"
                               >
                                 <div className="min-w-0 relative flex-auto">
                                   <Label htmlFor={i.AccountNumber}>
@@ -2823,8 +2944,8 @@ const index: FC = () => {
                                   <dl className="mt-2 flex flex-wrap text-sm leading-6 font-medium">
                                     <div className="absolute top-0 right-0 flex items-center space-x-1">
                                       <RadioGroupItem
-                                        value={i.AccountNumber}
-                                        id={i.AccountNumber}
+                                        value={id.toString()}
+                                        id={id.toString()}
                                       />
                                     </div>
                                     <div>
@@ -2862,170 +2983,6 @@ const index: FC = () => {
                               </article>
                             ))}
                           </RadioGroup>
-                          <h5>
-                            Only Banks That Support Auto repayments will Show up
-                          </h5>
-                          <div className="row">
-                            <div className="col-12">
-                              <div className="form-group">
-                                <label htmlFor="bank_name">Bank name</label>
-                                <input
-                                  readOnly
-                                  className="form-control"
-                                  type="text"
-                                  name="bank_name"
-                                  defaultValue=""
-                                  placeholder="Bank IFSC Code"
-                                  id="bank_name"
-                                  required
-                                  value={formValues.bank_name.value}
-                                  onChange={(e) =>
-                                    onInputChange("bank_name", e.target.value)
-                                  }
-                                />
-                                {formValues.bank_name.error ? (
-                                  <span
-                                    style={{ color: "red", fontSize: "14px" }}
-                                  >
-                                    Bank name should not be empty
-                                  </span>
-                                ) : (
-                                  ""
-                                )}
-                              </div>
-                            </div>
-                            <div className="col-md-6 mt-2">
-                              <div className="form-group">
-                                <label htmlFor="ifsc_code">
-                                  Bank IFSC Code
-                                </label>
-                                <input
-                                  className="form-control"
-                                  type="text"
-                                  name="ifsc_code"
-                                  defaultValue=""
-                                  placeholder="Bank IFSC Code"
-                                  id="ifsc_code"
-                                  required
-                                  value={formValues.ifsc_code.value}
-                                  onChange={(e) =>
-                                    onInputChange("ifsc_code", e.target.value)
-                                  }
-                                />
-                                {formValues.ifsc_code.error ? (
-                                  <span
-                                    style={{ color: "red", fontSize: "14px" }}
-                                  >
-                                    IFSC code should not be empty
-                                  </span>
-                                ) : (
-                                  ""
-                                )}
-                              </div>
-                            </div>
-                            <div className="col-md-6 mt-2">
-                              <div className="form-group">
-                                <label htmlFor="account_holder_name">
-                                  Account Holder Name
-                                </label>
-                                <input
-                                  className="form-control"
-                                  type="text"
-                                  name="account_holder_name"
-                                  defaultValue=""
-                                  placeholder="Account Holder Name"
-                                  id="account_holder_name"
-                                  required
-                                  value={formValues.account_holder_name.value}
-                                  onChange={(e) =>
-                                    onInputChange(
-                                      "account_holder_name",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                                {formValues.account_holder_name.error ? (
-                                  <span
-                                    style={{ color: "red", fontSize: "14px" }}
-                                  >
-                                    Account holder name should not empty
-                                  </span>
-                                ) : (
-                                  ""
-                                )}
-                              </div>
-                            </div>
-                            <div className="col-md-6 mt-2">
-                              <div className="form-group">
-                                <label htmlFor="account_number">
-                                  Account Number
-                                </label>
-                                <input
-                                  className="form-control"
-                                  // type="password"
-                                  name="account_number"
-                                  defaultValue=""
-                                  placeholder="Account Number"
-                                  id="account_number"
-                                  required
-                                  value={formValues.account_number.value}
-                                  maxLength={20}
-                                  onKeyDown={(e) => onlyNumberValues(e)}
-                                  onChange={(e) =>
-                                    onInputChange(
-                                      "account_number",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                                {formValues.account_number.error ? (
-                                  <span
-                                    style={{ color: "red", fontSize: "14px" }}
-                                  >
-                                    Please enter valid account number
-                                  </span>
-                                ) : (
-                                  ""
-                                )}
-                              </div>
-                            </div>
-                            <div className="col-md-6 mt-2">
-                              <div className="form-group">
-                                <label htmlFor="confirm_account_number">
-                                  Confirm Account Number
-                                </label>
-                                <input
-                                  className="form-control"
-                                  type="text"
-                                  name="confirm_account_number"
-                                  defaultValue=""
-                                  placeholder="Confirm Account Number"
-                                  id="confirm_account_number"
-                                  required
-                                  maxLength={20}
-                                  value={
-                                    formValues.confirm_account_number.value
-                                  }
-                                  onKeyDown={(e) => onlyNumberValues(e)}
-                                  onChange={(e) =>
-                                    onInputChange(
-                                      "confirm_account_number",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                                {formValues.confirm_account_number.error ? (
-                                  <span
-                                    style={{ color: "red", fontSize: "14px" }}
-                                  >
-                                    Account number mismatch
-                                  </span>
-                                ) : (
-                                  ""
-                                )}
-                              </div>
-                            </div>
-                          </div>
                         </div>
                         <div className="field btns">
                           <button
@@ -3041,170 +2998,16 @@ const index: FC = () => {
                         </div>
                       </>
                     ) : (
+                      //No bank details found update bank
                       <div
                         className="main_step_8"
-                        style={{ height: 350, overflow: "auto" }}
+                        style={{ maxHeight: 350, overflow: "auto" }}
                       >
                         <h5>No bank details found please add bank account</h5>
-                        <div className="row">
-                          <div className="col-12">
-                            <div className="form-group">
-                              <label htmlFor="bank_name">Bank name</label>
-                              <input
-                                className="form-control"
-                                type="text"
-                                name="bank_name"
-                                defaultValue=""
-                                placeholder="Bank IFSC Code"
-                                id="bank_name"
-                                required
-                                value={formValues.bank_name.value}
-                                onChange={(e) =>
-                                  onInputChange("bank_name", e.target.value)
-                                }
-                              />
-                              {formValues.bank_name.error ? (
-                                <span
-                                  style={{ color: "red", fontSize: "14px" }}
-                                >
-                                  Bank name should not be empty
-                                </span>
-                              ) : (
-                                ""
-                              )}
-                            </div>
-                          </div>
-                          <div className="col-md-6 mt-2">
-                            <div className="form-group">
-                              <label htmlFor="ifsc_code">Bank IFSC Code</label>
-                              <input
-                                className="form-control"
-                                type="text"
-                                name="ifsc_code"
-                                defaultValue=""
-                                placeholder="Bank IFSC Code"
-                                id="ifsc_code"
-                                required
-                                value={formValues.ifsc_code.value}
-                                onChange={(e) =>
-                                  onInputChange("ifsc_code", e.target.value)
-                                }
-                              />
-                              {formValues.ifsc_code.error ? (
-                                <span
-                                  style={{ color: "red", fontSize: "14px" }}
-                                >
-                                  IFSC code should not be empty
-                                </span>
-                              ) : (
-                                ""
-                              )}
-                            </div>
-                          </div>
-                          <div className="col-md-6 mt-2">
-                            <div className="form-group">
-                              <label htmlFor="account_holder_name">
-                                Account Holder Name
-                              </label>
-                              <input
-                                className="form-control"
-                                type="text"
-                                name="account_holder_name"
-                                defaultValue=""
-                                placeholder="Account Holder Name"
-                                id="account_holder_name"
-                                required
-                                value={formValues.account_holder_name.value}
-                                onChange={(e) =>
-                                  onInputChange(
-                                    "account_holder_name",
-                                    e.target.value
-                                  )
-                                }
-                              />
-                              {formValues.account_holder_name.error ? (
-                                <span
-                                  style={{ color: "red", fontSize: "14px" }}
-                                >
-                                  Account holder name should not empty
-                                </span>
-                              ) : (
-                                ""
-                              )}
-                            </div>
-                          </div>
-                          <div className="col-md-6 mt-2">
-                            <div className="form-group">
-                              <label htmlFor="account_number">
-                                Account Number
-                              </label>
-                              <input
-                                className="form-control"
-                                // type="password"
-                                name="account_number"
-                                defaultValue=""
-                                placeholder="Account Number"
-                                id="account_number"
-                                required
-                                value={formValues.account_number.value}
-                                maxLength={20}
-                                onKeyDown={(e) => onlyNumberValues(e)}
-                                onChange={(e) =>
-                                  onInputChange(
-                                    "account_number",
-                                    e.target.value
-                                  )
-                                }
-                              />
-                              {formValues.account_number.error ? (
-                                <span
-                                  style={{ color: "red", fontSize: "14px" }}
-                                >
-                                  Please enter valid account number
-                                </span>
-                              ) : (
-                                ""
-                              )}
-                            </div>
-                          </div>
-                          <div className="col-md-6 mt-2">
-                            <div className="form-group">
-                              <label htmlFor="confirm_account_number">
-                                Confirm Account Number
-                              </label>
-                              <input
-                                className="form-control"
-                                type="text"
-                                name="confirm_account_number"
-                                defaultValue=""
-                                placeholder="Confirm Account Number"
-                                id="confirm_account_number"
-                                required
-                                maxLength={20}
-                                value={formValues.confirm_account_number.value}
-                                onKeyDown={(e) => onlyNumberValues(e)}
-                                onChange={(e) =>
-                                  onInputChange(
-                                    "confirm_account_number",
-                                    e.target.value
-                                  )
-                                }
-                              />
-                              {formValues.confirm_account_number.error ? (
-                                <span
-                                  style={{ color: "red", fontSize: "14px" }}
-                                >
-                                  Account number mismatch
-                                </span>
-                              ) : (
-                                ""
-                              )}
-                            </div>
-                          </div>
-                        </div>
+
                         <div className="field btns">
                           <button
-                            disabled={isLoading}
+                            disabled={isLoading || !bankList?.[0]}
                             onClick={(e) => handleNext(e)}
                             className={cn(
                               "next-4 next disabled:opacity-70 disabled:pointer-events-none",
@@ -3220,326 +3023,10 @@ const index: FC = () => {
                 )}
                 {step === 9 && (
                   <div className="page">
-                    <div className="main_step_9 col-md-12 pt-2 bg-cover max-h-[32rem]  min-h-[350px] overflow-auto relative">
-                      Please read the following Terms and Conditions of service
-                      that you agree to, when you access www.paypointz.com
-                      ("website"), a service offered by Pay Point India Network
-                      Private Limited or through the assistance of an agent of
-                      Pay Point India Network Private Limited. The Terms and
-                      Conditions (as may be amended from time to time, the
-                      "Agreement") is a legal contract between you being, an
-                      individual customer, user, or beneficiary of this service
-                      of at least 18 years of age, and Pay Point India Network
-                      Private Limited (Pay Point India) having its registered
-                      office at 'A' Wing 203, Supreme Business Park, Hiranandani
-                      Garden, Powai, Mumbai 400076, Maharashtra - India
-                      feedback@paypointindia.com | +91 22 4050 8888 / 4068 8088.
-                      All services are rendered by Pay Point India through its
-                      platform under the brand name 'PaypointZ' &amp; 'Tatkal
-                      Rupya'. Hence all the rights, benefits, liabilities &amp;
-                      obligations under the following terms &amp; conditions
-                      shall accrue to the benefit of Pay Point India. (together
-                      with its subsidiaries and other affiliates, "us", "We",
-                      "Tatkal Rupya", or "PaypointZ"), regarding your use of our
-                      Services regarding Semi Closed Wallet of online PaypointZ
-                      or such other services which may be added from time to
-                      time (all such services are individually or collectively
-                      are referred as Service or Services as they case may be).
-                      Service can be used by you subject to your adherence with
-                      the terms and conditions set forth below including
-                      relevant policies. PaypointZ reserves the right, at its
-                      sole discretion, to revise, portions of these terms and
-                      conditions any time without further notice. You shall
-                      re-visit the "Terms &amp; Conditions" link from time to
-                      time to stay abreast of any changes that the "Site" may
-                      introduce. Quality of Services Pay Point India agrees to
-                      provide you products at the press of a button. Pay Point
-                      India is committed to investigate the cause of
-                      non-performance with all parties involved. However, no
-                      refunds will be made to your PaypointZ balance unless it
-                      is clearly established that Pay Point India was
-                      responsible. Link to other websites Pay Point India may
-                      provide links to other websites that are maintained by
-                      third parties. Pay Point India is not responsible and/or
-                      liable for any information available on these third party
-                      websites. Links to third party sites are provided by web
-                      site as a convenience to user(s) and Pay Point India has
-                      not have any control over such sites i.e. content and
-                      resources provided by them. Pay Point India may allow
-                      user(s) access to content, products or services offered by
-                      third parties through hyper links (in the form of word
-                      link, banners, channels or otherwise) to such Third
-                      Party’s web site. You are cautioned to read such sites’
-                      terms and conditions and/or privacy policies before using
-                      such sites in order to be aware of the terms and
-                      conditions of your use of such sites. Pay Point India
-                      believes that user(s) acknowledge that it has no control
-                      over such third party’s site, does not monitor such sites,
-                      and Pay Point India shall not be responsible or liable to
-                      anyone for such third party site, or any content, products
-                      or services made available on such a site. Limited
-                      Warranty Pay Point India concedes to provide efficient,
-                      reliable, timely and satisfactory service to the best of
-                      its resources and skills. Pay Point India makes no
-                      warranty that the website will be uninterrupted, error
-                      free, and virus free or free from any malicious content.
-                      The Website is provided on an "as is where is" and "as
-                      available" basis. In any case of unsatisfactory service by
-                      Pay Point India, it agrees to take proper corrective
-                      action on the basis of decision taken by Pay Point India.
-                      Limitation of Liability and Damages In no event will Pay
-                      Point India or its contractors, agents, licensors,
-                      partners, officers, directors, suppliers be liable to you
-                      for any special, indirect, incidental, consequential,
-                      punitive, reliance, or exemplary damages (including
-                      without limitation lost business opportunities, lost
-                      revenues, or loss of anticipated profits or any other
-                      pecuniary or non-pecuniary loss or damage of any nature
-                      whatsoever) arising out of or relating to (i) this
-                      agreement, (ii) the services, the site or any reference
-                      site, or (iii) your use or inability to use the services,
-                      the site (including any and all materials) or any
-                      reference sites, even if Pay Point India or a it’s
-                      authorized representative has been advised of the
-                      possibility of such damages. In no event will Pay Point
-                      India or any of its contractors, directors, employees,
-                      agents, third party partners, licensors or suppliers’
-                      total liability to you for all damages, liabilities,
-                      losses, and causes of action arising out of or relating to
-                      (i) this Agreement, (ii) the Services, (iii) your use or
-                      inability to use the Services or the Site (including any
-                      and all Materials) or any Reference Sites, or. You
-                      acknowledge and agree that Pay Point India has offered its
-                      products and services, set its prices, and entered into
-                      this agreement in reliance upon the warranty disclaimers
-                      and the limitations of liability set forth herein, that
-                      the warranty disclaimers and the limitations of liability
-                      set forth herein reflect a reasonable and fair allocation
-                      of risk between you and Pay Point India, and that the
-                      warranty disclaimers and the limitations of liability set
-                      forth herein form an essential basis of the bargain
-                      between you and Pay Point India. It would not be able to
-                      provide the services to you on an economically reasonable
-                      basis without these limitations. Applicable law may not
-                      allow the limitation or exclusion of liability or
-                      incidental or consequential damages, so the above
-                      limitations or exclusions may not apply to you. In such
-                      cases, Pay Point India’s liability will be limited to the
-                      fullest extent permitted by applicable law. This paragraph
-                      shall survive termination of this Agreement.
-                      Indemnification You agree to indemnify, save, and hold Pay
-                      Point India, its affiliates, contractors, employees,
-                      officers, directors, agents and its third party suppliers,
-                      licensors, and partners harmless from any and all claims,
-                      losses, damages, and liabilities, costs and expenses,
-                      including without limitation legal fees and expenses,
-                      arising out of or related to your use or misuse of the
-                      Services or of the Site, any violation by you of this
-                      Agreement, or any breach of the representations,
-                      warranties, and covenants made by you herein. Pay Point
-                      India reserves the right, at your expense, to assume the
-                      exclusive defense and control of any matter for which you
-                      are required to indemnify Pay Point India, including
-                      rights to settle, and you agree to cooperate with Pay
-                      Point India’s defense and settlement of these claims. Pay
-                      Point India will use reasonable efforts to notify you of
-                      any claim, action, or proceeding brought by a third party
-                      that is subject to the foregoing indemnification upon
-                      becoming aware of it. This paragraph shall survive
-                      termination of this Agreement. Ownership; Proprietary
-                      Rights The Services and the Site are owned and operated by
-                      Pay Point India and/or third party licensors. The visual
-                      interfaces, graphics, design, compilation, information,
-                      computer code (including source code and object code),
-                      products, software, services, and all other elements of
-                      the Services and the Site provided by Pay Point India (the
-                      “Materials”) are protected by Indian copyright, trade
-                      dress, patent, and trademark laws, international
-                      conventions, and all other relevant intellectual property
-                      and proprietary rights, and applicable laws. As between
-                      you and Pay Point India, all Materials, trademarks,
-                      service marks, and trade names contained on the Site are
-                      the property of Pay Point India and/or third party
-                      licensors or suppliers. You agree not to remove, obscure,
-                      or alter Pay Point India or any third party’s copyright,
-                      patent, trademark, or other proprietary rights notices
-                      affixed to or contained within or accessed in conjunction
-                      with or through the Services. Except as expressly
-                      authorized by Pay Point India, you agree not to sell,
-                      license, distribute, copy, modify, publicly perform or
-                      display, transmit, publish, edit, adapt, create derivative
-                      works from, or otherwise make unauthorized use of the
-                      Materials. Pay Point India reserves all rights not
-                      expressly granted in this Agreement. If you have comments
-                      regarding the Services and the Site or ideas on how to
-                      improve it, please contact customer service. Please note
-                      that by doing so, you hereby irrevocably assign to Pay
-                      Point India, and shall assign to it, all right, title and
-                      interest in and to all ideas and suggestions and any and
-                      all worldwide intellectual property rights associated
-                      therewith. You agree to perform such acts and execute such
-                      documents as may be reasonably necessary to perfect the
-                      foregoing rights. Severability The Services and the Site
-                      are owned and operated by Pay Point India and/or third
-                      party If any provision of this Agreement is held to be
-                      unlawful, void, invalid or otherwise unenforceable, then
-                      that provision will be limited or eliminated from this
-                      Agreement to the minimum extent required, and the
-                      remaining provisions will remain valid and enforceable.
-                      Terms and conditions of usage of Prepaid Cards: This
-                      prepaid payment instrument (Prepaid Card) is governed by
-                      the Payment and Settlement Systems Act, 2007 &amp;
-                      Regulations made thereunder, Issuance and Operation of
-                      Pre-paid Payment Instruments in India (Reserve Bank)
-                      Directions, 2009 (“RBI Guidelines”) and is also subject to
-                      directions / instructions issued by the Reserve Bank of
-                      India (RBI) from time to time in respect of redemption,
-                      repayment, usage etc. and Pay Point India Network Private
-                      Ltd. (Pay Point India) does not hold any responsibility to
-                      the cardholder in such circumstances. This Prepaid Card
-                      should be utilized by individuals above 18 years of age.
-                      You agree to provide information that is true, accurate
-                      and complete. You also agree to provide correct and
-                      accurate credit/ debit card details to the approved
-                      payment gateway for availing Services on the Website and
-                      associated Applications. You shall not use a credit/ debit
-                      card unlawfully. You will be solely responsible for the
-                      security and confidentiality of your credit/ debit card
-                      details. Pay Point India expressly disclaims all
-                      liabilities that may arise as a consequence of any
-                      unauthorized use of credit/ debit card. Any suspicious
-                      activity may lead to blockage of the account. The maximum
-                      value of a Prepaid Card is Rs. 10,000 and Rs. 1,00,000 in
-                      case all additional services are enabled on it after
-                      submitting requisite KYC documents. Pay Point India may
-                      use the KYC submitted by you for business purposes. You
-                      hereby consent to (i) receiving e-newsletters as well as
-                      other communications containing offers etc. and (ii) Pay
-                      Point India providing your information to sponsor/s and/or
-                      companies associated with it for the purpose of providing
-                      you with offers and/or information. You hereby agree to
-                      use this Prepaid Card for all transactions with prescribed
-                      merchants for the products/services as mentioned by the
-                      merchant on its website and further agree not to use it
-                      for any unlawful purpose/activities. You will neither
-                      abate nor be a party to any illegal/criminal/money
-                      laundering/terrorist activities undertaken by using this
-                      Prepaid Card. Pay Point India shall not be responsible for
-                      any fraud or misuse of this Prepaid Card and you agree to
-                      be personally liable for any and all costs, taxes,
-                      charges, claims or liabilities of any nature, arising due
-                      to any such fraud or misuse of the Prepaid Card. You
-                      hereby declare that your name does not at anytime appear
-                      in the consolidated list of Terrorist Individuals /
-                      Organisations (Al Qaida or the Taliban) as circulated by
-                      RBI from time to time. Pay Point India shall not be liable
-                      / responsible for any defect in the product / merchandise
-                      / goods or services purchased / availed using this Prepaid
-                      Card. Any dispute or claim regarding the product /
-                      merchandise / goods or services purchased / availed on the
-                      website of the merchant using this Prepaid Card must be
-                      resolved with the designated merchants. Pay Point India
-                      does not own any responsibility to the cardholder in such
-                      circumstances. Pay Point India may charge payment gateway
-                      service fees to you for use of this Prepaid Card on the
-                      designated merchants. The said fees will not exceed 2.5%
-                      of the total transaction value. Additionally, if used or
-                      loaded at a retail agent of Pay Point India Network Pvt.
-                      Limited, a convenience fee of INR 10 per transaction will
-                      be charged. This Prepaid Card is valid for 18 months from
-                      the date of its first usage or 18 months from date of
-                      issue, whichever is earlier. Any unutilized balance
-                      remaining in this Prepaid Card after the date of expiry
-                      will stand forfeited as per the RBI Guidelines. In case
-                      the Prepaid Card is lost or misplaced, you shall promptly
-                      inform Pay Point India in writing (letter/e-mail). The
-                      Prepaid Card shall then be blocked and Pay Point India may
-                      issue new card as per prescribed procedure in this regard
-                      with the balance amount for a nominal charge as may be
-                      prescribed by Pay Point India from time to time. Any
-                      duplication of this Prepaid Card will be subject to
-                      cancellation. This Prepaid Card cannot be used for
-                      transactions in foreign currency. This Prepaid Card can be
-                      used only for online/on mobile/IVRS transactions with the
-                      merchants governed by Indian laws. This Prepaid Card is
-                      not transferable. Pay Point India reserves the right at
-                      any time to refuse for any reason whatsoever, the use of
-                      the Prepaid Card on the website/mobile application/IVRS of
-                      designated merchants. You shall promptly inform Pay Point
-                      India of any change of your name, mailing address, e-mail
-                      address or any other required data provided for the
-                      issuance of this Prepaid Card and submit the fresh KYC
-                      documents in respect of such change, as may be demanded by
-                      Pay Point India. For resolving any dispute, Pay Point
-                      India has formalized “Customer Grievance Redressal Policy”
-                      which is available on the website of All disputes arising
-                      out of any transaction pertaining to the use of this
-                      Prepaid Card shall be subject to this policy. Any further
-                      litigation shall be governed by exclusive jurisdiction of
-                      the courts in Mumbai. All transactions done by using this
-                      Prepaid Card are subject to applicable Indian laws. Pay
-                      Point India reserves the right to amend, alter, delete,
-                      insert and revise these terms and conditions without any
-                      prior notice/intimation to customer. We have the right,
-                      but not the obligation, to take any of the following
-                      actions in our sole discretion at any time and for any
-                      reason without giving you any prior notice: Restrict,
-                      suspend, or terminate your access to all or any part of
-                      our Services; Change, suspend, or discontinue all or any
-                      part of our Services; Refuse, move, or remove any material
-                      that you submit to our sites for any reason; Refuse, move,
-                      or remove any content that is available on our sites;
-                      Deactivate or delete your accounts and all related
-                      information and files in your account; Establish general
-                      practices and limits concerning use of our sites. You
-                      agree that we will not be liable to you or any third party
-                      for taking any of these actions Charges Applicable: All
-                      the charges as applicable in the usage of Paypointz Wallet
-                      are available on the link below: Applicable Charges
-                      Notices: All notices or demands to or upon web site shall
-                      be effective if in writing and shall be duly made when
-                      sent to Pay Point India on the following Address: To: Pay
-                      Point India Network Pvt. Ltd, A Wing, 203, Supreme
-                      Business Park,Hiranandani Garden, Powai, Mumbai - 400076
-                      Maharashtra, India. feedback@paypointindia.com | +91 22
-                      4068 8088 All notices or demands to or upon a User(s)
-                      shall be effective if either delivered personally, sent by
-                      courier, certified mail, by facsimile or email to the
-                      last-known correspondence, fax or email address provided
-                      by the User(s) to web site, or by posting such notice or
-                      demand on an area of the web site that is publicly
-                      accessible without a charge. Arbitration Pay Point India
-                      may elect to resolve any dispute, controversy or claim
-                      arising out of or relating to this Agreement or Service
-                      provided in connection with this Agreement by binding
-                      arbitration in accordance with the provisions of the
-                      Indian Arbitration &amp; Conciliation Act, 1996. Any such
-                      dispute, controversy or claim shall be arbitrated on an
-                      individual basis and shall not be consolidated in any
-                      arbitration with any claim or controversy of any other
-                      party. The arbitration shall be conducted in Mumbai, India
-                      and judgment on the arbitration award may be entered in
-                      any court having jurisdiction thereof. Either you or We
-                      may seek any interim or preliminary relief from a court of
-                      competent jurisdiction in Mumbai, India, necessary to
-                      protect the rights or the property of you or PaypointZ (or
-                      its agents, suppliers, and subcontractors), pending the
-                      completion of arbitration. Any arbitration shall be
-                      confidential, and neither you nor we may disclose the
-                      existence, content or results of any arbitration, except
-                      as may be required by law or for purposes of the
-                      arbitration award. All administrative fees and expenses of
-                      arbitration will be divided equally between you and us. In
-                      all arbitrations, each party will bear the expense of its
-                      own lawyers and preparation. The language of Arbitration
-                      shall be English. Governing Law: Terms and condition of
-                      use shall be governed in all respect by the laws of Indian
-                      Territory. Pay Point India considers itself and intended
-                      to be subject to the jurisdiction only of the Courts of
-                      Mumbai, Maharashtra, India. The parties to these Terms of
-                      use hereby submit to the exclusive jurisdiction of the
-                      courts of Mumbai, Maharashtra, India.
-                    </div>
+                    <div
+                      dangerouslySetInnerHTML={{ __html: esignTerms! }}
+                      className="main_step_9 col-md-12 pt-2 bg-cover max-h-[32rem]   overflow-auto relative"
+                    ></div>
 
                     <div className="field btns">
                       <button
@@ -3555,6 +3042,60 @@ const index: FC = () => {
                     </div>
                   </div>
                 )}
+                {/* TODO second terms  */}
+                <Drawer
+                  onOpenChange={(open) => {
+                    setOpenTermsDrawer(open);
+                  }}
+                  open={openTermsDrawer}
+                  shouldScaleBackground
+                >
+                  <DrawerContent>
+                    <div className="mx-auto  overflow-auto w-full">
+                      <DrawerHeader>
+                        <DrawerTitle>E-sign Terms And Conditions</DrawerTitle>
+                      </DrawerHeader>
+                      <div className="modal-body p-0">
+                        <div
+                          className="col-sm-12"
+                          id="staticBackdropAadharWrap"
+                          style={{
+                            padding: "10px 50px",
+                            // height: 590,
+                            minHeight: 200,
+                            overflowY: "scroll",
+                            textAlign: "justify",
+                          }}
+                        >
+                          <div
+                            className="container"
+                            dangerouslySetInnerHTML={{ __html: esignTerms2! }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-end rounded-br-[calc(0.3rem_-_1px)] rounded-bl-[calc(0.3rem_-_1px)] p-3 border-t-[#dee2e6] border-t border-solid mx-auto">
+                        <div className="container flex justify-center md:justify-end">
+                          <Button
+                            onClick={() => getEsignRequestPackets()}
+                            type="button"
+                            // variant={"outline"}
+                          >
+                            Agree
+                          </Button>
+                        </div>
+                        {/* <div className="flex flex-wrap items-center w-full  justify-center max-w-xl">
+                          <Button
+                            onClick={() => getEsignRequestPackets()}
+                            type="button"
+                            // variant={"outline"}
+                          >
+                            Agree
+                          </Button>
+                        </div> */}
+                      </div>
+                    </div>
+                  </DrawerContent>
+                </Drawer>
                 {step === 10 && (
                   <div className="page">
                     <div className="main_step_10">

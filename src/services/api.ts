@@ -20,6 +20,15 @@ class App {
     });
   }
 
+  postEsign<TResponse>({ url, requestBody }: Request) {
+    return axios.post<TResponse>(
+      "http://uat-applyv2.mnfpl.com/getesignrequestpackets",
+      {
+        requestBody,
+      }
+    );
+  }
+
   get<TResponse>({ url }: Request) {
     return client.get<TResponse>(url, {
       data: {},
