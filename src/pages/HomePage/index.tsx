@@ -26,6 +26,7 @@ import {
   EsignResponseType,
   ESignPacketsAPI,
   GetStepsAPIResponseType,
+  Steps,
 } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAlert } from "@/components/modals/alert-modal";
@@ -69,6 +70,7 @@ const index: FC = () => {
   const [bankList, setBankList] = useState<BankList[]>();
   const [isLoading, setIsLoading] = useState(false);
   const [openTermsDrawer, setOpenTermsDrawer] = useState(false);
+  const [apiSteps, setApiSteps] = useState<Steps>();
   const [selfieImage, setSelfieImage] = useState<FileWithPreview[] | null>(
     null
   );
@@ -356,7 +358,28 @@ const index: FC = () => {
         await getBase64(selfieImage[0])
           .then(
             async (res) =>
-              await uploadDocument("2", res as string, selfieImage[0].name)
+              await uploadDocument(
+                "2",
+                res as string,
+                selfieImage[0].name
+              ).then(async () => {
+                setStep((prevStep) => prevStep + 1);
+                // let nextStep = apiSteps?.findIndex(
+                //   ({ kycStepCompletionStatus }) =>
+                //     kycStepCompletionStatus === "Pending"
+                // )!;
+                // if (nextStep === -1) {
+                //   return setStep(10);
+                // }
+                // if (nextStep === 0) {
+                //   await getPersonalDetails();
+                // } else if (nextStep === 4) {
+                //   await getBusinessBankDetails();
+                // } else if (nextStep === 5) {
+                //   await getEsignRequestTerms("/getesignrequestterms1");
+                // }
+                // setStep(nextStep + 4);
+              })
           )
           .catch((err) => console.log(err));
       } else {
@@ -380,7 +403,41 @@ const index: FC = () => {
           await getBase64(panCardImage[0])
             .then(
               async (res) =>
-                await uploadDocument("1", res as string, panCardImage[0].name)
+                await uploadDocument(
+                  "1",
+                  res as string,
+                  panCardImage[0].name
+                ).then(async () => {
+                  setStep((prevStep) => prevStep + 1);
+                  //   if (
+                  //     apiSteps?.[3].kycStepCompletionStatus ===
+                  //       "Document under-revirew" ||
+                  //     apiSteps?.[3].kycStepCompletionStatus === "Complete"
+                  //   ) {
+                  //     //IF AadharDetails is  under-revirew or complete skip to bankdetails
+                  //     await getBusinessBankDetails();
+
+                  //     setStep((prevStep) => prevStep + 2);
+                  //   } else if (
+                  //     apiSteps?.[4].kycStepCompletionStatus ===
+                  //       "Document under-revirew" ||
+                  //     apiSteps?.[4].kycStepCompletionStatus === "Complete"
+                  //   ) {
+                  //     //IF bankdetails is  under-revirew or complete skip to e-sign
+
+                  //     await getEsignRequestTerms("/getesignrequestterms1");
+                  //     setStep((prevStep) => prevStep + 3);
+                  //   } else if (
+                  //     apiSteps?.[5].kycStepCompletionStatus ===
+                  //       "Document under-revirew" ||
+                  //     apiSteps?.[5].kycStepCompletionStatus === "Complete"
+                  //   ) {
+                  //     //IF e-sign is  under-revirew or complete skip to last step
+                  //     setStep((prevStep) => prevStep + 4);
+                  //   } else {
+                  //     setStep((prevStep) => prevStep + 1);
+                  //   }
+                })
             )
             .catch((err) => console.log(err));
         } else {
@@ -407,55 +464,10 @@ const index: FC = () => {
       } else {
         setFormValues(_formValues);
       }
-
-      // if (addressProof) {
-      //   await getBase64(addressProof[0])
-      //     .then(
-      //       async (res) =>
-      //         await uploadDocument("3", res as string, addressProof[0].name)
-      //     )
-      //     .catch((err) => console.log(err));
-      // } else {
-      //   alert("Please upload address proof image");
-      // }
     } else if (step === 8) {
-      // let formObjectHasError = false;
-      // Object.keys(_formValues).forEach((key) => {
-      //   if (
-      //     key === "account_holder_name" ||
-      //     key === "account_number" ||
-      //     key === "ifsc_code"
-      //   ) {
-      //     let hasError = !validations.isRequired(_formValues[key].value);
-      //     _formValues[key].error = !validations.isRequired(
-      //       _formValues[key].value
-      //     );
-      //     if (hasError) {
-      //       formObjectHasError = true;
-      //     }
-      //   }
-      //   if (key === "confirm_account_number") {
-      //     let hasError = !(
-      //       _formValues.account_number.value ===
-      //       _formValues.confirm_account_number.value
-      //     );
-      //     _formValues[key].error = !(
-      //       _formValues.account_number.value ===
-      //       _formValues.confirm_account_number.value
-      //     );
-      //     if (hasError) {
-      //       formObjectHasError = true;
-      //     }
-      //   }
-      // });
-      // if (!formObjectHasError) {
-      //   setStep((prevStep) => prevStep + 1);
-      // } else {
-      //   setFormValues(_formValues);
-      // }
       Promise.allSettled([
         updateBank(),
-        // getEsignRequestTerms("/getesignrequestterms1"),
+        // getEsignRequestTerms("/getesignrequestterms1"), <--TODO
       ]).then(() => setStep((prevStep) => prevStep + 2));
       //  await updateBank();
       //  await getEsignRequestTerms("/getesignrequestterms1")
@@ -500,28 +512,17 @@ const index: FC = () => {
     { key: "F", value: "Female" },
     { key: "O", value: "Other" },
   ];
-  const bankDropDown = [
-    "HDFC Bank",
-    "State Bank of India Bank",
-    "Bank of India",
-  ];
   const relationDropDown = ["Father", "Mother", "Daughter"];
 
   useEffect(() => {
     getIPAddress();
     getOffers();
-    // getBusinessBankDetails();
-    // getSteps();
-    // getPersonalDetails();
   }, []);
 
   const getIPAddress = async () => {
     const response = await fetch("https://geolocation-db.com/json/");
     const data: GeoLocationAPIResponeObject = await response.json();
     setLocationDetails(data);
-    // let _formValues = { ...formValues };
-    // _formValues.ip_address.value = data.IPv4;
-    // setFormValues(_formValues);
   };
 
   const getOffers = async () => {
@@ -686,8 +687,7 @@ const index: FC = () => {
 
   const getBusinessBankDetails = async () => {
     const body = {
-      // hcoded
-      MerchantID: formValues.merchant_id.value || "7e77a7d4",
+      MerchantID: formValues.merchant_id.value,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
@@ -786,8 +786,7 @@ const index: FC = () => {
     imagename: string
   ) => {
     const body = {
-      // hcoded
-      MerchantID: formValues.merchant_id.value || "7e77a7d4",
+      MerchantID: formValues.merchant_id.value,
       Application_ID: offers?.ApplicationID,
       DocumentFileImage: image,
       DocumentFilename: imagename,
@@ -813,9 +812,9 @@ const index: FC = () => {
             } uploaded successfully`
           );
           if (id === "3") {
-            getBusinessBankDetails();
+            await getBusinessBankDetails();
           }
-          setStep((prevStep) => prevStep + 1);
+          // setStep((prevStep) => prevStep + 1);
         } else {
           toast.error(data.message);
         }
@@ -832,8 +831,7 @@ const index: FC = () => {
   const generateAadharOTP = async () => {
     const body = {
       AadhaarNo: formValues.aadhar_no.value,
-      // hcoded
-      MerchantID: formValues.merchant_id.value || "7e77a7d4",
+      MerchantID: formValues.merchant_id.value,
       ApplicantID: offers?.ApplicationID,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -869,8 +867,8 @@ const index: FC = () => {
     const body = {
       clientId: formValues.client_id.value,
       OTP: formValues.aadhar_otp.value,
-      // hcoded
-      MerchantID: formValues.merchant_id.value || "7e77a7d4",
+
+      MerchantID: formValues.merchant_id.value,
       ApplicantID: offers?.ApplicationID,
       MobileNo: "",
     };
@@ -923,7 +921,6 @@ const index: FC = () => {
     LoanAmount: string
   ) => {
     const body = {
-      // hcoded
       MerchantID: MerchantID || formValues.merchant_id.value,
       ApplicationID: offers?.ApplicationID || ApplicationID,
       LoanAmount: offers?.LoanAmount || LoanAmount,
@@ -940,6 +937,9 @@ const index: FC = () => {
         const { data } = res;
         if (data.status === "Success") {
           const steps = data.result;
+          //@ts-ignore
+          setApiSteps(steps);
+          // getBusinessBankDetails();
           const nextStep = steps.findIndex(
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
@@ -985,7 +985,6 @@ const index: FC = () => {
 
   const regenerateloanoffers = async () => {
     const body = {
-      // hcoded
       MerchantID: offers?.MerchantID,
       LoanAmount: formValues.edit_loan_amount.value,
       ProductId: offers?.ProductId,
@@ -1025,8 +1024,6 @@ const index: FC = () => {
 
   const updateBank = async () => {
     const body = {
-      // hcoded
-      // MerchantID: formValues.merchant_id.value || "7e77a7d4",
       Application_id: offers?.ApplicationID,
       BankName: bankList?.[selectedBankID]?.Bank,
       IFSCCode: bankList?.[selectedBankID]?.IFSCCode,
@@ -1099,7 +1096,6 @@ const index: FC = () => {
     ApplicationID?: string
   ) => {
     const body = {
-      // hcoded
       LATLNG: `${locationDetails?.latitude}~${locationDetails?.longitude}`,
       IPAddress: locationDetails?.IPv4,
 
@@ -1137,15 +1133,9 @@ const index: FC = () => {
         });
       });
   };
-  // let a = {
-  //   "status": "Success",
-  //   "data": "{\"msg\":\"jar_file_path File Not Exists\"}",
-  //   "redirect": "https://pregw.esign.egov-nsdl.com/nsdl-esp/authenticate/esign-doc/",
-  //   "post": "ISO88591"
-  // }
+
   const getEsignRequestPackets = async () => {
     const body = {
-      // hcoded
       LATLNG: `${locationDetails?.latitude}~${locationDetails?.longitude}`,
       IPAddress: locationDetails?.IPv4,
       ApplicationID: offers?.ApplicationID,
@@ -1164,8 +1154,39 @@ const index: FC = () => {
         const { data } = res;
         setIsLoading(false);
         if (data.status === "Success") {
-          window.open(data.redirect, "_blank", "noreferrer");
-          // setOpenTermsDrawer(false);
+          let msg = JSON.parse(data.data);
+          let resultMessage = msg.msg;
+          const esignUrl = data.redirect;
+
+          // Create a meta element
+          var metaCharset = document.createElement("meta");
+          metaCharset.setAttribute("charset", "ISO-8859-1");
+          var head = document.head || document.getElementsByTagName("head")[0];
+          head.appendChild(metaCharset);
+          var form = document.createElement("form");
+          // form.setAttribute("id", "my-from");
+          form.setAttribute("method", "post");
+          form.setAttribute("action", esignUrl);
+
+          // setting form target to a window named 'formresult'
+          form.setAttribute("target", "_blank");
+
+          var hiddenField = document.createElement("input");
+          hiddenField.setAttribute("msg", resultMessage);
+          form.appendChild(hiddenField);
+          document.body.appendChild(form);
+          form.submit();
+
+          // var myform = document.getElementById("my-form");
+          // myform?.addEventListener("submit", function (event) {
+          //   event.preventDefault();
+          //   window.open(form.action, "_blank");
+          // });
+
+          // // creating the 'formresult' window with custom features prior to submitting the form
+          // window.open("", "");
+
+          setOpenTermsDrawer(false);
         } else {
           toast.error(data.data);
         }
@@ -1181,7 +1202,6 @@ const index: FC = () => {
 
   const esignResponse = async () => {
     const body = {
-      // hcoded
       LATLNG: `${locationDetails?.latitude}~${locationDetails?.longitude}`,
       IPAddress: locationDetails?.IPv4,
       ApplicationID: offers?.ApplicationID,
@@ -2365,38 +2385,6 @@ const index: FC = () => {
                               )}
                             </div>
                           </div>
-
-                          {/* <div className="col-md-6 mt-2">
-                            <div className="form-group">
-                              <label htmlFor="pannumber">PAN</label>
-                              <input
-                                style={{
-                                  textTransform: "uppercase",
-                                }}
-                                className="form-control"
-                                type="text"
-                                name=""
-                                defaultValue=""
-                                placeholder="Enter Enter PAN Number"
-                                id="pannumber"
-                                required
-                                value={formValues.pan_number.value}
-                                maxLength={10}
-                                onChange={(e) =>
-                                  onInputChange("pan_number", e.target.value)
-                                }
-                              />
-                              {formValues.pan_number.error ? (
-                                <span
-                                  style={{ color: "red", fontSize: "14px" }}
-                                >
-                                  Please enter valid pan number
-                                </span>
-                              ) : (
-                                ""
-                              )}
-                            </div>
-                          </div> */}
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
                               <label htmlFor="business_address">
@@ -3078,20 +3066,16 @@ const index: FC = () => {
                           <Button
                             onClick={() => getEsignRequestPackets()}
                             type="button"
+                            disabled={isLoading}
+                            className={cn(
+                              "disabled:opacity-70 disabled:pointer-events-none",
+                              isLoading && "animate-pulse"
+                            )}
                             // variant={"outline"}
                           >
                             Agree
                           </Button>
                         </div>
-                        {/* <div className="flex flex-wrap items-center w-full  justify-center max-w-xl">
-                          <Button
-                            onClick={() => getEsignRequestPackets()}
-                            type="button"
-                            // variant={"outline"}
-                          >
-                            Agree
-                          </Button>
-                        </div> */}
                       </div>
                     </div>
                   </DrawerContent>
@@ -3104,17 +3088,32 @@ const index: FC = () => {
                       </div>
                       <div className="last_content">
                         <h4>
-                          <i className="fa fa-inr" aria-hidden="true" /> 50,000
+                          <i className="fa fa-inr" aria-hidden="true" />{" "}
+                          {offers?.LoanAmount}
                         </h4>
                         <p>INSTANT HAPPYNESS</p>
                       </div>
                     </div>
                     <div className="main_step_10bottom">
                       <div className="loanDetails">
-                        <p>
-                          Tenure <span>180 days</span>
-                        </p>
-                        <p>
+                        {offers && (
+                          <>
+                            <p>
+                              Tenor <span>{offers?.Tenor} days</span>
+                            </p>
+                            <p>
+                              Expiry Date{" "}
+                              <span>
+                                {format(
+                                  new Date(offers?.ExpiryDate!),
+                                  "dd/MM/yyyy"
+                                )}
+                              </span>
+                            </p>
+                          </>
+                        )}
+
+                        {/* <p>
                           Installment Amount
                           <span>
                             <i className="fa fa-inr" aria-hidden="true" />
@@ -3145,7 +3144,7 @@ const index: FC = () => {
                             <i className="fa fa-inr" aria-hidden="true" />
                             21,500
                           </span>
-                        </p>
+                        </p> */}
                       </div>
                     </div>
                     <div className="field btns">

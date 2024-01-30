@@ -29,31 +29,31 @@ export type GetStepsAPIResponseType = {
 export type Steps = [
   {
     kycStepName: "PersonalDetails";
-    kycStepCompletionStatus: "Complete";
+    kycStepCompletionStatus: "Complete" | "Document under-revirew" | "Pending";
   },
   {
     kycStepName: "Selfi_check";
-    kycStepCompletionStatus: "Pending";
+    kycStepCompletionStatus: "Complete" | "Document under-revirew" | "Pending";
   },
   {
     kycStepName: "PanDetails";
-    kycStepCompletionStatus: "Pending";
+    kycStepCompletionStatus: "Complete" | "Document under-revirew" | "Pending";
   },
   {
     kycStepName: "AadharDetails";
-    kycStepCompletionStatus: "Pending";
+    kycStepCompletionStatus: "Complete" | "Document under-revirew" | "Pending";
   },
   {
     kycStepName: "BankDetails";
-    kycStepCompletionStatus: "Pending";
+    kycStepCompletionStatus: "Complete" | "Document under-revirew" | "Pending";
   },
   {
     kycStepName: "Esign";
-    kycStepCompletionStatus: "Pending";
+    kycStepCompletionStatus: "Complete" | "Document under-revirew" | "Pending";
   },
   {
     kycStepName: "Disbursed";
-    kycStepCompletionStatus: "Pending";
+    kycStepCompletionStatus: "Complete" | "Document under-revirew" | "Pending";
   }
 ];
 
