@@ -916,12 +916,12 @@ const index: FC = () => {
   }, [formValues.aadhar_no.value]);
 
   const getSteps = async (
-    MerchantID: string,
-    ApplicationID: string,
-    LoanAmount: string
+    MerchantID?: string,
+    ApplicationID?: string,
+    LoanAmount?: string
   ) => {
     const body = {
-      MerchantID: MerchantID || formValues.merchant_id.value,
+      MerchantID: formValues.merchant_id.value || MerchantID,
       ApplicationID: offers?.ApplicationID || ApplicationID,
       LoanAmount: offers?.LoanAmount || LoanAmount,
     };
@@ -1068,10 +1068,10 @@ const index: FC = () => {
       if (key === "edit_loan_amount") {
         let hasError =
           !validations.isRequired(_formValues[key].value) ||
-          Number(_formValues[key].value) > Number(offers?.LoanAmount);
+          Number(_formValues[key].value) > Number(offers?.LoanOffered);
         _formValues[key].error =
           !validations.isRequired(_formValues[key].value) ||
-          Number(_formValues[key].value) > Number(offers?.LoanAmount);
+          Number(_formValues[key].value) > Number(offers?.LoanOffered);
         if (hasError) {
           formObjectHasError = true;
         }
@@ -1281,7 +1281,7 @@ const index: FC = () => {
                                     <DialogDescription>
                                       Edited amount should not be greater than
                                       <b className="text-black/70">
-                                        {" " + offers.LoanAmount}
+                                        {" " + offers.LoanOffered}
                                       </b>
                                     </DialogDescription>
                                   </DialogHeader>
