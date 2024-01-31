@@ -108,10 +108,10 @@ export type BusinessMerchantDetailsDataKey = {
 
 export type GetRegenerateloanoffersResponseType = {
   data: {
-    BusinessIdentity: null;
-    LoanUID: null;
-    ExpiryDate: null;
-    BatchID: null;
+    BusinessIdentity: string | null;
+    LoanUID: string | null;
+    ExpiryDate: string | null;
+    BatchID: string | null;
     loanAmount: number;
     interest: number;
     processingFee: number;
@@ -126,7 +126,7 @@ export type GetRegenerateloanoffersResponseType = {
     netDisbursement: number;
     totalPaidbyCustomer: number;
     emi: number;
-    LoanRefID: null;
+    LoanRefID: string | null;
   };
 } & APIResponseType;
 
@@ -232,4 +232,5 @@ export type APIEndPoints =
   | "/getesignrequestterms1"
   | "/getesignrequestterms2"
   | "/getesignrequestpackets"
-  | "/esignresponse";
+  | "/esignresponse"
+  | "/gettermsconditions";

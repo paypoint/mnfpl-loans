@@ -92,11 +92,23 @@ const Stepper: FC<StepperProps> = ({ activeStep }) => {
           </div>
 
           <div className="step">
+            <p>KFS</p>
+            <div className="bullet">
+              <i
+                className={`fas fa-sitemap ${
+                  activeStep > 8 ? "" : "inactive"
+                } `}
+              />
+              <div className="check fas fa-check" />
+            </div>
+          </div>
+
+          <div className="step">
             <p>E-Sign</p>
             <div className="bullet">
               <i
                 className={`fas fa-file-signature ${
-                  activeStep > 8 ? "" : "inactive"
+                  activeStep > 9 ? "" : "inactive"
                 } `}
               />
               <div className="check fas fa-check" />
@@ -107,7 +119,7 @@ const Stepper: FC<StepperProps> = ({ activeStep }) => {
             <div className="bullet">
               <i
                 className={`fas fa-check-double ${
-                  activeStep > 9 ? "" : "inactive"
+                  activeStep > 10 ? "" : "inactive"
                 } `}
               />
               <div className="check fas fa-check" />

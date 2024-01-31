@@ -29,6 +29,15 @@ class App {
     );
   }
 
+  postKFS<TResponse>({ url, requestBody }: Request) {
+    return axios.post<TResponse>(
+      "http://uat-applyv2.mnfpl.com/gettermsconditions",
+      {
+        requestBody,
+      }
+    );
+  }
+
   get<TResponse>({ url }: Request) {
     return client.get<TResponse>(url, {
       data: {},

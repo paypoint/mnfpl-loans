@@ -7,6 +7,7 @@ import coin from "../../assets/images/coin.png";
 import Second_screen from "../../assets/images/Second_screen.jpg";
 import Screen_5 from "../../assets/images/Screen_5.jpg";
 import Screen_6 from "../../assets/images/Screen_6.jpg";
+import MonarchLogo from "../../assets/images/monarch-logo.png";
 
 import validations from "@/lib/validations";
 import crypto from "@/lib/crypto";
@@ -51,13 +52,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, X } from "lucide-react";
 import Stepper from "@/components/Stepper";
+import { useLocation } from "react-router-dom";
 
 const index: FC = () => {
   const [step, setStep] = useState(1);
   const [openDrawer, setOpenDrawer] = useState(false);
-  const [showLoanDetails, setShowLoanDetails] = useState(false);
+  const [KFSDetails, setKFSDetails] =
+    useState<GetRegenerateloanoffersResponseType["data"]>();
+  const [alreadyRequest, setAlreadyRequest] = useState(false);
   const [open, setOpen] = useState(false);
   const [countDownTimer, setCountDownTimer] = useState(120);
   const [selectedBankID, setSelectedBankID] = useState(0);
@@ -69,8 +72,11 @@ const index: FC = () => {
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [bankList, setBankList] = useState<BankList[]>();
   const [isLoading, setIsLoading] = useState(false);
+  const [KFSHTML, setKFSHTML] = useState<string>();
   const [openTermsDrawer, setOpenTermsDrawer] = useState(false);
   const [apiSteps, setApiSteps] = useState<Steps>();
+  const location = useLocation();
+
   const [selfieImage, setSelfieImage] = useState<FileWithPreview[] | null>(
     null
   );
@@ -81,6 +87,8 @@ const index: FC = () => {
     null
   );
   const [showAlert, AlertModal] = useAlert();
+  const videoRef = useRef(null);
+  const mediaStreamRef = useRef(null);
 
   const defaultFormValues = {
     //step-1
@@ -345,41 +353,18 @@ const index: FC = () => {
         }
       });
       if (!formObjectHasError) {
-        // setStep((prevStep) => prevStep + 1);
-        updateBusinessMerchantDetails();
+        await updateBusinessMerchantDetails();
+
         console.log(formValues);
       } else {
         setFormValues(_formValues);
       }
     } else if (step === 5) {
       if (selfieImage) {
-        // setStep((prevStep) => prevStep + 1);
-
         await getBase64(selfieImage[0])
           .then(
             async (res) =>
-              await uploadDocument(
-                "2",
-                res as string,
-                selfieImage[0].name
-              ).then(async () => {
-                setStep((prevStep) => prevStep + 1);
-                // let nextStep = apiSteps?.findIndex(
-                //   ({ kycStepCompletionStatus }) =>
-                //     kycStepCompletionStatus === "Pending"
-                // )!;
-                // if (nextStep === -1) {
-                //   return setStep(10);
-                // }
-                // if (nextStep === 0) {
-                //   await getPersonalDetails();
-                // } else if (nextStep === 4) {
-                //   await getBusinessBankDetails();
-                // } else if (nextStep === 5) {
-                //   await getEsignRequestTerms("/getesignrequestterms1");
-                // }
-                // setStep(nextStep + 4);
-              })
+              await uploadDocument("2", res as string, selfieImage[0].name)
           )
           .catch((err) => console.log(err));
       } else {
@@ -403,41 +388,7 @@ const index: FC = () => {
           await getBase64(panCardImage[0])
             .then(
               async (res) =>
-                await uploadDocument(
-                  "1",
-                  res as string,
-                  panCardImage[0].name
-                ).then(async () => {
-                  setStep((prevStep) => prevStep + 1);
-                  //   if (
-                  //     apiSteps?.[3].kycStepCompletionStatus ===
-                  //       "Document under-revirew" ||
-                  //     apiSteps?.[3].kycStepCompletionStatus === "Complete"
-                  //   ) {
-                  //     //IF AadharDetails is  under-revirew or complete skip to bankdetails
-                  //     await getBusinessBankDetails();
-
-                  //     setStep((prevStep) => prevStep + 2);
-                  //   } else if (
-                  //     apiSteps?.[4].kycStepCompletionStatus ===
-                  //       "Document under-revirew" ||
-                  //     apiSteps?.[4].kycStepCompletionStatus === "Complete"
-                  //   ) {
-                  //     //IF bankdetails is  under-revirew or complete skip to e-sign
-
-                  //     await getEsignRequestTerms("/getesignrequestterms1");
-                  //     setStep((prevStep) => prevStep + 3);
-                  //   } else if (
-                  //     apiSteps?.[5].kycStepCompletionStatus ===
-                  //       "Document under-revirew" ||
-                  //     apiSteps?.[5].kycStepCompletionStatus === "Complete"
-                  //   ) {
-                  //     //IF e-sign is  under-revirew or complete skip to last step
-                  //     setStep((prevStep) => prevStep + 4);
-                  //   } else {
-                  //     setStep((prevStep) => prevStep + 1);
-                  //   }
-                })
+                await uploadDocument("1", res as string, panCardImage[0].name)
             )
             .catch((err) => console.log(err));
         } else {
@@ -460,22 +411,22 @@ const index: FC = () => {
         }
       });
       if (!formObjectHasError) {
-        validateAadharOTP();
+        await validateAadharOTP();
       } else {
         setFormValues(_formValues);
       }
     } else if (step === 8) {
-      Promise.allSettled([
-        updateBank(),
-        // getEsignRequestTerms("/getesignrequestterms1"), <--TODO
-      ]).then(() => setStep((prevStep) => prevStep + 2));
-      //  await updateBank();
-      //  await getEsignRequestTerms("/getesignrequestterms1")
+      await updateBank();
+
+      // setStep((prevStep) => prevStep + 1);
     } else if (step === 9) {
+      await getEsignRequestTerms("/getesignrequestterms1");
+      setStep((prevStep) => prevStep + 1);
+    } else if (step === 10) {
       eSignCheckBoxValidtion();
       // await getEsignRequestTerms("/getesignrequestterms2");
       // setOpenTermsDrawer(true);
-    } else if (step === 10) {
+    } else if (step === 11) {
       alert("Form submitted successfully");
     } else {
       setStep((prevStep) => prevStep + 1);
@@ -517,6 +468,29 @@ const index: FC = () => {
   useEffect(() => {
     getIPAddress();
     getOffers();
+    const searchParams = new URLSearchParams(location.search);
+    const msg = searchParams.get("msg");
+    const refid = searchParams.get("Refid");
+
+    if (msg !== null) {
+      const esignMsg: any = JSON.parse(msg);
+      console.log("esignmsg", esignMsg);
+      debugger;
+      if (esignMsg.Status === "Fail") {
+        toast.error(esignMsg.Msg || "E-sign failed please retry");
+        setStep(9);
+      } else {
+        toast.success(esignMsg.Msg || "E-sign successfull");
+        setStep(11);
+      }
+    } else if (refid !== null) {
+      // Process based on Refid
+      console.log("Processing based on Refid:", refid);
+    } else {
+      // No relevant parameter found
+      console.log("No relevant parameter found.");
+    }
+    // getPersonalDetails();
   }, []);
 
   const getIPAddress = async () => {
@@ -760,7 +734,37 @@ const index: FC = () => {
         const { data } = res;
         setIsLoading(false);
         if (data.status === "Success") {
-          setStep((prevStep) => prevStep + 1);
+          toast.success(data.message || "Address updated successfully");
+          //Personal Details step === 4
+          let nextStep = apiSteps?.findIndex(
+            ({ kycStepCompletionStatus }) =>
+              kycStepCompletionStatus === "Pending"
+          )!;
+          debugger;
+          if (nextStep < 0) {
+            //jump to last step
+            setStep(11);
+          } else if (nextStep === 1 || nextStep === 0) {
+            //jump to selfie
+            setStep(5);
+          } else if (nextStep === 2) {
+            //jump to pan card upload
+            setStep(6);
+          } else if (nextStep === 3) {
+            //jump to aadhar details
+            setStep(7);
+          } else if (nextStep === 4) {
+            //jump to bank details
+            await getBusinessBankDetails();
+            setStep(8);
+          } else if (nextStep === 5) {
+            //jump to esign
+            await getEsignRequestTerms("/getesignrequestterms1");
+            setStep(10);
+          } else if (nextStep === 6) {
+            //jump to last step
+            setStep(11);
+          }
         } else {
           toast.error(data.message);
         }
@@ -811,9 +815,64 @@ const index: FC = () => {
               id === "1" ? "Pancard" : id === "2" ? "Selfie" : "Adress proof"
             } uploaded successfully`
           );
-          if (id === "3") {
-            await getBusinessBankDetails();
+          if (id === "1") {
+            //Pancard step === 6
+            let nextStep = apiSteps?.findIndex(
+              ({ kycStepCompletionStatus }) =>
+                kycStepCompletionStatus === "Pending"
+            )!;
+            if (nextStep < 0) {
+              //jump to last step
+              setStep(11);
+            } else if (
+              nextStep === 1 ||
+              nextStep === 0 ||
+              nextStep === 2 ||
+              nextStep === 3
+            ) {
+              //jump to aadhar details
+              setStep(7);
+            } else if (nextStep === 4) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 5) {
+              //jump to esign
+              await getEsignRequestTerms("/getesignrequestterms1");
+              setStep(10);
+            } else if (nextStep === 6) {
+              //jump to last step
+              setStep(11);
+            }
+          } else {
+            //Selfie step === 5
+            let nextStep = apiSteps?.findIndex(
+              ({ kycStepCompletionStatus }) =>
+                kycStepCompletionStatus === "Pending"
+            )!;
+            if (nextStep < 0) {
+              //jump to last step
+              setStep(11);
+            } else if (nextStep === 1 || nextStep === 0 || nextStep === 2) {
+              //jump to pan card upload
+              setStep(6);
+            } else if (nextStep === 3) {
+              //jump to aadhar details
+              setStep(7);
+            } else if (nextStep === 4) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 5) {
+              //jump to esign
+              await getEsignRequestTerms("/getesignrequestterms1");
+              setStep(10);
+            } else if (nextStep === 6) {
+              //jump to last step
+              setStep(11);
+            }
           }
+
           // setStep((prevStep) => prevStep + 1);
         } else {
           toast.error(data.message);
@@ -884,8 +943,34 @@ const index: FC = () => {
         if (data.status === "Success") {
           toast.success("Aadhar verified successfully");
           await getBusinessBankDetails();
+          //Aadhar details step === 7
+          let nextStep = apiSteps?.findIndex(
+            ({ kycStepCompletionStatus }) =>
+              kycStepCompletionStatus === "Pending"
+          )!;
+          if (nextStep < 0) {
+            //jump to last step
+            setStep(11);
+          } else if (
+            nextStep === 1 ||
+            nextStep === 0 ||
+            nextStep === 2 ||
+            nextStep === 3 ||
+            nextStep === 4
+          ) {
+            //jump to bank details
+            await getBusinessBankDetails();
+            setStep(8);
+          } else if (nextStep === 5) {
+            //jump to esign
+            await getEsignRequestTerms("/getesignrequestterms1");
+            setStep(10);
+          } else if (nextStep === 6) {
+            //jump to last step
+            setStep(11);
+          }
 
-          setStep((prevStep) => prevStep + 1);
+          // setStep((prevStep) => prevStep + 1);
         } else {
           toast.error(data.message);
         }
@@ -939,7 +1024,6 @@ const index: FC = () => {
           const steps = data.result;
           //@ts-ignore
           setApiSteps(steps);
-          // getBusinessBankDetails();
           const nextStep = steps.findIndex(
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
@@ -951,7 +1035,9 @@ const index: FC = () => {
             await getBusinessBankDetails();
           } else if (nextStep === 5) {
             await getEsignRequestTerms("/getesignrequestterms1", ApplicationID);
+            return setStep(10);
           }
+
           setStep(nextStep + 4);
         } else {
           toast.error(data.message);
@@ -998,7 +1084,7 @@ const index: FC = () => {
         url: "/regenerateloanoffers",
         requestBody: encryptedBody,
       })
-      .then((res) => {
+      .then(async (res) => {
         const { data } = res;
         if (data.status === "Success") {
           //    let _formValues = { ...formValues };
@@ -1009,6 +1095,7 @@ const index: FC = () => {
           offerDetails.LoanAmount = Math.round(data.data.loanAmount);
           offerDetails.Tenor = Math.round(data.data.tenor);
           setOffers(offerDetails);
+          setKFSDetails(data.data);
         } else {
           toast.error(data.message);
         }
@@ -1046,7 +1133,31 @@ const index: FC = () => {
         if (data.status === "Success") {
           toast.success("Bank added successfully");
 
-          // setStep((prevStep) => prevStep + 1);
+          //Bank details step === 8
+          debugger;
+          let nextStep = apiSteps?.findIndex(
+            ({ kycStepCompletionStatus }) =>
+              kycStepCompletionStatus === "Pending"
+          )!;
+          if (nextStep < 0) {
+            //jump to last step
+            setStep(11);
+          } else if (
+            nextStep === 1 ||
+            nextStep === 0 ||
+            nextStep === 2 ||
+            nextStep === 3 ||
+            nextStep === 4 ||
+            nextStep === 5
+          ) {
+            //jump to kfs
+            // await getEsignRequestTerms("/getesignrequestterms1");
+            await getKFSHTML();
+            setStep(9);
+          } else if (nextStep === 6) {
+            //jump to last step
+            setStep(11);
+          }
         } else {
           toast.error(data.message);
         }
@@ -1134,7 +1245,40 @@ const index: FC = () => {
       });
   };
 
+  const getKFSHTML = async () => {
+    const body = {
+      ApplicationID: offers?.ApplicationID,
+    };
+
+    debugger;
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .postKFS<EsignResponseType>({
+        url: "/gettermsconditions",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
+          setKFSHTML(data.data);
+        } else {
+          toast.error(data.data);
+        }
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
+  };
+
   const getEsignRequestPackets = async () => {
+    if (alreadyRequest) return;
+    setAlreadyRequest(true);
     const body = {
       LATLNG: `${locationDetails?.latitude}~${locationDetails?.longitude}`,
       IPAddress: locationDetails?.IPv4,
@@ -1155,7 +1299,7 @@ const index: FC = () => {
         setIsLoading(false);
         if (data.status === "Success") {
           let msg = JSON.parse(data.data);
-          let resultMessage = msg.msg;
+          let resultMessage = msg;
           const esignUrl = data.redirect;
 
           // Create a meta element
@@ -1172,19 +1316,15 @@ const index: FC = () => {
           form.setAttribute("target", "_blank");
 
           var hiddenField = document.createElement("input");
-          hiddenField.setAttribute("msg", resultMessage);
+          hiddenField.setAttribute("type", "hidden");
+          hiddenField.setAttribute("id", "msg");
+          hiddenField.setAttribute("name", "msg");
+          hiddenField.setAttribute("value", resultMessage);
           form.appendChild(hiddenField);
           document.body.appendChild(form);
           form.submit();
 
-          // var myform = document.getElementById("my-form");
-          // myform?.addEventListener("submit", function (event) {
-          //   event.preventDefault();
-          //   window.open(form.action, "_blank");
-          // });
-
-          // // creating the 'formresult' window with custom features prior to submitting the form
-          // window.open("", "");
+          setTimeout(() => document.body.removeChild(form), 500);
 
           setOpenTermsDrawer(false);
         } else {
@@ -1197,7 +1337,8 @@ const index: FC = () => {
           title: error.message,
           description: "Please try after some time",
         });
-      });
+      })
+      .finally(() => setAlreadyRequest(false));
   };
 
   const esignResponse = async () => {
@@ -1233,6 +1374,7 @@ const index: FC = () => {
         });
       });
   };
+
   return (
     <>
       {AlertModal({
@@ -1240,6 +1382,11 @@ const index: FC = () => {
         description: "",
       })}
       <div className="container">
+        <div className="flex justify-center p-2 items-center">
+          {" "}
+          <img src={MonarchLogo} alt="monarch-logo" />
+        </div>
+
         {/* steps */}
         <Stepper activeStep={step} />
         {/* main page */}
@@ -1249,7 +1396,7 @@ const index: FC = () => {
               <form action="#">
                 {step === 1 && (
                   <div className="page slide-page">
-                    <div className="form-card">
+                    <div className="main_step_1 form-card overflow-auto max-h-[600px]">
                       {offers ? (
                         <div className="step_1">
                           <div className="coin_img">
@@ -1279,9 +1426,9 @@ const index: FC = () => {
                                   <DialogHeader>
                                     <DialogTitle>Edit loan amount</DialogTitle>
                                     <DialogDescription>
-                                      Edited amount should not be greater than
                                       <b className="text-black/70">
-                                        {" " + offers.LoanOffered}
+                                        Edited amount should not be greater than{" "}
+                                        ₹{offers.LoanOffered}
                                       </b>
                                     </DialogDescription>
                                   </DialogHeader>
@@ -1345,7 +1492,7 @@ const index: FC = () => {
                             </p>
                             <strong>Tenor: {offers.Tenor} days</strong>
                             <span>
-                              Expriy Date:
+                              Offered Expriy Date:
                               {" " +
                                 format(
                                   new Date(offers.ExpiryDate),
@@ -1357,7 +1504,71 @@ const index: FC = () => {
                       ) : (
                         <Skeleton className="bg-cover min-h-[480px] relative shadow-[0_3px_6px_rgba(0,0,0,0.16),0_3px_6px_rgba(0,0,0,0.23)] m-[15px] rounded-[15px]" />
                       )}
+                      <div className="main_step_10bottom">
+                        <div className="loanDetails">
+                          {offers && (
+                            <>
+                              <p>
+                                Tenor <span>{offers?.Tenor} days</span>
+                              </p>
+                              <p>
+                                Expiry Date{" "}
+                                <span>
+                                  {format(
+                                    new Date(offers?.ExpiryDate!),
+                                    "dd/MM/yyyy"
+                                  )}
+                                </span>
+                              </p>
+                            </>
+                          )}
 
+                          <p>
+                            Installment Amount
+                            <span>
+                              <i className="fa fa-inr" aria-hidden="true" />
+                              25,000
+                            </span>
+                          </p>
+                          <p>
+                            Number Installments <span> 10</span>
+                          </p>
+                        </div>
+                        <div className="loanDetails">
+                          <p>
+                            Interest Rate
+                            <span>
+                              <i className="fa fa-inr" aria-hidden="true" />
+                              {KFSDetails?.interest ?? "3,125"}
+                            </span>
+                          </p>
+                          <p>
+                            Processing Fees
+                            <span>
+                              <i className="fa fa-inr" aria-hidden="true" />{" "}
+                              {KFSDetails?.processingFee ?? "0"}
+                            </span>
+                          </p>
+                          <p>
+                            Net Disbursed Amount
+                            <span>
+                              <i className="fa fa-inr" aria-hidden="true" />
+                              {KFSDetails?.netDisbursement ?? "21,500"}
+                            </span>
+                          </p>
+                          <p>
+                            GST
+                            <span>% {KFSDetails?.gst ?? "18"}</span>
+                          </p>
+                          <p>
+                            Total
+                            <span>
+                              <i className="fa fa-inr" aria-hidden="true" />{" "}
+                              {KFSDetails?.totalPaidbyCustomer ?? "0"}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
                       <div className="check_box">
                         <div className="check">
                           <div className="form-check form-check-inline">
@@ -1420,7 +1631,7 @@ const index: FC = () => {
                           !offers && "animate-pulse"
                         )}
                       >
-                        Apply Now
+                        Next
                       </button>
 
                       {/* First Drawer  */}
@@ -1453,10 +1664,7 @@ const index: FC = () => {
                                 <div>
                                   <div className="container">
                                     <div style={{ textAlign: "right" }}>
-                                      <img
-                                        src="https://ekyc.mnclgroup.com/images/logo-1.png"
-                                        alt="Monarch"
-                                      />
+                                      <img src={MonarchLogo} alt="Monarch" />
                                     </div>
                                     <div>
                                       <h3 style={{ textAlign: "center" }}>
@@ -2703,7 +2911,7 @@ const index: FC = () => {
                           isLoading && "animate-pulse"
                         )}
                       >
-                        Proceed
+                        next
                       </button>
                     </div>
                   </div>
@@ -2715,7 +2923,7 @@ const index: FC = () => {
                       setFiles={setSelfieImage}
                       image={Screen_5}
                       title={"Click Your Selfie"}
-                      description={"Capture Clear Image of Yourself"}
+                      description={"Click here to upload your selfie"}
                     />
 
                     <div className="field btns">
@@ -2727,7 +2935,7 @@ const index: FC = () => {
                         disabled={isLoading}
                         onClick={(e) => handleNext(e)}
                       >
-                        Proceed
+                        next
                       </button>
                     </div>
                   </div>
@@ -2739,7 +2947,7 @@ const index: FC = () => {
                       setFiles={setPanCardImage}
                       image={Screen_6}
                       title={"PAN Card"}
-                      description={"Capture Clear Image of Your PAN Card"}
+                      description={"Click here to upload pan card"}
                     />
                     <div className="col-md-12 mt-2">
                       <div className="form-group">
@@ -2779,7 +2987,7 @@ const index: FC = () => {
                           isLoading && "animate-pulse"
                         )}
                       >
-                        Proceed
+                        next
                       </button>
                     </div>
                   </div>
@@ -2811,7 +3019,13 @@ const index: FC = () => {
                           </span>
                         ) : (
                           ""
-                        )}
+                        )}{" "}
+                        {isLoading &&
+                          formValues.aadhar_otp.value.length !== 6 && (
+                            <span className="text-sm">
+                              Verifying aadhar number...
+                            </span>
+                          )}
                       </div>
                     </div>
                     <div className="col-md-12 mt-2">
@@ -2864,7 +3078,7 @@ const index: FC = () => {
                               e.preventDefault();
                               generateAadharOTP();
                             }}
-                            className="border border-purple-900 "
+                            className="border border-purple-900"
                             variant={"outline"}
                           >
                             Resend
@@ -2872,13 +3086,6 @@ const index: FC = () => {
                         )}
                       </div>
                     )}
-                    {/* <FileDialog
-                      files={addressProof}
-                      setFiles={setAddressProof}
-                      image={Screen_7}
-                      title={"Proof of Address (Front)"}
-                      description={"Capture Clear Image of Your Voter ID"}
-                    /> */}
                     <div className="field btns">
                       <button
                         disabled={
@@ -2890,7 +3097,7 @@ const index: FC = () => {
                           isLoading && "animate-pulse"
                         )}
                       >
-                        Proceed
+                        next
                       </button>
                     </div>
                   </div>
@@ -2898,7 +3105,7 @@ const index: FC = () => {
                 {step === 8 && (
                   <div className="page">
                     <div className="main_step_8">
-                      <h4>Enter Your Account Details</h4>
+                      <h4> Your Bank Account Details</h4>
                       <img
                         // style={{ width: "60%" }}
                         src={Second_screen}
@@ -2981,7 +3188,7 @@ const index: FC = () => {
                               isLoading && "animate-pulse"
                             )}
                           >
-                            confirm
+                            next
                           </button>
                         </div>
                       </>
@@ -3002,7 +3209,7 @@ const index: FC = () => {
                               isLoading && "animate-pulse"
                             )}
                           >
-                            confirm
+                            next
                           </button>
                         </div>
                       </div>
@@ -3010,6 +3217,90 @@ const index: FC = () => {
                   </div>
                 )}
                 {step === 9 && (
+                  <div className="page overflow-auto max-h-[600px]">
+                    <div className="main_step_10bottom">
+                      <div className="loanDetails">
+                        {offers && (
+                          <>
+                            <p>
+                              Tenor <span>{offers?.Tenor} days</span>
+                            </p>
+                            <p>
+                              Expiry Date{" "}
+                              <span>
+                                {format(
+                                  new Date(offers?.ExpiryDate!),
+                                  "dd/MM/yyyy"
+                                )}
+                              </span>
+                            </p>
+                          </>
+                        )}
+
+                        <p>
+                          Installment Amount
+                          <span>
+                            <i className="fa fa-inr" aria-hidden="true" />
+                            25,000
+                          </span>
+                        </p>
+                        <p>
+                          Number Installments <span> 10</span>
+                        </p>
+                      </div>
+                      <div className="loanDetails">
+                        <p>
+                          Interest Rate
+                          <span>
+                            <i className="fa fa-inr" aria-hidden="true" />
+                            {KFSDetails?.interest ?? "3,125"}
+                          </span>
+                        </p>
+                        <p>
+                          Processing Fees
+                          <span>
+                            <i className="fa fa-inr" aria-hidden="true" />{" "}
+                            {KFSDetails?.processingFee ?? "0"}
+                          </span>
+                        </p>
+                        <p>
+                          Net Disbursed Amount
+                          <span>
+                            <i className="fa fa-inr" aria-hidden="true" />
+                            {KFSDetails?.netDisbursement ?? "21,500"}
+                          </span>
+                        </p>
+                        <p>
+                          GST
+                          <span>% {KFSDetails?.gst ?? "18"}</span>
+                        </p>
+                        <p>
+                          Total
+                          <span>
+                            <i className="fa fa-inr" aria-hidden="true" />{" "}
+                            {KFSDetails?.totalPaidbyCustomer ?? "0"}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                    {KFSHTML && (
+                      <div
+                        className="main_step_10bottom"
+                        dangerouslySetInnerHTML={{ __html: KFSHTML }}
+                      ></div>
+                    )}
+                    <div className="field btns">
+                      <button
+                        disabled={isLoading}
+                        onClick={(e) => handleNext(e)}
+                        className="submit disabled:opacity-70 disabled:pointer-events-none"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {step === 10 && (
                   <div className="page">
                     <div
                       dangerouslySetInnerHTML={{ __html: esignTerms! }}
@@ -3025,7 +3316,7 @@ const index: FC = () => {
                           isLoading && "animate-pulse"
                         )}
                       >
-                        confirm
+                        next
                       </button>
                     </div>
                   </div>
@@ -3080,7 +3371,7 @@ const index: FC = () => {
                     </div>
                   </DrawerContent>
                 </Drawer>
-                {step === 10 && (
+                {step === 11 && (
                   <div className="page">
                     <div className="main_step_10">
                       <div className="last_screen_coin">
@@ -3091,7 +3382,7 @@ const index: FC = () => {
                           <i className="fa fa-inr" aria-hidden="true" />{" "}
                           {offers?.LoanAmount}
                         </h4>
-                        <p>INSTANT HAPPYNESS</p>
+                        <p>INSTANT HAPPINESS</p>
                       </div>
                     </div>
                     <div className="main_step_10bottom">
