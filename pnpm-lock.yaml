@@ -51,8 +51,8 @@ dependencies:
     specifier: ^0.314.0
     version: 0.314.0(react@18.2.0)
   pnpm:
-    specifier: ^8.15.0
-    version: 8.15.0
+    specifier: ^8.15.1
+    version: 8.15.1
   react:
     specifier: ^18.2.0
     version: 18.2.0
@@ -2734,8 +2734,8 @@ packages:
     resolution: {integrity: sha512-saLsH7WeYYPiD25LDuLRRY/i+6HaPYr6G1OUlN39otzkSTxKnubR9RTxS3/Kk50s1g2JTgFwWQDQyplC5/SHZg==}
     engines: {node: '>= 6'}
 
-  /pnpm@8.15.0:
-    resolution: {integrity: sha512-6kVRfVKF0SPqwCw3k1Bfof1tqQovxg0ejZ4MHpKSiG7Pr/UT8GK50cyAIbuGFQM7GsW+o7LuP8FlptcDS75rAw==}
+  /pnpm@8.15.1:
+    resolution: {integrity: sha512-gxz0xfi4N0r3FSHU0VPbSdcIbeYVwq98tenX64umMN2sRv6kldZD5VLvLmijqpmj5en77oaWcClnUE31xZyycw==}
     engines: {node: '>=16.14'}
     hasBin: true
     dev: false
