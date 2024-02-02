@@ -56,6 +56,8 @@ import Stepper from "@/components/Stepper";
 import { useLocation } from "react-router-dom";
 import { X } from "lucide-react";
 
+import { Icons } from "@/components/ui/Icons";
+
 const index: FC = () => {
   const [step, setStep] = useState(1);
   const [openDrawer, setOpenDrawer] = useState(false);
@@ -3486,84 +3488,88 @@ const index: FC = () => {
                   </DrawerContent>
                 </Drawer>
                 {step === 11 && (
-                  <div className="page">
-                    <div className="main_step_10">
-                      <div className="last_screen_coin">
-                        <img src={coin} alt="coin-image" />
+                  // <div className="page">
+                  <div className="max-w-lg mx-auto my-8 p-6 bg-white rounded-lg shadow-md">
+                    <div className="flex justify-between items-start">
+                      <div className="flex space-x-2 items-center">
+                        <Icons.AlertCircleIcon className="text-[#5322ba] h-6 w-6" />
+                        <h2 className="text-xl font-semibold">
+                          Loan sanctioned
+                        </h2>
                       </div>
-                      <div className="last_content">
-                        <h4>
-                          <i className="fa fa-inr" aria-hidden="true" />{" "}
-                          {offers?.LoanAmount}
-                        </h4>
-                        <p>
+                    </div>
+                    <div className="mt-6 p-6 bg-gray-100 rounded-lg">
+                      <div className="text-center">
+                        <h3 className="text-lg font-medium">Loan amount</h3>
+                        <p className="text-4xl font-bold mt-2">
+                          ₹ {offers?.LoanAmount}
+                        </p>
+                      </div>
+                      <hr className="my-6 border-[#5322ba]" />
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <p className="font-medium">EMI</p>
+                          <p className="font-bold">₹8,934</p>
+                        </div>
+                        <div>
+                          <p className="font-medium">Tenure</p>
+                          <p className="font-bold">{offers?.Tenor} days</p>
+                        </div>
+                        <div>
+                          <p className="font-medium">Interest</p>
+                          <p className="font-bold">34% p.a</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-6">
+                      <div className="flex space-x-2 items-center">
+                        <Icons.InfoIcon className="text-[#5322ba] h-6 w-6" />
+                        <p className="text-sm">
                           Your Loan application has been acknowledged, the
                           amount will be disbursed within working 24Hrs subject
-                          to final approval
+                          to final approval.
                         </p>
                       </div>
-                    </div>
-                    <div className="main_step_10bottom">
-                      <div className="loanDetails">
-                        {offers && (
-                          <>
-                            <p>
-                              Tenor <span>{offers?.Tenor} days</span>
+                      <hr className="my-6 border-gray-300" />
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2">
+                          <Icons.BanknoteIcon className="text-[#5322ba] h-6 w-6" />
+                          <div>
+                            <h4 className="font-bold">
+                              {bankList?.[selectedBankID].Bank}
+                            </h4>
+                            <p className="text-sm">
+                              {bankList?.[selectedBankID].AccountType}
                             </p>
-                            <p>
-                              Expiry Date{" "}
-                              <span>
-                                {format(
-                                  new Date(offers?.ExpiryDate!),
-                                  "dd/MM/yyyy"
-                                )}
-                              </span>
-                            </p>
-                          </>
-                        )}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">
+                            Account Number -{" "}
+                            {bankList?.[selectedBankID].AccountNumber}
+                          </p>
+                        </div>
 
-                        {/* <p>
-                          Installment Amount
-                          <span>
-                            <i className="fa fa-inr" aria-hidden="true" />
-                            25,000
-                          </span>
-                        </p>
-                        <p>
-                          Number Installments <span> 10</span>
-                        </p>
-                      </div>
-                      <div className="loanDetails">
-                        <p>
-                          Interest Rate
-                          <span>
-                            <i className="fa fa-inr" aria-hidden="true" />
-                            3,125
-                          </span>
-                        </p>
-                        <p>
-                          Processing Fees
-                          <span>
-                            <i className="fa fa-inr" aria-hidden="true" /> 0
-                          </span>
-                        </p>
-                        <p>
-                          Net Disbursed Amount
-                          <span>
-                            <i className="fa fa-inr" aria-hidden="true" />
-                            21,500
-                          </span>
-                        </p> */}
+                        <div>
+                          <p className="text-sm font-medium">
+                            IFSC Code - {bankList?.[selectedBankID].IFSCCode}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <div className="field btns">
-                      <button
-                        disabled={isLoading}
-                        onClick={(e) => handleNext(e)}
-                        className="submit disabled:opacity-70 disabled:pointer-events-none"
-                      >
-                        i accept
-                      </button>
+                    <div className="mt-4 text-center">
+                      <p className="text-xs text-gray-500">Lending partner</p>
+                      <img
+                        alt="Lending Partner Logo"
+                        className="inline-block h-6"
+                        height="24"
+                        src={MonarchLogo}
+                        style={{
+                          aspectRatio: "100/24",
+                          objectFit: "cover",
+                        }}
+                        width="100"
+                      />
                     </div>
                   </div>
                 )}

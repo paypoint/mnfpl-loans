@@ -8,6 +8,10 @@
 body {
   font-family: "Be Vietnam Pro", sans-serif;
 }
+
+a {
+  color: #5322ba !important;
+}
 /* input[type="radio"]:after {
   width: 15px;
   height: 15px;
@@ -337,6 +341,15 @@ input::-webkit-inner-spin-button {
 label {
   text-align: left;
   display: block;
+}
+
+table {
+  border-collapse: collapse;
+}
+td,
+th {
+  border: 1px solid black;
+  padding: 8px;
 }
 
 .main_step_1::-webkit-scrollbar-track,
