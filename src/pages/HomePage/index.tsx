@@ -1066,7 +1066,6 @@ const index: FC = () => {
         const { data } = res;
         if (data.status === "Success") {
           const steps = data.result;
-          //@ts-ignore
           setApiSteps(steps);
           const nextStep = steps.findIndex(
             ({ kycStepCompletionStatus }) =>
@@ -2585,7 +2584,7 @@ const index: FC = () => {
                         <div className="row">
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
-                              <label htmlFor="name">Full Name</label>
+                              <label htmlFor="name">Full Name *</label>
                               <input
                                 className="form-control"
                                 type="text"
@@ -2612,7 +2611,7 @@ const index: FC = () => {
                           </div>
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
-                              <label>DOB</label>
+                              <label>DOB *</label>
                               <input
                                 className="form-control"
                                 type="date"
@@ -2640,7 +2639,7 @@ const index: FC = () => {
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
                               <label htmlFor="business_address">
-                                Business Address
+                                Business Address *
                               </label>
                               <textarea
                                 id="business_address"
@@ -2671,7 +2670,7 @@ const index: FC = () => {
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
                               <label htmlFor="postal-code">
-                                Business Address Pincode
+                                Business Address Pincode *
                               </label>
                               <input
                                 className="form-control"
@@ -2708,7 +2707,7 @@ const index: FC = () => {
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
                               <label htmlFor="street-address">
-                                Current Address
+                                Current Address *
                               </label>
                               <textarea
                                 id="street-address"
@@ -2756,7 +2755,7 @@ const index: FC = () => {
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
                               <label htmlFor="current_pincode">
-                                Current Address Pincode
+                                Current Address Pincode *
                               </label>
                               <input
                                 id="current_pincode"
@@ -2786,7 +2785,7 @@ const index: FC = () => {
                           </div>
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
-                              <label htmlFor="Gender">Gender</label>
+                              <label htmlFor="Gender">Gender *</label>
 
                               <select
                                 id="my-select"
@@ -2808,7 +2807,7 @@ const index: FC = () => {
                           </div>
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
-                              <label htmlFor="house">House</label>
+                              <label htmlFor="house">House *</label>
 
                               <select
                                 id="my-select"
@@ -2831,7 +2830,7 @@ const index: FC = () => {
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
                               <label htmlFor="number">
-                                Emergency Contact Number
+                                Emergency Contact Number *
                               </label>
                               <input
                                 className="form-control"
@@ -2866,7 +2865,9 @@ const index: FC = () => {
                           </div>
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
-                              <label htmlFor="email">Please Enter Email</label>
+                              <label htmlFor="email">
+                                Please Enter Email *
+                              </label>
                               <input
                                 className="form-control"
                                 type="email"
@@ -2893,7 +2894,7 @@ const index: FC = () => {
                           </div>
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
-                              <label htmlFor="nominee">Nominee Name</label>
+                              <label htmlFor="nominee">Nominee Name *</label>
                               <input
                                 className="form-control"
                                 type="text"
@@ -2920,7 +2921,9 @@ const index: FC = () => {
                           </div>
                           <div className="col-md-6 mt-2">
                             <div className="form-group">
-                              <label htmlFor="relation">Nominee Relation</label>
+                              <label htmlFor="relation">
+                                Nominee Relation *
+                              </label>
 
                               <select
                                 id="my-select"
@@ -3067,7 +3070,7 @@ const index: FC = () => {
                     />
                     <div className="col-md-12 mt-2">
                       <div className="form-group">
-                        <label htmlFor="pannumber">Enter PAN number</label>
+                        <label htmlFor="pannumber">Enter PAN number *</label>
                         <input
                           style={{
                             textTransform: "uppercase",
@@ -3113,7 +3116,7 @@ const index: FC = () => {
                     <div className="col-md-12 mt-2">
                       <div className="form-group">
                         <label htmlFor="enter_aadhar_number">
-                          Aadhar number
+                          Aadhar number *
                         </label>
                         <input
                           className="form-control"
@@ -3146,7 +3149,7 @@ const index: FC = () => {
                     </div>
                     <div className="col-md-12 mt-2">
                       <div className="form-group">
-                        <label htmlFor="aadhar_otp">Aadhar OTP</label>
+                        <label htmlFor="aadhar_otp">Aadhar OTP *</label>
                         <input
                           readOnly={
                             formValues.aadhar_no.error ||
