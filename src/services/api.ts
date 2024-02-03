@@ -22,7 +22,7 @@ class App {
 
   postEsign<TResponse>({ url, requestBody }: Request) {
     return axios.post<TResponse>(
-      "http://uat-applyv2.mnfpl.com/getesignrequestpackets",
+      "https://uat-applyv2.mnfpl.com/getesignrequestpackets",
       {
         requestBody,
       }
@@ -31,7 +31,7 @@ class App {
 
   postKFS<TResponse>({ url, requestBody }: Request) {
     return axios.post<TResponse>(
-      "http://uat-applyv2.mnfpl.com/gettermsconditions",
+      "https://uat-applyv2.mnfpl.com/gettermsconditions",
       {
         requestBody,
       }
