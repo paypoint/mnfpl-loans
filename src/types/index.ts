@@ -212,6 +212,11 @@ export type OfferDetails = {
   MerchantID: string;
   ProductId: number;
   ApplicationID: string;
+  NoOfCycels: string;
+  InsuranceFee: string;
+  ProcessingFee: string;
+  Interest: string;
+  NetDisbursement: string;
 };
 
 export type APIEndPoints =

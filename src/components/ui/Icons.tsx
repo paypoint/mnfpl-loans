@@ -3,7 +3,6 @@ import { LucideProps } from "lucide-react";
 export const Icons = {
   AlertCircleIcon: ({ ...props }: LucideProps) => (
     <svg
-      {...props}
       xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
@@ -13,6 +12,7 @@ export const Icons = {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      {...props}
     >
       <circle cx="12" cy="12" r="10" />
       <line x1="12" x2="12" y1="8" y2="12" />
@@ -21,7 +21,6 @@ export const Icons = {
   ),
   BanknoteIcon: ({ ...props }: LucideProps) => (
     <svg
-      {...props}
       xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
@@ -31,6 +30,7 @@ export const Icons = {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      {...props}
     >
       <rect width="20" height="12" x="2" y="6" rx="2" />
       <circle cx="12" cy="12" r="2" />
@@ -39,7 +39,6 @@ export const Icons = {
   ),
   InfoIcon: ({ ...props }: LucideProps) => (
     <svg
-      {...props}
       xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
@@ -49,16 +48,16 @@ export const Icons = {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      {...props}
     >
       <circle cx="12" cy="12" r="10" />
       <path d="M12 16v-4" />
       <path d="M12 8h.01" />
     </svg>
   ),
-  BikeIcon(props: LucideProps) {
+  BikeIcon({ ...props }: LucideProps) {
     return (
       <svg
-        {...props}
         xmlns="http://www.w3.org/2000/svg"
         width="24"
         height="24"
@@ -68,6 +67,7 @@ export const Icons = {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        {...props}
       >
         <circle cx="18.5" cy="17.5" r="3.5" />
         <circle cx="5.5" cy="17.5" r="3.5" />

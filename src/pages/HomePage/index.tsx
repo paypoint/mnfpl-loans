@@ -490,7 +490,7 @@ const index: FC = () => {
         } else if (refId !== null) {
           localStorage.setItem("REFID", refId);
           await getOffers(refId);
-          setStep(10); //hcoded
+          // setStep(10); //hcoded
           console.log("Processing based on Refid:", refId);
         } else {
           setErrorPage(true);
@@ -1096,22 +1096,25 @@ const index: FC = () => {
         const { data } = res;
         if (data.status === "Success") {
           const steps = data.result;
-          // setApiSteps(steps);
-          // const nextStep = steps.findIndex(
-          //   ({ kycStepCompletionStatus }) =>
-          //     kycStepCompletionStatus === "Pending"
-          // );
-          // debugger;
-          // if (nextStep === 0) {
-          //   await getPersonalDetails();
-          // } else if (nextStep === 4) {
-          //   await getBusinessBankDetails();
-          // } else if (nextStep === 5) {
-          //   await getEsignRequestTerms("/getesignrequestterms1", ApplicationID);
-          //   return setStep(10);
-          // }
+          setApiSteps(steps);
+          const nextStep = steps.findIndex(
+            ({ kycStepCompletionStatus }) =>
+              kycStepCompletionStatus === "Pending"
+          );
+          debugger;
+          if (nextStep === 0) {
+            return setStep(1);
+            // await getPersonalDetails();
+          } else if (nextStep === 4) {
+            await getBusinessBankDetails();
+          } else if (nextStep === 5) {
+            await getEsignRequestTerms("/getesignrequestterms1", ApplicationID);
+            return setStep(10);
+          } else if (nextStep === 6) {
+            return setStep(11);
+          }
 
-          // setStep(nextStep + 4);
+          setStep(nextStep + 4);
         } else {
           if (data.message === "Invalid or expire application.") return;
           toast.error(data.message);
@@ -1216,18 +1219,15 @@ const index: FC = () => {
           if (nextStep < 0) {
             //jump to last step
             setStep(11);
-          } else if (
-            nextStep === 1 ||
-            nextStep === 0 ||
-            nextStep === 2 ||
-            nextStep === 3 ||
-            nextStep === 4 ||
-            nextStep === 5
-          ) {
+          } else if (nextStep <= 4) {
             //jump to kfs
             // await getEsignRequestTerms("/getesignrequestterms1");
             await getKFSHTML();
             setStep(9);
+          } else if (nextStep === 5) {
+            //jump to esign
+            await getEsignRequestTerms("/getesignrequestterms1");
+            setStep(10);
           } else if (nextStep === 6) {
             //jump to last step
             setStep(11);
@@ -1625,7 +1625,7 @@ const index: FC = () => {
                                         className="fa fa-inr"
                                         aria-hidden="true"
                                       />
-                                      25,000
+                                      {offers?.NetDisbursement ?? "25,000"}
                                     </span>
                                   </p>
                                   <p>
@@ -1660,7 +1660,7 @@ const index: FC = () => {
                                         className="fa fa-inr"
                                         aria-hidden="true"
                                       />
-                                      {KFSDetails?.netDisbursement ?? "21,500"}
+                                      {offers?.NetDisbursement ?? "21,500"}
                                     </span>
                                   </p>
                                   <p>
@@ -3832,7 +3832,9 @@ const index: FC = () => {
                               <div className="grid grid-cols-3 gap-4">
                                 <div>
                                   <p className="font-medium">EMI</p>
-                                  <p className="font-bold">₹8,934</p>
+                                  <p className="font-bold">
+                                    ₹ {offers?.NetDisbursement}
+                                  </p>
                                 </div>
                                 <div>
                                   <p className="font-medium">Tenure</p>
@@ -3842,7 +3844,9 @@ const index: FC = () => {
                                 </div>
                                 <div>
                                   <p className="font-medium">Interest</p>
-                                  <p className="font-bold">34% p.a</p>
+                                  <p className="font-bold">
+                                    {offers?.Interest}% p.a
+                                  </p>
                                 </div>
                               </div>
                             </div>
