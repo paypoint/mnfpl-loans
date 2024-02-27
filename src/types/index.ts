@@ -127,6 +127,7 @@ export type GetRegenerateloanoffersResponseType = {
     totalPaidbyCustomer: number;
     emi: number;
     LoanRefID: string | null;
+    noOfPayment: number;
   };
 } & APIResponseType;
 
@@ -204,19 +205,30 @@ export type BankList = {
 };
 
 export type OfferDetails = {
-  LoanOffered: number;
-  LoanAmount: number;
+  Merchant_Id: string;
+  LoanUID: string;
   ExpiryDate: string;
+  BatchID: null;
+  loanAmount: number;
+  interest: number;
+  processingFee: number;
+  gst: number;
+  insuranceFee: number;
+  tenor: number;
+  noOfCycels: number;
+  totalInterest: number;
+  upfrontInterest: number;
+  upfrontFees: number;
+  totalUpfront: number;
+  netDisbursement: number;
+  totalPaidbyCustomer: number;
+  emi: number;
+  LoanRefID: null;
+  noOfPayment: number;
+  LoanOffered: number;
   MobileNumber: string;
-  Tenor: number;
-  MerchantID: string;
   ProductId: number;
   ApplicationID: string;
-  NoOfCycels: string;
-  InsuranceFee: string;
-  ProcessingFee: string;
-  Interest: string;
-  NetDisbursement: string;
 };
 
 export type APIEndPoints =

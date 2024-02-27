@@ -490,7 +490,7 @@ const index: FC = () => {
         } else if (refId !== null) {
           localStorage.setItem("REFID", refId);
           await getOffers(refId);
-          // setStep(10); //hcoded
+          // setStep(1); //hcoded
           console.log("Processing based on Refid:", refId);
         } else {
           setErrorPage(true);
@@ -513,8 +513,6 @@ const index: FC = () => {
   useEffect(() => {
     if (step === 10) {
       getEsignRequestTerms("/getesignrequestterms1");
-    } else if (step === 11) {
-      getBusinessBankDetails();
     }
   }, [step]);
 
@@ -546,19 +544,18 @@ const index: FC = () => {
         const { data } = res;
         if (data.status === "Success") {
           let offerDetails = data.message;
-          offerDetails.LoanAmount = Math.round(Number(offerDetails.LoanAmount));
-          offerDetails.Tenor = Math.round(Number(offerDetails.Tenor));
-
+          offerDetails.loanAmount = Math.round(Number(offerDetails.loanAmount));
+          offerDetails.tenor = Math.round(Number(offerDetails.tenor));
           setOffers(offerDetails);
           let _formValues = { ...formValues };
           _formValues.mobile_no.value = offerDetails.MobileNumber;
-          _formValues.merchant_id.value = offerDetails.MerchantID;
+          _formValues.merchant_id.value = offerDetails.Merchant_Id;
           setFormValues(_formValues);
           if (getStepsKey) {
             await getSteps(
-              data.message.MerchantID,
+              data.message.Merchant_Id,
               data.message.ApplicationID,
-              data.message.LoanAmount.toString()
+              data.message.loanAmount.toString()
             );
           }
         } else {
@@ -780,7 +777,7 @@ const index: FC = () => {
       customer_name: formValues.full_name.value,
       mobile_no: formValues.mobile_no.value,
       pan: formValues.pan_number.value,
-      loan_amount: offers?.LoanAmount,
+      loan_amount: offers?.loanAmount,
       dob: formValues.dob.value,
       gender: formValues.gender.value,
       house: formValues.house.value,
@@ -815,12 +812,15 @@ const index: FC = () => {
               kycStepCompletionStatus === "Pending"
           )!;
           debugger;
+          if (!nextStep) {
+            return setStep(5);
+          }
           if (nextStep < 0) {
             //jump to last step
-            setStep(11);
+            return setStep(11);
           } else if (nextStep === 1 || nextStep === 0) {
             //jump to selfie
-            setStep(5);
+            return setStep(5);
           } else if (nextStep === 2) {
             //jump to pan card upload
             setStep(6);
@@ -895,9 +895,12 @@ const index: FC = () => {
               ({ kycStepCompletionStatus }) =>
                 kycStepCompletionStatus === "Pending"
             )!;
+            if (!nextStep) {
+              return setStep(7);
+            }
             if (nextStep < 0) {
               //jump to last step
-              setStep(11);
+              return setStep(11);
             } else if (
               nextStep === 1 ||
               nextStep === 0 ||
@@ -905,7 +908,7 @@ const index: FC = () => {
               nextStep === 3
             ) {
               //jump to aadhar details
-              setStep(7);
+              return setStep(7);
             } else if (nextStep === 4) {
               //jump to bank details
               await getBusinessBankDetails();
@@ -924,12 +927,15 @@ const index: FC = () => {
               ({ kycStepCompletionStatus }) =>
                 kycStepCompletionStatus === "Pending"
             )!;
+            if (!nextStep) {
+              return setStep(6);
+            }
             if (nextStep < 0) {
               //jump to last step
-              setStep(11);
+              return setStep(11);
             } else if (nextStep === 1 || nextStep === 0 || nextStep === 2) {
               //jump to pan card upload
-              setStep(6);
+              return setStep(6);
             } else if (nextStep === 3) {
               //jump to aadhar details
               setStep(7);
@@ -1022,9 +1028,14 @@ const index: FC = () => {
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           )!;
+          if (!nextStep) {
+            await getBusinessBankDetails();
+            setStep(8);
+            return;
+          }
           if (nextStep < 0) {
             //jump to last step
-            setStep(11);
+            return setStep(11);
           } else if (
             nextStep === 1 ||
             nextStep === 0 ||
@@ -1082,7 +1093,7 @@ const index: FC = () => {
     const body = {
       MerchantID: formValues.merchant_id.value || MerchantID,
       ApplicationID: offers?.ApplicationID || ApplicationID,
-      LoanAmount: offers?.LoanAmount || LoanAmount,
+      LoanAmount: offers?.loanAmount || LoanAmount,
     };
     debugger;
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1148,7 +1159,7 @@ const index: FC = () => {
 
   const regenerateloanoffers = async () => {
     const body = {
-      MerchantID: offers?.MerchantID,
+      MerchantID: offers?.Merchant_Id,
       LoanAmount: formValues.edit_loan_amount.value,
       ProductId: offers?.ProductId,
       LoanOffered: offers?.LoanOffered,
@@ -1164,15 +1175,27 @@ const index: FC = () => {
       .then(async (res) => {
         const { data } = res;
         if (data.status === "Success") {
-          //    let _formValues = { ...formValues };
-          // _formValues..error = false;
-          // setFormValues(_formValues);
-          let offerDetails = offers;
-          if (!offerDetails) return;
-          offerDetails.LoanAmount = Math.round(data.data.loanAmount);
-          offerDetails.Tenor = Math.round(data.data.tenor);
+          // let offerDetails = offers;
+          // if (!offerDetails) return;
+
+          // offerDetails.loanAmount = Math.round(data.data.loanAmount);
+          // offerDetails.tenor = Math.round(data.data.tenor);
+          // setOffers(offerDetails);
+
+          let offerDetails = {
+            ...data.data,
+            LoanOffered: offers?.LoanOffered,
+            MobileNumber: offers?.MobileNumber,
+            ProductId: offers?.ProductId,
+            ApplicationID: offers?.ApplicationID,
+            ExpiryDate: offers?.ExpiryDate,
+          };
+          offerDetails.loanAmount = Math.round(Number(offerDetails.loanAmount));
+          offerDetails.tenor = Math.round(Number(offerDetails.tenor));
+          debugger;
+          //@ts-ignore
           setOffers(offerDetails);
-          setKFSDetails(data.data);
+          // setKFSDetails(data.data);
         } else {
           toast.error(data.message);
         }
@@ -1216,18 +1239,25 @@ const index: FC = () => {
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           )!;
+          if (!nextStep) {
+            await getKFSHTML();
+            setStep(9);
+            return;
+          }
           if (nextStep < 0) {
             //jump to last step
-            setStep(11);
+            return setStep(11);
           } else if (nextStep <= 4) {
             //jump to kfs
             // await getEsignRequestTerms("/getesignrequestterms1");
             await getKFSHTML();
             setStep(9);
+            return;
           } else if (nextStep === 5) {
             //jump to esign
             await getEsignRequestTerms("/getesignrequestterms1");
             setStep(10);
+            return;
           } else if (nextStep === 6) {
             //jump to last step
             setStep(11);
@@ -1488,7 +1518,7 @@ const index: FC = () => {
                                         className="fa fa-inr"
                                         aria-hidden="true"
                                       />
-                                      {" " + offers.LoanAmount + " "}{" "}
+                                      {" " + offers.loanAmount + " "}{" "}
                                       <Dialog
                                         open={open}
                                         onOpenChange={setOpen}
@@ -1585,7 +1615,7 @@ const index: FC = () => {
                                         </DialogContent>
                                       </Dialog>
                                     </p>
-                                    <strong>Tenor: {offers.Tenor} days</strong>
+                                    <strong>Tenor: {offers.tenor} days</strong>
                                     <span>
                                       Offered Expriy Date:
                                       {" " +
@@ -1604,7 +1634,7 @@ const index: FC = () => {
                                   {offers && (
                                     <>
                                       <p>
-                                        Tenor <span>{offers?.Tenor} days</span>
+                                        Tenor <span>{offers?.tenor} days</span>
                                       </p>
                                       <p>
                                         Expiry Date{" "}
@@ -1625,23 +1655,18 @@ const index: FC = () => {
                                         className="fa fa-inr"
                                         aria-hidden="true"
                                       />
-                                      {offers?.NetDisbursement ?? "25,000"}
+                                      {offers?.emi.toFixed(2)}
                                     </span>
                                   </p>
                                   <p>
-                                    Number Installments <span> 10</span>
+                                    Number Installments{" "}
+                                    <span> {offers?.noOfPayment} </span>
                                   </p>
                                 </div>
                                 <div className="loanDetails">
                                   <p>
                                     Interest Rate
-                                    <span>
-                                      <i
-                                        className="fa fa-inr"
-                                        aria-hidden="true"
-                                      />
-                                      {KFSDetails?.interest ?? "3,125"}
-                                    </span>
+                                    <span>{offers?.interest}%</span>
                                   </p>
                                   <p>
                                     Processing Fees
@@ -1649,8 +1674,8 @@ const index: FC = () => {
                                       <i
                                         className="fa fa-inr"
                                         aria-hidden="true"
-                                      />{" "}
-                                      {KFSDetails?.processingFee ?? "0"}
+                                      />
+                                      {offers?.processingFee.toFixed(2)}
                                     </span>
                                   </p>
                                   <p>
@@ -1660,21 +1685,21 @@ const index: FC = () => {
                                         className="fa fa-inr"
                                         aria-hidden="true"
                                       />
-                                      {offers?.NetDisbursement ?? "21,500"}
+                                      {offers?.netDisbursement.toFixed(2)}
                                     </span>
                                   </p>
                                   <p>
                                     GST
-                                    <span>% {KFSDetails?.gst ?? "18"}</span>
+                                    <span> {offers?.gst}%</span>
                                   </p>
                                   <p>
-                                    Total
+                                    Total Paid by Customer
                                     <span>
                                       <i
                                         className="fa fa-inr"
                                         aria-hidden="true"
-                                      />{" "}
-                                      {KFSDetails?.totalPaidbyCustomer ?? "0"}
+                                      />
+                                      {offers?.totalPaidbyCustomer.toFixed(2)}
                                     </span>
                                   </p>
                                 </div>
@@ -2719,7 +2744,7 @@ const index: FC = () => {
                                   <input
                                     key={index}
                                     className="otp"
-                                    type="text"
+                                    type="password"
                                     onChange={(e) =>
                                       digitValidate(index, e.target.value)
                                     }
@@ -2818,7 +2843,6 @@ const index: FC = () => {
                                         className="form-control"
                                         type="text"
                                         name="name"
-                                        defaultValue=""
                                         placeholder="Enter Full Name"
                                         id="name"
                                         required
@@ -2851,7 +2875,6 @@ const index: FC = () => {
                                         className="form-control"
                                         type="date"
                                         name=""
-                                        defaultValue=""
                                         placeholder="DOB"
                                         id=""
                                         value={formValues.dob.value}
@@ -2920,7 +2943,6 @@ const index: FC = () => {
                                         type="text"
                                         onKeyDown={(e) => onlyNumberValues(e)}
                                         name="postal-code"
-                                        defaultValue=""
                                         placeholder="Please Enter Pincode"
                                         id="postal-code"
                                         required
@@ -3098,7 +3120,6 @@ const index: FC = () => {
                                         type="text"
                                         onKeyDown={(e) => onlyNumberValues(e)}
                                         name="number"
-                                        defaultValue=""
                                         placeholder="Emergency Contact Number"
                                         id="number"
                                         required
@@ -3137,7 +3158,6 @@ const index: FC = () => {
                                         className="form-control"
                                         type="email"
                                         name="email"
-                                        defaultValue=""
                                         placeholder="Please Enter Email"
                                         id="email"
                                         required
@@ -3169,7 +3189,6 @@ const index: FC = () => {
                                         className="form-control"
                                         type="text"
                                         name="nominee"
-                                        defaultValue=""
                                         placeholder="Nominee Name"
                                         id="nominee"
                                         required
@@ -3365,7 +3384,6 @@ const index: FC = () => {
                                   className="form-control"
                                   type="text"
                                   name=""
-                                  defaultValue=""
                                   placeholder="Enter Enter PAN Number"
                                   id="pannumber"
                                   required
@@ -3409,9 +3427,8 @@ const index: FC = () => {
                                 </label>
                                 <input
                                   className="form-control"
-                                  type="text"
+                                  type="password"
                                   name="enter_aadhar_number"
-                                  defaultValue=""
                                   placeholder="Enter aadhar number"
                                   id="enter_aadhar_number"
                                   required
@@ -3447,9 +3464,8 @@ const index: FC = () => {
                                     formValues.aadhar_no.value.length < 12
                                   }
                                   className="form-control"
-                                  type="text"
+                                  type="password"
                                   name="aadhar_otp"
-                                  defaultValue=""
                                   placeholder="Enter aadhar otp"
                                   id="aadhar_otp"
                                   autoComplete="one-time-code"
@@ -3642,7 +3658,7 @@ const index: FC = () => {
                                 {offers && (
                                   <>
                                     <p>
-                                      Tenor <span>{offers?.Tenor} days</span>
+                                      Tenor <span>{offers?.tenor} days</span>
                                     </p>
                                     <p>
                                       Expiry Date{" "}
@@ -3663,23 +3679,18 @@ const index: FC = () => {
                                       className="fa fa-inr"
                                       aria-hidden="true"
                                     />
-                                    25,000
+                                    {offers?.emi.toFixed(2)}
                                   </span>
                                 </p>
                                 <p>
-                                  Number Installments <span> 10</span>
+                                  Number Installments{" "}
+                                  <span> {offers?.noOfPayment}</span>
                                 </p>
                               </div>
                               <div className="loanDetails">
                                 <p>
                                   Interest Rate
-                                  <span>
-                                    <i
-                                      className="fa fa-inr"
-                                      aria-hidden="true"
-                                    />
-                                    {KFSDetails?.interest ?? "3,125"}
-                                  </span>
+                                  <span>{offers?.interest}%</span>
                                 </p>
                                 <p>
                                   Processing Fees
@@ -3687,8 +3698,8 @@ const index: FC = () => {
                                     <i
                                       className="fa fa-inr"
                                       aria-hidden="true"
-                                    />{" "}
-                                    {KFSDetails?.processingFee ?? "0"}
+                                    />
+                                    {offers?.processingFee.toFixed(2)}
                                   </span>
                                 </p>
                                 <p>
@@ -3698,21 +3709,21 @@ const index: FC = () => {
                                       className="fa fa-inr"
                                       aria-hidden="true"
                                     />
-                                    {KFSDetails?.netDisbursement ?? "21,500"}
+                                    {offers?.netDisbursement.toFixed(2)}
                                   </span>
                                 </p>
                                 <p>
                                   GST
-                                  <span>% {KFSDetails?.gst ?? "18"}</span>
+                                  <span> {offers?.gst}%</span>
                                 </p>
                                 <p>
-                                  Total
+                                  Total Paid by Customer
                                   <span>
                                     <i
                                       className="fa fa-inr"
                                       aria-hidden="true"
-                                    />{" "}
-                                    {KFSDetails?.totalPaidbyCustomer ?? "0"}
+                                    />
+                                    {offers?.totalPaidbyCustomer.toFixed(2)}
                                   </span>
                                 </p>
                               </div>
@@ -3825,7 +3836,7 @@ const index: FC = () => {
                                   Loan amount
                                 </h3>
                                 <p className="text-4xl font-bold mt-2">
-                                  ₹ {offers?.LoanAmount}
+                                  ₹ {offers?.loanAmount}
                                 </p>
                               </div>
                               <hr className="my-6 border-[#5322ba]" />
@@ -3833,19 +3844,19 @@ const index: FC = () => {
                                 <div>
                                   <p className="font-medium">EMI</p>
                                   <p className="font-bold">
-                                    ₹ {offers?.NetDisbursement}
+                                    ₹ {offers?.netDisbursement}
                                   </p>
                                 </div>
                                 <div>
                                   <p className="font-medium">Tenure</p>
                                   <p className="font-bold">
-                                    {offers?.Tenor} days
+                                    {offers?.tenor} days
                                   </p>
                                 </div>
                                 <div>
                                   <p className="font-medium">Interest</p>
                                   <p className="font-bold">
-                                    {offers?.Interest}% p.a
+                                    {offers?.interest}% p.a
                                   </p>
                                 </div>
                               </div>
