@@ -25,35 +25,38 @@ export type GetStepsAPIResponseType = {
   result: Steps;
   message: string;
 };
-
+type kycStepCompletionStatus =
+  | "Complete"
+  | "Document under-revirew"
+  | "Pending";
 export type Steps = [
   {
     kycStepName: "PersonalDetails";
-    kycStepCompletionStatus: "Complete" | "Document under-revirew" | "Pending";
+    kycStepCompletionStatus: kycStepCompletionStatus;
   },
   {
     kycStepName: "Selfi_check";
-    kycStepCompletionStatus: "Complete" | "Document under-revirew" | "Pending";
+    kycStepCompletionStatus: kycStepCompletionStatus;
   },
   {
     kycStepName: "PanDetails";
-    kycStepCompletionStatus: "Complete" | "Document under-revirew" | "Pending";
+    kycStepCompletionStatus: kycStepCompletionStatus;
   },
   {
     kycStepName: "AadharDetails";
-    kycStepCompletionStatus: "Complete" | "Document under-revirew" | "Pending";
+    kycStepCompletionStatus: kycStepCompletionStatus;
   },
   {
     kycStepName: "BankDetails";
-    kycStepCompletionStatus: "Complete" | "Document under-revirew" | "Pending";
+    kycStepCompletionStatus: kycStepCompletionStatus;
   },
   {
     kycStepName: "Esign";
-    kycStepCompletionStatus: "Complete" | "Document under-revirew" | "Pending";
+    kycStepCompletionStatus: kycStepCompletionStatus;
   },
   {
     kycStepName: "Disbursed";
-    kycStepCompletionStatus: "Complete" | "Document under-revirew" | "Pending";
+    kycStepCompletionStatus: kycStepCompletionStatus;
   }
 ];
 

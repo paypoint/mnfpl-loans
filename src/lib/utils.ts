@@ -26,7 +26,9 @@ export function toLocalCurrency(amount: string | number) {
   });
 }
 
-export async function getBase64(file: File) {
+export async function getBase64(
+  file: File
+): Promise<string | ArrayBuffer | null> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);

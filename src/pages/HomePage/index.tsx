@@ -165,7 +165,7 @@ const index: FC = () => {
       error: false,
     },
     nominee_relation: {
-      value: "Father",
+      value: "",
       error: false,
     },
     //step-7
@@ -291,7 +291,7 @@ const index: FC = () => {
       let formObjectHasError = false;
       Object.keys(_formValues).forEach((key) => {
         if (
-          key === "nominee" ||
+          // key === "nominee" ||
           key === "business_address" ||
           key === "current_address" ||
           key === "full_name"
@@ -527,7 +527,6 @@ const index: FC = () => {
       let localRefID = localStorage.getItem("REFID")!;
       refID = localRefID;
     }
-    //hcoded
     debugger;
     setStep(1);
     const body = {
@@ -559,6 +558,7 @@ const index: FC = () => {
             );
           }
         } else {
+          setErrorPage(true);
           toast.error(`${data.message}`);
         }
       })
@@ -662,12 +662,24 @@ const index: FC = () => {
           _formValues.dob.value = formattedDate;
           _formValues.email.value = BusinessDetailsResEntity.EmailId;
           _formValues.pan_number.value = BusinessDetailsResEntity.PANNo;
-          _formValues.full_name.value =
-            BusinessDetailsResEntity.FirstName.trim() +
-            " " +
-            BusinessDetailsResEntity.MiddleName.trim() +
-            " " +
-            BusinessDetailsResEntity.LastName.trim();
+          if (
+            BusinessDetailsResEntity.FirstName &&
+            BusinessDetailsResEntity.MiddleName &&
+            BusinessDetailsResEntity.LastName
+          ) {
+            _formValues.full_name.value =
+              BusinessDetailsResEntity.FirstName.trim() +
+              " " +
+              BusinessDetailsResEntity.MiddleName.trim() +
+              " " +
+              BusinessDetailsResEntity.LastName.trim();
+          } else {
+            _formValues.full_name.value =
+              BusinessDetailsResEntity.FirstName.trim() +
+              " " +
+              BusinessDetailsResEntity.LastName.trim();
+          }
+
           _formValues.business_address_pincode.value =
             BusinessAddressResEntity.PinCode;
           _formValues.business_address.value =
@@ -783,8 +795,8 @@ const index: FC = () => {
       house: formValues.house.value,
       emergency: formValues.emergency_contact_number.value,
       email: formValues.email.value,
-      nomineeName: formValues.nominee.value,
-      nomineeRelation: formValues.nominee_relation.value,
+      nomineeName: "NA" ?? formValues.nominee.value,
+      nomineeRelation: "NA" ?? formValues.nominee_relation.value,
       bPinCode: formValues.business_address_pincode.value,
       bAddress1: formValues.business_address.value,
       bAddress2: "",
@@ -3180,7 +3192,7 @@ const index: FC = () => {
                                       )}
                                     </div>
                                   </div>
-                                  <div className="col-md-6 mt-2">
+                                  {/* <div className="col-md-6 mt-2">
                                     <div className="form-group">
                                       <label htmlFor="nominee">
                                         Nominee Name *
@@ -3240,7 +3252,7 @@ const index: FC = () => {
                                         })}
                                       </select>
                                     </div>
-                                  </div>
+                                  </div> */}
                                 </div>
                               </div>
                             </div>
