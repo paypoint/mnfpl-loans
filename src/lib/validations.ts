@@ -60,6 +60,7 @@ const isPANCardValid = (pan_card_number: string) => {
   // Char 6-9 numeric value 0-9
   // Char 10th upper case alphabet
   // no whitespaces
+  pan_card_number = pan_card_number.toUpperCase();
   let pan_card_regex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
   return pan_card_regex.test(pan_card_number);
 };

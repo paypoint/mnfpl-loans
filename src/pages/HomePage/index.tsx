@@ -198,6 +198,10 @@ const index: FC = () => {
       value: "",
       error: false,
     },
+    bank_account_type: {
+      value: "SA",
+      error: false,
+    },
     //from api
     merchant_id: {
       value: "",
@@ -417,7 +421,46 @@ const index: FC = () => {
         setFormValues(_formValues);
       }
     } else if (step === 8) {
-      await updateBank();
+      debugger;
+      if (bankList && bankList?.length > 0) {
+        await updateBank();
+      }
+      //
+      let formObjectHasError = false;
+      Object.keys(_formValues).forEach((key) => {
+        if (
+          key === "account_holder_name" ||
+          key === "account_number" ||
+          key === "ifsc_code" ||
+          key === "bank_name"
+        ) {
+          let hasError = !validations.isRequired(_formValues[key].value);
+          _formValues[key].error = !validations.isRequired(
+            _formValues[key].value
+          );
+          if (hasError) {
+            formObjectHasError = true;
+          }
+        }
+        if (key === "confirm_account_number") {
+          let hasError = !(
+            _formValues.account_number.value ===
+            _formValues.confirm_account_number.value
+          );
+          _formValues[key].error = !(
+            _formValues.account_number.value ===
+            _formValues.confirm_account_number.value
+          );
+          if (hasError) {
+            formObjectHasError = true;
+          }
+        }
+      });
+      if (!formObjectHasError) {
+        await updateBank();
+      } else {
+        setFormValues(_formValues);
+      }
 
       // setStep((prevStep) => prevStep + 1);
     } else if (step === 9) {
@@ -1224,11 +1267,18 @@ const index: FC = () => {
   const updateBank = async () => {
     const body = {
       Application_id: offers?.ApplicationID,
-      BankName: bankList?.[selectedBankID]?.Bank,
-      IFSCCode: bankList?.[selectedBankID]?.IFSCCode,
-      AccountNumber: bankList?.[selectedBankID]?.AccountNumber,
-      AccountType: bankList?.[selectedBankID]?.AccountType,
-      AccountHolderName: bankList?.[selectedBankID]?.AccountHolderName,
+      BankName: bankList?.[selectedBankID]?.Bank ?? formValues.bank_name.value,
+      IFSCCode:
+        bankList?.[selectedBankID]?.IFSCCode ?? formValues.ifsc_code.value,
+      AccountNumber:
+        bankList?.[selectedBankID]?.AccountNumber ??
+        formValues.account_number.value,
+      AccountType:
+        bankList?.[selectedBankID]?.AccountType ??
+        formValues.bank_account_type.value,
+      AccountHolderName:
+        bankList?.[selectedBankID]?.AccountHolderName ??
+        formValues.account_holder_name.value,
     };
 
     debugger;
@@ -1243,7 +1293,7 @@ const index: FC = () => {
         const { data } = res;
         setIsLoading(false);
         if (data.status === "Success") {
-          toast.success("Bank added successfully");
+          toast.success(data.message || "Bank added successfully");
 
           //Bank details step === 8
           debugger;
@@ -3639,17 +3689,221 @@ const index: FC = () => {
                               </>
                             ) : (
                               //No bank details found update bank
-                              <div
-                                className="main_step_8"
-                                style={{ maxHeight: 350, overflow: "auto" }}
-                              >
-                                <h5>
-                                  No bank details found please add bank account
-                                </h5>
+                              <div className="page">
+                                <div
+                                  className="main_step_8"
+                                  style={{ height: 350, overflow: "auto" }}
+                                >
+                                  <h5>
+                                    {" "}
+                                    No bank details found please add bank
+                                    account
+                                  </h5>
+                                  <div className="row">
+                                    <div className="col-md-6">
+                                      <div className="form-group">
+                                        <label htmlFor="bank_name">
+                                          Enter Bank name
+                                        </label>
 
+                                        <input
+                                          className="form-control"
+                                          type="text"
+                                          name="bank_name"
+                                          defaultValue=""
+                                          placeholder="Bank bank name"
+                                          id="bank_name"
+                                          required
+                                          onChange={(e) =>
+                                            onInputChange(
+                                              "bank_name",
+                                              e.target.value
+                                            )
+                                          }
+                                        />
+                                        {formValues.bank_name.error ? (
+                                          <span
+                                            style={{
+                                              color: "red",
+                                              fontSize: "14px",
+                                            }}
+                                          >
+                                            Bank name should not be empty
+                                          </span>
+                                        ) : (
+                                          ""
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="col-md-6">
+                                      <div className="form-group">
+                                        <label htmlFor="my-select">
+                                          Select Your Bank
+                                        </label>
+                                        <select
+                                          id="my-select"
+                                          className="form-control"
+                                          name=""
+                                          onChange={(e) =>
+                                            onInputChange(
+                                              "bank_account_type",
+                                              e.target.value
+                                            )
+                                          }
+                                          value={"SA"}
+                                        >
+                                          <option value={"SA"}>
+                                            Savings Account
+                                          </option>
+                                          <option value={"CA"}>
+                                            Current Account
+                                          </option>
+                                        </select>
+                                      </div>
+                                    </div>
+                                    <div className="col-md-6 mt-2">
+                                      <div className="form-group">
+                                        <label htmlFor="ifsc_code">
+                                          Bank IFSC Code
+                                        </label>
+                                        <input
+                                          className="form-control"
+                                          type="text"
+                                          name="ifsc_code"
+                                          defaultValue=""
+                                          placeholder="Bank IFSC Code"
+                                          id="ifsc_code"
+                                          required
+                                          onChange={(e) =>
+                                            onInputChange(
+                                              "ifsc_code",
+                                              e.target.value
+                                            )
+                                          }
+                                        />
+                                        {formValues.ifsc_code.error ? (
+                                          <span
+                                            style={{
+                                              color: "red",
+                                              fontSize: "14px",
+                                            }}
+                                          >
+                                            IFSC code should not be empty
+                                          </span>
+                                        ) : (
+                                          ""
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="col-md-6 mt-2">
+                                      <div className="form-group">
+                                        <label htmlFor="account_holder_name">
+                                          Account Holder Name
+                                        </label>
+                                        <input
+                                          className="form-control"
+                                          type="text"
+                                          name="account_holder_name"
+                                          defaultValue=""
+                                          placeholder="Account Holder Name"
+                                          id="account_holder_name"
+                                          required
+                                          onChange={(e) =>
+                                            onInputChange(
+                                              "account_holder_name",
+                                              e.target.value
+                                            )
+                                          }
+                                        />
+                                        {formValues.account_holder_name
+                                          .error ? (
+                                          <span
+                                            style={{
+                                              color: "red",
+                                              fontSize: "14px",
+                                            }}
+                                          >
+                                            Account holder name should not empty
+                                          </span>
+                                        ) : (
+                                          ""
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="col-md-6 mt-2">
+                                      <div className="form-group">
+                                        <label htmlFor="account_number">
+                                          Account Number
+                                        </label>
+                                        <input
+                                          className="form-control"
+                                          type="password"
+                                          name="account_number"
+                                          onKeyDown={(e) => onlyNumberValues(e)}
+                                          placeholder="Account Number"
+                                          id="account_number"
+                                          required
+                                          onChange={(e) =>
+                                            onInputChange(
+                                              "account_number",
+                                              e.target.value
+                                            )
+                                          }
+                                        />
+                                        {formValues.account_number.error ? (
+                                          <span
+                                            style={{
+                                              color: "red",
+                                              fontSize: "14px",
+                                            }}
+                                          >
+                                            Please enter valid account number
+                                          </span>
+                                        ) : (
+                                          ""
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="col-md-6 mt-2">
+                                      <div className="form-group">
+                                        <label htmlFor="confirm_account_number">
+                                          Confirm Account Number
+                                        </label>
+                                        <input
+                                          className="form-control"
+                                          type="text"
+                                          name="confirm_account_number"
+                                          placeholder="Confirm Account Number"
+                                          id="confirm_account_number"
+                                          required
+                                          onKeyDown={(e) => onlyNumberValues(e)}
+                                          onChange={(e) =>
+                                            onInputChange(
+                                              "confirm_account_number",
+                                              e.target.value
+                                            )
+                                          }
+                                        />
+                                        {formValues.confirm_account_number
+                                          .error ? (
+                                          <span
+                                            style={{
+                                              color: "red",
+                                              fontSize: "14px",
+                                            }}
+                                          >
+                                            Account number mismatch
+                                          </span>
+                                        ) : (
+                                          ""
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
                                 <div className="field btns">
                                   <button
-                                    disabled={isLoading || !bankList?.[0]}
+                                    disabled={isLoading}
                                     onClick={(e) => handleNext(e)}
                                     className={cn(
                                       "next-4 next disabled:opacity-70 disabled:pointer-events-none",
