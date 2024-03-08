@@ -421,7 +421,6 @@ const index: FC = () => {
         setFormValues(_formValues);
       }
     } else if (step === 8) {
-      debugger;
       if (bankList && bankList?.length > 0) {
         await updateBank();
       }
@@ -514,11 +513,12 @@ const index: FC = () => {
       try {
         await getIPAddress();
         const searchParams = new URLSearchParams(location.search);
-        const msg = searchParams.get("msg");
+        const urlMsg = searchParams.get("msg");
         const refId = searchParams.get("RefId");
-
-        if (msg !== null) {
-          const esignMsg: any = JSON.parse(msg);
+        if (urlMsg !== null) {
+          let msg = crypto.CryptoGraphDecrypt(urlMsg);
+          msg = msg.replace(/'/g, '"').replace(/(\w+):/g, '"$1":');
+          const esignMsg = JSON.parse(msg);
           console.log("esignmsg", esignMsg);
           await getOffers(undefined, false);
           if (esignMsg.Status === "Fail") {
@@ -526,7 +526,7 @@ const index: FC = () => {
 
             setStep(10);
           } else {
-            toast.success(esignMsg.Msg || "E-sign successful");
+            toast.success(esignMsg.Msg || "E-sign successfull");
 
             setStep(11);
           }
@@ -537,11 +537,6 @@ const index: FC = () => {
           console.log("Processing based on Refid:", refId);
         } else {
           setErrorPage(true);
-          // showAlert({
-          //   title: "Invalid URL",
-          //   description: "Something went wrong please try again",
-          // });
-          // No relevant parameter found
           console.log("No relevant parameter found.");
         }
       } catch (error) {
@@ -570,7 +565,6 @@ const index: FC = () => {
       let localRefID = localStorage.getItem("REFID")!;
       refID = localRefID;
     }
-    debugger;
     setStep(1);
     const body = {
       RefID: refID,
@@ -606,6 +600,7 @@ const index: FC = () => {
         }
       })
       .catch((error: AxiosError) => {
+        setErrorPage(true);
         showAlert({
           title: error.message,
           description: "Please try after some time",
@@ -789,7 +784,6 @@ const index: FC = () => {
       MerchantID: formValues.merchant_id.value,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-    debugger;
     setIsLoading(true);
     await api.app
       .post<GetBankListAPI>({
@@ -814,7 +808,7 @@ const index: FC = () => {
             setFormValues(_formValues);
           }
         } else {
-          toast.error(data.message);
+          // toast.error(data.message);
         }
       })
       .catch((error: AxiosError) => {
@@ -849,7 +843,6 @@ const index: FC = () => {
       Application_ID: offers?.ApplicationID,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-    debugger;
     setIsLoading(true);
     await api.app
       .post<APIResponseType>({
@@ -866,7 +859,6 @@ const index: FC = () => {
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           )!;
-          debugger;
           if (!nextStep) {
             return setStep(5);
           }
@@ -887,10 +879,14 @@ const index: FC = () => {
             await getBusinessBankDetails();
             setStep(8);
           } else if (nextStep === 5) {
+            //jump to Kfs
+            await getKFSHTML();
+            return setStep(9);
+          } else if (nextStep === 6) {
             //jump to esign
             await getEsignRequestTerms("/getesignrequestterms1");
-            setStep(10);
-          } else if (nextStep === 6) {
+            return setStep(10);
+          } else if (nextStep === 7) {
             //jump to last step
             setStep(11);
           }
@@ -924,10 +920,9 @@ const index: FC = () => {
       DocumentFileImage: image,
       DocumentFilename: imagename,
       DocID: id,
-      DocNumber: id === "1" ? formValues.pan_number.value : "",
+      DocNumber: id === "1" ? formValues.pan_number.value.toUpperCase() : "",
     };
 
-    debugger;
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
@@ -969,10 +964,14 @@ const index: FC = () => {
               await getBusinessBankDetails();
               setStep(8);
             } else if (nextStep === 5) {
+              //jump to Kfs
+              await getKFSHTML();
+              return setStep(9);
+            } else if (nextStep === 6) {
               //jump to esign
               await getEsignRequestTerms("/getesignrequestterms1");
-              setStep(10);
-            } else if (nextStep === 6) {
+              return setStep(10);
+            } else if (nextStep === 7) {
               //jump to last step
               setStep(11);
             }
@@ -999,10 +998,14 @@ const index: FC = () => {
               await getBusinessBankDetails();
               setStep(8);
             } else if (nextStep === 5) {
+              //jump to Kfs
+              await getKFSHTML();
+              return setStep(9);
+            } else if (nextStep === 6) {
               //jump to esign
               await getEsignRequestTerms("/getesignrequestterms1");
-              setStep(10);
-            } else if (nextStep === 6) {
+              return setStep(10);
+            } else if (nextStep === 7) {
               //jump to last step
               setStep(11);
             }
@@ -1102,10 +1105,14 @@ const index: FC = () => {
             await getBusinessBankDetails();
             setStep(8);
           } else if (nextStep === 5) {
+            //jump to Kfs
+            await getKFSHTML();
+            return setStep(9);
+          } else if (nextStep === 6) {
             //jump to esign
             await getEsignRequestTerms("/getesignrequestterms1");
-            setStep(10);
-          } else if (nextStep === 6) {
+            return setStep(10);
+          } else if (nextStep === 7) {
             //jump to last step
             setStep(11);
           }
@@ -1147,10 +1154,9 @@ const index: FC = () => {
   ) => {
     const body = {
       MerchantID: formValues.merchant_id.value || MerchantID,
-      ApplicationID: offers?.ApplicationID || ApplicationID,
-      LoanAmount: offers?.loanAmount || LoanAmount,
+      ApplicationID: ApplicationID || offers?.ApplicationID,
+      LoanAmount: LoanAmount || offers?.loanAmount,
     };
-    debugger;
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
@@ -1167,16 +1173,18 @@ const index: FC = () => {
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           );
-          debugger;
           if (nextStep === 0) {
             return setStep(1);
             // await getPersonalDetails();
           } else if (nextStep === 4) {
             await getBusinessBankDetails();
           } else if (nextStep === 5) {
+            await getKFSHTML(ApplicationID);
+            return setStep(9);
+          } else if (nextStep === 6) {
             await getEsignRequestTerms("/getesignrequestterms1", ApplicationID);
             return setStep(10);
-          } else if (nextStep === 6) {
+          } else if (nextStep === 7) {
             return setStep(11);
           }
 
@@ -1197,7 +1205,7 @@ const index: FC = () => {
 
   const eSignCheckBoxValidtion = async () => {
     var checkbox = document.getElementById("chk") as HTMLInputElement;
-    // debugger;
+
     if (checkbox.checked) {
       await getEsignRequestTerms("/getesignrequestterms2");
       setOpenTermsDrawer(true);
@@ -1220,7 +1228,6 @@ const index: FC = () => {
       LoanOffered: offers?.LoanOffered,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-    debugger;
     setIsLoading(true);
     await api.app
       .post<GetRegenerateloanoffersResponseType>({
@@ -1230,13 +1237,6 @@ const index: FC = () => {
       .then(async (res) => {
         const { data } = res;
         if (data.status === "Success") {
-          // let offerDetails = offers;
-          // if (!offerDetails) return;
-
-          // offerDetails.loanAmount = Math.round(data.data.loanAmount);
-          // offerDetails.tenor = Math.round(data.data.tenor);
-          // setOffers(offerDetails);
-
           let offerDetails = {
             ...data.data,
             LoanOffered: offers?.LoanOffered,
@@ -1247,7 +1247,7 @@ const index: FC = () => {
           };
           offerDetails.loanAmount = Math.round(Number(offerDetails.loanAmount));
           offerDetails.tenor = Math.round(Number(offerDetails.tenor));
-          debugger;
+
           //@ts-ignore
           setOffers(offerDetails);
           // setKFSDetails(data.data);
@@ -1281,7 +1281,6 @@ const index: FC = () => {
         formValues.account_holder_name.value,
     };
 
-    debugger;
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
@@ -1296,7 +1295,6 @@ const index: FC = () => {
           toast.success(data.message || "Bank added successfully");
 
           //Bank details step === 8
-          debugger;
           let nextStep = apiSteps?.findIndex(
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
@@ -1309,18 +1307,17 @@ const index: FC = () => {
           if (nextStep < 0) {
             //jump to last step
             return setStep(11);
-          } else if (nextStep <= 4) {
+          } else if (nextStep <= 5) {
             //jump to kfs
             // await getEsignRequestTerms("/getesignrequestterms1");
             await getKFSHTML();
             setStep(9);
             return;
-          } else if (nextStep === 5) {
+          } else if (nextStep === 6) {
             //jump to esign
             await getEsignRequestTerms("/getesignrequestterms1");
-            setStep(10);
-            return;
-          } else if (nextStep === 6) {
+            return setStep(10);
+          } else if (nextStep === 7) {
             //jump to last step
             setStep(11);
           }
@@ -1381,7 +1378,6 @@ const index: FC = () => {
       ResponseURL: "NA",
     };
 
-    debugger;
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
@@ -1411,12 +1407,11 @@ const index: FC = () => {
       });
   };
 
-  const getKFSHTML = async () => {
+  const getKFSHTML = async (ApplicationID?: string) => {
     const body = {
-      ApplicationID: offers?.ApplicationID,
+      ApplicationID: ApplicationID || offers?.ApplicationID,
     };
 
-    debugger;
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
@@ -1452,7 +1447,6 @@ const index: FC = () => {
       ResponseURL: "http://localhost:5173",
     };
 
-    debugger;
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
@@ -1506,41 +1500,6 @@ const index: FC = () => {
       })
       .finally(() => setAlreadyRequest(false));
   };
-
-  const esignResponse = async () => {
-    const body = {
-      LATLNG: `${locationDetails?.latitude}~${locationDetails?.longitude}`,
-      IPAddress: locationDetails?.IPv4,
-      ApplicationID: offers?.ApplicationID,
-      ResponseURL: "NA",
-    };
-
-    debugger;
-    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-    setIsLoading(true);
-    await api.app
-      .post<APIResponseType>({
-        url: "/esignresponse",
-        requestBody: encryptedBody,
-      })
-      .then(async (res) => {
-        const { data } = res;
-        setIsLoading(false);
-        if (data.status === "Success") {
-          // setOpenTermsDrawer(false)
-        } else {
-          toast.error(data.message);
-        }
-      })
-      .catch((error: AxiosError) => {
-        setIsLoading(false);
-        showAlert({
-          title: error.message,
-          description: "Please try after some time",
-        });
-      });
-  };
-
   return (
     <>
       {AlertModal({
@@ -1717,7 +1676,7 @@ const index: FC = () => {
                                         className="fa fa-inr"
                                         aria-hidden="true"
                                       />
-                                      {offers?.emi.toFixed(2)}
+                                      {Math.round(offers?.emi!)}
                                     </span>
                                   </p>
                                   <p>
@@ -1794,28 +1753,6 @@ const index: FC = () => {
                                       Accept terms and conditions.
                                     </label>
                                   </div>
-                                  {/* <div className="form-check form-check-inline mb-3">
-          <Checkbox
-            id="termsCondition2"
-            className="form-check-input"
-            name="termsCondition2"
-            defaultValue="true"
-            required
-            onCheckedChange={(checked) => {
-              onInputChange("termsCondition2", checked);
-              if (checked) {
-                setOpenDrawer(true);
-              }
-            }}
-          />
-          <label
-            htmlFor="termsCondition2"
-            className="form-check-label"
-          >
-            Lorem ipsum dolor sit amet consectetur adipisicing
-            elit. Nobis ev
-          </label>
-        </div> */}
                                 </div>
                               </div>
                             </div>
@@ -3444,9 +3381,9 @@ const index: FC = () => {
                                     textTransform: "uppercase",
                                   }}
                                   className="form-control"
-                                  type="text"
+                                  type="password"
                                   name=""
-                                  placeholder="Enter Enter PAN Number"
+                                  placeholder="Enter PAN Number"
                                   id="pannumber"
                                   required
                                   value={formValues.pan_number.value}
@@ -3945,7 +3882,7 @@ const index: FC = () => {
                                       className="fa fa-inr"
                                       aria-hidden="true"
                                     />
-                                    {offers?.emi.toFixed(2)}
+                                    {Math.round(offers?.emi!)}
                                   </span>
                                 </p>
                                 <p>
@@ -4110,7 +4047,7 @@ const index: FC = () => {
                                 <div>
                                   <p className="font-medium">EMI</p>
                                   <p className="font-bold">
-                                    ₹ {offers?.netDisbursement}
+                                    ₹ {Math.round(offers?.emi!)}
                                   </p>
                                 </div>
                                 <div>

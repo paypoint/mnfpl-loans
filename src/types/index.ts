@@ -51,6 +51,10 @@ export type Steps = [
     kycStepCompletionStatus: kycStepCompletionStatus;
   },
   {
+    kycStepName: "KFS";
+    kycStepCompletionStatus: kycStepCompletionStatus;
+  },
+  {
     kycStepName: "Esign";
     kycStepCompletionStatus: kycStepCompletionStatus;
   },
