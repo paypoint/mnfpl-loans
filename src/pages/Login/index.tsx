@@ -35,27 +35,27 @@ const index: React.FC = () => {
 
           <SignInForm />
         </CardContent>
-        <CardFooter className="flex flex-wrap items-center justify-between gap-2">
+        {/* <CardFooter className="flex flex-wrap items-center justify-between gap-2">
           <div className="text-sm text-muted-foreground">
             <span className="mr-1 hidden sm:inline-block">
               Don&apos;t have an account?
             </span>
-            {/* <Link
+            <Link
             aria-label="Sign up"
             href="/signup"
             className="text-primary underline-offset-4 transition-colors hover:underline"
           >
             Sign up
-          </Link> */}
+          </Link>
           </div>
-          {/* <Link
+          <Link
           aria-label="Reset password"
           href="/signin/reset-password"
           className="text-sm text-primary underline-offset-4 transition-colors hover:underline"
         >
           Reset password
-        </Link> */}
-        </CardFooter>
+        </Link>
+        </CardFooter> */}
       </Card>
     </Shell>
   );

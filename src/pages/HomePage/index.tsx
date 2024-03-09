@@ -360,7 +360,7 @@ const index: FC = () => {
       if (!formObjectHasError) {
         await updateBusinessMerchantDetails();
 
-        console.log(formValues);
+        // console.log(formValues);
       } else {
         setFormValues(_formValues);
       }
@@ -519,7 +519,7 @@ const index: FC = () => {
           let msg = crypto.CryptoGraphDecrypt(urlMsg);
           msg = msg.replace(/'/g, '"').replace(/(\w+):/g, '"$1":');
           const esignMsg = JSON.parse(msg);
-          console.log("esignmsg", esignMsg);
+          // console.log("esignmsg", esignMsg);
           await getOffers(undefined, false);
           if (esignMsg.Status === "Fail") {
             toast.error(esignMsg.Msg || "E-sign failed please retry");
@@ -533,11 +533,11 @@ const index: FC = () => {
         } else if (refId !== null) {
           localStorage.setItem("REFID", refId);
           await getOffers(refId);
-          // setStep(1); //hcoded
-          console.log("Processing based on Refid:", refId);
+          // setStep(8); //hcoded
+          // console.log("Processing based on Refid:", refId);
         } else {
           setErrorPage(true);
-          console.log("No relevant parameter found.");
+          // console.log("No relevant parameter found.");
         }
       } catch (error) {
         // Handle errors if necessary
@@ -1638,7 +1638,7 @@ const index: FC = () => {
                                     </p>
                                     <strong>Tenor: {offers.tenor} days</strong>
                                     <span>
-                                      Offered Expriy Date:
+                                      Offer Expriy Date:
                                       {" " +
                                         format(
                                           new Date(offers.ExpiryDate),
@@ -1658,7 +1658,7 @@ const index: FC = () => {
                                         Tenor <span>{offers?.tenor} days</span>
                                       </p>
                                       <p>
-                                        Expiry Date{" "}
+                                        Offer Expiry Date{" "}
                                         <span>
                                           {format(
                                             new Date(offers?.ExpiryDate!),
@@ -1670,7 +1670,7 @@ const index: FC = () => {
                                   )}
 
                                   <p>
-                                    Installment Amount
+                                    Daily Installment Amount
                                     <span>
                                       <i
                                         className="fa fa-inr"
@@ -1680,7 +1680,7 @@ const index: FC = () => {
                                     </span>
                                   </p>
                                   <p>
-                                    Number Installments{" "}
+                                    Number of Installments{" "}
                                     <span> {offers?.noOfPayment} </span>
                                   </p>
                                 </div>
@@ -1690,7 +1690,9 @@ const index: FC = () => {
                                     <span>{offers?.interest}%</span>
                                   </p>
                                   <p>
-                                    Processing Fees
+                                    Processing Fees {/* <span> */}(
+                                    {offers?.interest}% + {offers?.gst}%)
+                                    {/* </span> */}
                                     <span>
                                       <i
                                         className="fa fa-inr"
@@ -1709,10 +1711,10 @@ const index: FC = () => {
                                       {offers?.netDisbursement.toFixed(2)}
                                     </span>
                                   </p>
-                                  <p>
+                                  {/* <p>
                                     GST
                                     <span> {offers?.gst}%</span>
-                                  </p>
+                                  </p> */}
                                   <p>
                                     Total Paid by Customer
                                     <span>
@@ -1725,34 +1727,31 @@ const index: FC = () => {
                                   </p>
                                 </div>
                               </div>
-                              <div className="check_box">
-                                <div className="check">
-                                  <div className="form-check form-check-inline">
-                                    <Checkbox
-                                      checked={formValues.termsCondition1.value}
-                                      // value={formValues.termsCondition1.value}
-                                      id="termsCondition1"
-                                      className="form-check-input"
-                                      name="termsCondition1"
-                                      defaultValue="true"
-                                      required
-                                      onCheckedChange={(checked) => {
-                                        onInputChange(
-                                          "termsCondition1",
-                                          checked
-                                        );
-                                        if (checked) {
-                                          setOpenDrawer(true);
-                                        }
-                                      }}
-                                    />
-                                    <label
-                                      htmlFor="termsCondition1"
-                                      className="form-check-label"
-                                    >
-                                      Accept terms and conditions.
-                                    </label>
-                                  </div>
+                            </div>
+                            <div className="check_box">
+                              <div className="check">
+                                <div className="form-check form-check-inline">
+                                  <Checkbox
+                                    checked={formValues.termsCondition1.value}
+                                    // value={formValues.termsCondition1.value}
+                                    id="termsCondition1"
+                                    className="form-check-input"
+                                    name="termsCondition1"
+                                    defaultValue="true"
+                                    required
+                                    onCheckedChange={(checked) => {
+                                      onInputChange("termsCondition1", checked);
+                                      if (checked) {
+                                        setOpenDrawer(true);
+                                      }
+                                    }}
+                                  />
+                                  <label
+                                    htmlFor="termsCondition1"
+                                    className="form-check-label"
+                                  >
+                                    Accept terms and conditions.
+                                  </label>
                                 </div>
                               </div>
                             </div>
@@ -2660,9 +2659,27 @@ const index: FC = () => {
                                       </div>
                                     </div>
                                     <div className="flex flex-wrap items-center justify-end rounded-br-[calc(0.3rem_-_1px)] rounded-bl-[calc(0.3rem_-_1px)] p-3 border-t-[#dee2e6] border-t border-solid mx-auto">
-                                      <div className="container flex justify-center md:justify-end">
+                                      <div className="container space-x-2 flex ">
                                         <Button
-                                          onClick={() => setOpenDrawer(false)}
+                                          onClick={() => {
+                                            onInputChange(
+                                              "termsCondition1",
+                                              true
+                                            );
+                                            setOpenDrawer(false);
+                                          }}
+                                          type="button"
+                                        >
+                                          Agree
+                                        </Button>
+                                        <Button
+                                          onClick={() => {
+                                            onInputChange(
+                                              "termsCondition1",
+                                              false
+                                            );
+                                            setOpenDrawer(false);
+                                          }}
                                           type="button"
                                           variant={"outline"}
                                         >
@@ -2771,7 +2788,7 @@ const index: FC = () => {
                               ) : (
                                 ""
                               )}
-                              <h4 className="mt-4">Did't Recieved OTP ?</h4>
+                              <h4 className="mt-4">Didn't Recieve OTP ?</h4>
                               {countDownTimer > 60 && (
                                 <h5>
                                   Please Wait ( 01:
@@ -3418,10 +3435,10 @@ const index: FC = () => {
                           </div>
                         )}
                         {step === 7 && (
-                          <div className="page">
+                          <div className="page pt-2">
                             <div className="col-md-12 mt-2">
-                              <div className="form-group">
-                                <label htmlFor="enter_aadhar_number">
+                              <div className="form-group ">
+                                <label htmlFor="enter_aadhar_number mt-2">
                                   Aadhar number *
                                 </label>
                                 <input
@@ -3533,7 +3550,9 @@ const index: FC = () => {
                         {step === 8 && (
                           <div className="page">
                             <div className="main_step_8">
-                              <h4> Your Bank Account Details</h4>
+                              <h4>
+                                Specify bank account for loan disbursement
+                              </h4>
                               <img
                                 // style={{ width: "60%" }}
                                 src={Second_screen}
@@ -3864,7 +3883,7 @@ const index: FC = () => {
                                       Tenor <span>{offers?.tenor} days</span>
                                     </p>
                                     <p>
-                                      Expiry Date{" "}
+                                      Offer Expiry Date{" "}
                                       <span>
                                         {format(
                                           new Date(offers?.ExpiryDate!),
@@ -3876,7 +3895,7 @@ const index: FC = () => {
                                 )}
 
                                 <p>
-                                  Installment Amount
+                                  Daily Installment Amount
                                   <span>
                                     <i
                                       className="fa fa-inr"
@@ -3886,7 +3905,7 @@ const index: FC = () => {
                                   </span>
                                 </p>
                                 <p>
-                                  Number Installments{" "}
+                                  Number of Installments{" "}
                                   <span> {offers?.noOfPayment}</span>
                                 </p>
                               </div>
@@ -3896,7 +3915,10 @@ const index: FC = () => {
                                   <span>{offers?.interest}%</span>
                                 </p>
                                 <p>
-                                  Processing Fees
+                                  Processing Fees{" "}
+                                  {/* <span>
+                                    ({offers?.interest}% + {offers?.gst}%)
+                                  </span> */}
                                   <span>
                                     <i
                                       className="fa fa-inr"
@@ -3915,10 +3937,10 @@ const index: FC = () => {
                                     {offers?.netDisbursement.toFixed(2)}
                                   </span>
                                 </p>
-                                <p>
+                                {/* <p>
                                   GST
                                   <span> {offers?.gst}%</span>
-                                </p>
+                                </p> */}
                                 <p>
                                   Total Paid by Customer
                                   <span>
@@ -4045,7 +4067,7 @@ const index: FC = () => {
                               <hr className="my-6 border-[#5322ba]" />
                               <div className="grid grid-cols-3 gap-4">
                                 <div>
-                                  <p className="font-medium">EMI</p>
+                                  <p className="font-medium">EDMI</p>
                                   <p className="font-bold">
                                     ₹ {Math.round(offers?.emi!)}
                                   </p>
@@ -4059,7 +4081,7 @@ const index: FC = () => {
                                 <div>
                                   <p className="font-medium">Interest</p>
                                   <p className="font-bold">
-                                    {offers?.interest}% p.a
+                                    {offers?.interest}% p.m
                                   </p>
                                 </div>
                               </div>
@@ -4068,9 +4090,9 @@ const index: FC = () => {
                               <div className="flex space-x-2 items-center">
                                 <Icons.InfoIcon className="text-[#5322ba] h-6 w-6" />
                                 <p className="text-sm">
-                                  Your Loan application has been acknowledged,
-                                  the amount will be disbursed within working
-                                  24Hrs subject to final approval.
+                                  Your Loan application has been acknowledged.
+                                  The amount will be disbursed within 24 working
+                                  hours subject to final approval.
                                 </p>
                               </div>
                               <hr className="my-6 border-gray-300" />
@@ -4104,9 +4126,9 @@ const index: FC = () => {
                               )}
                             </div>
                             <div className="mt-4 text-center">
-                              <p className="text-xs text-gray-500">
+                              {/* <p className="text-xs text-gray-500">
                                 Lending partner
-                              </p>
+                              </p> */}
                               <img
                                 alt="Lending Partner Logo"
                                 className="inline-block h-6"

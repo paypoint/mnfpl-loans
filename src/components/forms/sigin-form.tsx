@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -52,7 +50,7 @@ export function SignInForm() {
               <FormControl>
                 <Input
                   type="text"
-                  placeholder="rodneymullen180@gmail.com"
+                  placeholder="Please enter email"
                   {...field}
                 />
               </FormControl>
