@@ -257,4 +257,5 @@ export type APIEndPoints =
   | "/getesignrequestterms2"
   | "/getesignrequestpackets"
   | "/esignresponse"
-  | "/gettermsconditions";
+  | "/gettermsconditions"
+  | "/getesigndocument";

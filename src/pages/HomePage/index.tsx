@@ -63,8 +63,6 @@ import KFSDetailsCard from "@/components/KFSDetailsCard";
 const index: FC = () => {
   const [step, setStep] = useState(0);
   const [openDrawer, setOpenDrawer] = useState(false);
-  const [KFSDetails, setKFSDetails] =
-    useState<GetRegenerateloanoffersResponseType["data"]>();
   const [alreadyRequest, setAlreadyRequest] = useState(false);
   const [open, setOpen] = useState(false);
   const [countDownTimer, setCountDownTimer] = useState(120);
@@ -81,6 +79,7 @@ const index: FC = () => {
   const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [ErrorPage, setErrorPage] = useState(false);
+  const [eSignUrl, setESignUrl] = useState<string>();
 
   const [selfieImage, setSelfieImage] = useState<FileWithPreview[] | null>(
     null
@@ -534,7 +533,7 @@ const index: FC = () => {
         } else if (refId !== null) {
           localStorage.setItem("REFID", refId);
           await getOffers(refId);
-          // setStep(9); //hcoded
+          setStep(11); //hcoded
           // console.log("Processing based on Refid:", refId);
         } else {
           setErrorPage(true);
@@ -1428,6 +1427,43 @@ const index: FC = () => {
         });
       })
       .finally(() => setAlreadyRequest(false));
+  };
+
+  useEffect(() => {
+    if (step === 11) {
+      getEsignAgreement();
+    }
+  }, [step]);
+
+  const getEsignAgreement = async () => {
+    // getesigndocument
+    const body = {
+      ApplicationID: offers?.ApplicationID,
+    };
+
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<EsignResponseType>({
+        url: "/getesigndocument",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
+          setESignUrl(data.data);
+        } else {
+          toast.error(data.data);
+        }
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
   };
   return (
     <>
@@ -3976,6 +4012,23 @@ const index: FC = () => {
                                   hours subject to final approval.
                                 </p>
                               </div>
+                              {eSignUrl ? (
+                                <div className="flex justify-center items-center p-2">
+                                  <a
+                                    href={`https://uat-applyv1.mnfpl.com/vhost/${eSignUrl}`}
+                                    className="text-center"
+                                    target="_blank"
+                                    download="esignagreement.pdf"
+                                  >
+                                    View esign agreement
+                                  </a>
+                                </div>
+                              ) : (
+                                <p className="text-center p-2 text-gray-500 text-sm">
+                                  Fail to get esign agreement
+                                </p>
+                              )}
+
                               <hr className="my-6 border-gray-300" />
                               {bankList?.[0] && (
                                 <div className="space-y-4">
