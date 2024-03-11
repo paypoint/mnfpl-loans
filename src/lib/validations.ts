@@ -106,7 +106,6 @@ const isAgeValid = (birth_date: string, min_age = 18) => {
   let birth_date_obj = new Date(birth_date); // it set birth date in object one day before
 
   birth_date_obj.setDate(birth_date_obj.getDate() + 1);
-  console.log(birth_date_obj);
   let age = today.getFullYear() - birth_date_obj.getFullYear();
   let m = today.getMonth() - birth_date_obj.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth_date_obj.getDate())) {

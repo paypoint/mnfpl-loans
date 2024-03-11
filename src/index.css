@@ -34,3 +34,10 @@
     @apply bg-background text-foreground;
   }
 }
+
+.KFSDetailsKey {
+  @apply text-[#5322ba] text-sm font-semibold tracking-[0.5px] items-baseline mb-0 px-0 py-2 border-b border-[#5322ba] border-solid;
+}
+.KFSDetailsValue {
+  @apply text-right text-xs text-black font-semibold mb-0 py-2 border-[#5322ba]  border-b;
+}

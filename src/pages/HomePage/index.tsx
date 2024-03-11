@@ -58,6 +58,7 @@ import { X } from "lucide-react";
 
 import { Icons } from "@/components/ui/Icons";
 import ErrorComponent from "@/components/Error";
+import KFSDetailsCard from "@/components/KFSDetailsCard";
 
 const index: FC = () => {
   const [step, setStep] = useState(0);
@@ -71,8 +72,6 @@ const index: FC = () => {
   const [aadharOTPcountDownTimer, setAadharOTPcountDownTimer] = useState(60);
   const [locationDetails, setLocationDetails] =
     useState<GeoLocationAPIResponeObject>();
-  const [esignTerms, setEsignTerms] = useState<string>();
-  const [esignTerms2, setEsignTerms2] = useState<string>();
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [bankList, setBankList] = useState<BankList[]>();
   const [isLoading, setIsLoading] = useState(false);
@@ -200,6 +199,11 @@ const index: FC = () => {
     },
     bank_account_type: {
       value: "SA",
+      error: false,
+    },
+    //Esing terms
+    esign_terms: {
+      value: false,
       error: false,
     },
     //from api
@@ -463,12 +467,9 @@ const index: FC = () => {
 
       // setStep((prevStep) => prevStep + 1);
     } else if (step === 9) {
-      await getEsignRequestTerms("/getesignrequestterms1");
       setStep((prevStep) => prevStep + 1);
     } else if (step === 10) {
-      eSignCheckBoxValidtion();
-      // await getEsignRequestTerms("/getesignrequestterms2");
-      // setOpenTermsDrawer(true);
+      setOpenTermsDrawer(true);
     } else if (step === 11) {
       alert("Form submitted successfully");
     } else {
@@ -516,10 +517,10 @@ const index: FC = () => {
         const urlMsg = searchParams.get("msg");
         const refId = searchParams.get("RefId");
         if (urlMsg !== null) {
-          let msg = crypto.CryptoGraphDecrypt(urlMsg);
+          const fixedUrl = urlMsg.replace(/ /g, "+");
+          let msg = crypto.CryptoGraphDecrypt(fixedUrl);
           msg = msg.replace(/'/g, '"').replace(/(\w+):/g, '"$1":');
           const esignMsg = JSON.parse(msg);
-          // console.log("esignmsg", esignMsg);
           await getOffers(undefined, false);
           if (esignMsg.Status === "Fail") {
             toast.error(esignMsg.Msg || "E-sign failed please retry");
@@ -533,7 +534,7 @@ const index: FC = () => {
         } else if (refId !== null) {
           localStorage.setItem("REFID", refId);
           await getOffers(refId);
-          // setStep(8); //hcoded
+          // setStep(9); //hcoded
           // console.log("Processing based on Refid:", refId);
         } else {
           setErrorPage(true);
@@ -547,12 +548,6 @@ const index: FC = () => {
 
     fetchData();
   }, []);
-
-  useEffect(() => {
-    if (step === 10) {
-      getEsignRequestTerms("/getesignrequestterms1");
-    }
-  }, [step]);
 
   const getIPAddress = async () => {
     const response = await fetch("https://geolocation-db.com/json/");
@@ -884,7 +879,6 @@ const index: FC = () => {
             return setStep(9);
           } else if (nextStep === 6) {
             //jump to esign
-            await getEsignRequestTerms("/getesignrequestterms1");
             return setStep(10);
           } else if (nextStep === 7) {
             //jump to last step
@@ -969,7 +963,6 @@ const index: FC = () => {
               return setStep(9);
             } else if (nextStep === 6) {
               //jump to esign
-              await getEsignRequestTerms("/getesignrequestterms1");
               return setStep(10);
             } else if (nextStep === 7) {
               //jump to last step
@@ -1003,7 +996,6 @@ const index: FC = () => {
               return setStep(9);
             } else if (nextStep === 6) {
               //jump to esign
-              await getEsignRequestTerms("/getesignrequestterms1");
               return setStep(10);
             } else if (nextStep === 7) {
               //jump to last step
@@ -1110,7 +1102,6 @@ const index: FC = () => {
             return setStep(9);
           } else if (nextStep === 6) {
             //jump to esign
-            await getEsignRequestTerms("/getesignrequestterms1");
             return setStep(10);
           } else if (nextStep === 7) {
             //jump to last step
@@ -1182,7 +1173,6 @@ const index: FC = () => {
             await getKFSHTML(ApplicationID);
             return setStep(9);
           } else if (nextStep === 6) {
-            await getEsignRequestTerms("/getesignrequestterms1", ApplicationID);
             return setStep(10);
           } else if (nextStep === 7) {
             return setStep(11);
@@ -1201,23 +1191,6 @@ const index: FC = () => {
         });
       })
       .finally(() => setIsLoading(false));
-  };
-
-  const eSignCheckBoxValidtion = async () => {
-    var checkbox = document.getElementById("chk") as HTMLInputElement;
-
-    if (checkbox.checked) {
-      await getEsignRequestTerms("/getesignrequestterms2");
-      setOpenTermsDrawer(true);
-      //proceed
-      // history.push("/merchant-esign-terms");
-      // getMerchantTEsignTerms();
-    } else {
-      showAlert({
-        title: "Please click the check box",
-        description: "Agree the terms and conditions to proceed",
-      });
-    }
   };
 
   const regenerateloanoffers = async () => {
@@ -1309,13 +1282,11 @@ const index: FC = () => {
             return setStep(11);
           } else if (nextStep <= 5) {
             //jump to kfs
-            // await getEsignRequestTerms("/getesignrequestterms1");
             await getKFSHTML();
             setStep(9);
             return;
           } else if (nextStep === 6) {
             //jump to esign
-            await getEsignRequestTerms("/getesignrequestterms1");
             return setStep(10);
           } else if (nextStep === 7) {
             //jump to last step
@@ -1363,48 +1334,6 @@ const index: FC = () => {
     setInterval(() => {
       setAadharOTPcountDownTimer((PrevCountDown) => PrevCountDown - 1);
     }, 1000);
-  };
-
-  const getEsignRequestTerms = async (
-    url: "/getesignrequestterms1" | "/getesignrequestterms2",
-    ApplicationID?: string
-  ) => {
-    const body = {
-      LATLNG: `${locationDetails?.latitude}~${locationDetails?.longitude}`,
-      IPAddress: locationDetails?.IPv4,
-
-      ApplicationID: ApplicationID ?? offers?.ApplicationID,
-
-      ResponseURL: "NA",
-    };
-
-    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-    setIsLoading(true);
-    await api.app
-      .post<EsignResponseType>({
-        url: url,
-        requestBody: encryptedBody,
-      })
-      .then(async (res) => {
-        const { data } = res;
-        setIsLoading(false);
-        if (data.status === "Success") {
-          if (url === "/getesignrequestterms1") {
-            setEsignTerms(data.data);
-          } else {
-            setEsignTerms2(data.data);
-          }
-        } else {
-          toast.error(data.data);
-        }
-      })
-      .catch((error: AxiosError) => {
-        setIsLoading(false);
-        showAlert({
-          title: error.message,
-          description: "Please try after some time",
-        });
-      });
   };
 
   const getKFSHTML = async (ApplicationID?: string) => {
@@ -1650,83 +1579,7 @@ const index: FC = () => {
                               ) : (
                                 <Skeleton className="bg-cover min-h-[480px] relative shadow-[0_3px_6px_rgba(0,0,0,0.16),0_3px_6px_rgba(0,0,0,0.23)] m-[15px] rounded-[15px]" />
                               )}
-                              <div className="main_step_10bottom">
-                                <div className="loanDetails">
-                                  {offers && (
-                                    <>
-                                      <p>
-                                        Tenor <span>{offers?.tenor} days</span>
-                                      </p>
-                                      <p>
-                                        Offer Expiry Date{" "}
-                                        <span>
-                                          {format(
-                                            new Date(offers?.ExpiryDate!),
-                                            "dd/MM/yyyy"
-                                          )}
-                                        </span>
-                                      </p>
-                                    </>
-                                  )}
-
-                                  <p>
-                                    Daily Installment Amount
-                                    <span>
-                                      <i
-                                        className="fa fa-inr"
-                                        aria-hidden="true"
-                                      />
-                                      {Math.round(offers?.emi!)}
-                                    </span>
-                                  </p>
-                                  <p>
-                                    Number of Installments{" "}
-                                    <span> {offers?.noOfPayment} </span>
-                                  </p>
-                                </div>
-                                <div className="loanDetails">
-                                  <p>
-                                    Interest Rate
-                                    <span>{offers?.interest}%</span>
-                                  </p>
-                                  <p>
-                                    Processing Fees {/* <span> */}(
-                                    {offers?.interest}% + {offers?.gst}%)
-                                    {/* </span> */}
-                                    <span>
-                                      <i
-                                        className="fa fa-inr"
-                                        aria-hidden="true"
-                                      />
-                                      {offers?.processingFee.toFixed(2)}
-                                    </span>
-                                  </p>
-                                  <p>
-                                    Net Disbursed Amount
-                                    <span>
-                                      <i
-                                        className="fa fa-inr"
-                                        aria-hidden="true"
-                                      />
-                                      {offers?.netDisbursement.toFixed(2)}
-                                    </span>
-                                  </p>
-                                  {/* <p>
-                                    GST
-                                    <span> {offers?.gst}%</span>
-                                  </p> */}
-                                  <p>
-                                    Total Paid by Customer
-                                    <span>
-                                      <i
-                                        className="fa fa-inr"
-                                        aria-hidden="true"
-                                      />
-                                      {offers?.totalPaidbyCustomer.toFixed(2)}
-                                    </span>
-                                  </p>
-                                </div>
-                              </div>
+                              {offers ? <KFSDetailsCard offers={offers} /> : ""}
                             </div>
                             <div className="check_box">
                               <div className="check">
@@ -3578,6 +3431,9 @@ const index: FC = () => {
                                       >
                                         <div className="min-w-0 relative flex-auto">
                                           <Label htmlFor={i.AccountNumber}>
+                                            <dt className="text-xs font-medium text-slate-400">
+                                              Account holder name
+                                            </dt>
                                             <h2 className="font-semibold text-[#5322ba] truncate pr-20">
                                               {i.AccountHolderName}
                                             </h2>
@@ -3591,7 +3447,7 @@ const index: FC = () => {
                                               />
                                             </div>
                                             <div>
-                                              <dt className="sr-only">
+                                              <dt className="text-xs font-medium text-slate-400">
                                                 Bank name
                                               </dt>
                                               <dd className="px-1.5 ring-1 ring-slate-200 rounded">
@@ -3599,7 +3455,7 @@ const index: FC = () => {
                                               </dd>
                                             </div>
                                             <div className="ml-2">
-                                              <dt className="sr-only">
+                                              <dt className="text-xs font-medium text-slate-400">
                                                 Bank Account Number
                                               </dt>
                                               <dd className="flex items-center">
@@ -3617,12 +3473,10 @@ const index: FC = () => {
                                             </div>
 
                                             <div className="flex-none w-full mt-2 font-normal">
-                                              <dt className="sr-only">
+                                              <dt className="text-xs font-medium text-slate-400">
                                                 Ifsc code
                                               </dt>
-                                              <dd className="text-slate-400">
-                                                {i.IFSCCode}
-                                              </dd>
+                                              <dd>{i.IFSCCode}</dd>
                                             </div>
                                           </dl>
                                         </div>
@@ -3875,84 +3729,8 @@ const index: FC = () => {
                         )}
                         {step === 9 && (
                           <div className="page overflow-auto max-h-[600px]">
-                            <div className="main_step_10bottom">
-                              <div className="loanDetails">
-                                {offers && (
-                                  <>
-                                    <p>
-                                      Tenor <span>{offers?.tenor} days</span>
-                                    </p>
-                                    <p>
-                                      Offer Expiry Date{" "}
-                                      <span>
-                                        {format(
-                                          new Date(offers?.ExpiryDate!),
-                                          "dd/MM/yyyy"
-                                        )}
-                                      </span>
-                                    </p>
-                                  </>
-                                )}
+                            {offers ? <KFSDetailsCard offers={offers} /> : ""}
 
-                                <p>
-                                  Daily Installment Amount
-                                  <span>
-                                    <i
-                                      className="fa fa-inr"
-                                      aria-hidden="true"
-                                    />
-                                    {Math.round(offers?.emi!)}
-                                  </span>
-                                </p>
-                                <p>
-                                  Number of Installments{" "}
-                                  <span> {offers?.noOfPayment}</span>
-                                </p>
-                              </div>
-                              <div className="loanDetails">
-                                <p>
-                                  Interest Rate
-                                  <span>{offers?.interest}%</span>
-                                </p>
-                                <p>
-                                  Processing Fees{" "}
-                                  {/* <span>
-                                    ({offers?.interest}% + {offers?.gst}%)
-                                  </span> */}
-                                  <span>
-                                    <i
-                                      className="fa fa-inr"
-                                      aria-hidden="true"
-                                    />
-                                    {offers?.processingFee.toFixed(2)}
-                                  </span>
-                                </p>
-                                <p>
-                                  Net Disbursed Amount
-                                  <span>
-                                    <i
-                                      className="fa fa-inr"
-                                      aria-hidden="true"
-                                    />
-                                    {offers?.netDisbursement.toFixed(2)}
-                                  </span>
-                                </p>
-                                {/* <p>
-                                  GST
-                                  <span> {offers?.gst}%</span>
-                                </p> */}
-                                <p>
-                                  Total Paid by Customer
-                                  <span>
-                                    <i
-                                      className="fa fa-inr"
-                                      aria-hidden="true"
-                                    />
-                                    {offers?.totalPaidbyCustomer.toFixed(2)}
-                                  </span>
-                                </p>
-                              </div>
-                            </div>
                             {KFSHTML && (
                               <div
                                 className="main_step_10bottom"
@@ -3972,14 +3750,53 @@ const index: FC = () => {
                         )}
                         {step === 10 && (
                           <div className="page">
-                            <div
+                            <div className="main_step_8">
+                              <h4>E-sign customer agreement</h4>
+                              <img
+                                // style={{ width: "60%" }}
+                                src={Second_screen}
+                                alt="enter-account-details-image"
+                              />
+                            </div>
+                            {/* <div
                               dangerouslySetInnerHTML={{ __html: esignTerms! }}
                               className="main_step_9 col-md-12 pt-2 bg-cover max-h-[32rem]   overflow-auto relative"
-                            ></div>
-
+                            ></div> */}
+                            <div className="check_box">
+                              <div className="check">
+                                <div className="form-check form-check-inline">
+                                  <Checkbox
+                                    checked={formValues.esign_terms.value}
+                                    // value={formValues.esign_terms.value}
+                                    id="esign_terms"
+                                    className="form-check-input"
+                                    name="esign_terms"
+                                    defaultValue="true"
+                                    required
+                                    onCheckedChange={(checked) => {
+                                      onInputChange("esign_terms", checked);
+                                    }}
+                                  />
+                                  <label
+                                    htmlFor="esign_terms"
+                                    className="form-check-label"
+                                  >
+                                    I have read and agree to the{" "}
+                                    <a
+                                      target="_blank"
+                                      href="https://paypointindia.co.in/PDF/retailer_agreement.pdf"
+                                    >
+                                      customer agreement
+                                    </a>
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
                             <div className="field btns">
                               <button
-                                disabled={isLoading}
+                                disabled={
+                                  isLoading || !formValues.esign_terms.value
+                                }
                                 onClick={(e) => handleNext(e)}
                                 className={cn(
                                   "next-4 next disabled:opacity-70 disabled:pointer-events-none",
@@ -4020,14 +3837,64 @@ const index: FC = () => {
                                 >
                                   <div
                                     className="container"
-                                    dangerouslySetInnerHTML={{
-                                      __html: esignTerms2!,
-                                    }}
-                                  ></div>
+                                    // dangerouslySetInnerHTML={{
+                                    //   __html: esignTerms2!,
+                                    // }}
+                                  >
+                                    <div className="col-sm-12 tca">
+                                      <p>
+                                        I hereby authorize Protean eGov
+                                        Technologies Limited (Protean) to -
+                                      </p>
+                                      <ul className="list-decimal pl-3 mt-4 space-y-2 ">
+                                        <li>
+                                          {" "}
+                                          Use my Aadhaar / Virtual ID details
+                                          (as applicable) for the purpose of e
+                                          sign of Loan Agreement &nbsp;with
+                                          Monarch Networth Finserve Private
+                                          Limited) authenticate my identity
+                                          through the Aadhaar Authentication
+                                          system (Aadhaar based e-KYC services
+                                          of UIDAI) in accordance with the
+                                          provisions of the Aadhaar (Targeted
+                                          Delivery of Financial and other
+                                          Subsidies, Benefits and Services) Act,
+                                          2016 and the allied rules and
+                                          regulations notified thereunder and
+                                          for no other purpose.
+                                        </li>
+                                        <li>
+                                          Authenticate my Aadhaar/Virtual ID
+                                          through OTP or Biometric for
+                                          authenticating my identity through the
+                                          Aadhaar Authentication system for
+                                          obtaining my e-KYC through Aadhaar
+                                          based e-KYC services of UIDAI and use
+                                          my Photo and Demographic details
+                                          (Name, Gender, Date of Birth and
+                                          Address) for the purpose of e sign of
+                                          Loan Agreement with&nbsp;&nbsp;Monarch
+                                          Networth Finserve Private
+                                          Limited&nbsp;
+                                        </li>
+                                        <li>
+                                          I understand that Security and
+                                          confidentiality of personal identity
+                                          data provided, for the purpose of
+                                          Aadhaar based authentication is
+                                          ensured by Protean and the data will
+                                          be stored by Protean till such time as
+                                          mentioned in guidelines from UIDAI
+                                          from time to time.
+                                        </li>
+                                      </ul>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                               <div className="flex flex-wrap items-center justify-end rounded-br-[calc(0.3rem_-_1px)] rounded-bl-[calc(0.3rem_-_1px)] p-3 border-t-[#dee2e6] border-t border-solid mx-auto">
-                                <div className="container flex justify-center md:justify-end">
+                                <div className="container space-x-2 flex">
                                   <Button
                                     onClick={() => getEsignRequestPackets()}
                                     type="button"
@@ -4038,6 +3905,20 @@ const index: FC = () => {
                                     )}
                                   >
                                     Agree
+                                  </Button>
+                                  <Button
+                                    onClick={() => {
+                                      setOpenTermsDrawer(false);
+                                    }}
+                                    disabled={isLoading}
+                                    className={cn(
+                                      "disabled:opacity-70 disabled:pointer-events-none",
+                                      isLoading && "animate-pulse"
+                                    )}
+                                    type="button"
+                                    variant={"outline"}
+                                  >
+                                    Close
                                   </Button>
                                 </div>
                               </div>

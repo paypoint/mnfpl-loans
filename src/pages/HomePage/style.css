@@ -87,8 +87,14 @@ form .page .field button {
   transition: 0.5s ease;
   font-weight: bold;
 }
+form .page .field button:disabled {
+  cursor: not-allowed;
+}
 form .page .btns button.next {
   margin-left: 3px;
+}
+form .page .field button.next:disabled {
+  cursor: not-allowed;
 }
 .container .progress-bar {
   display: flex;
