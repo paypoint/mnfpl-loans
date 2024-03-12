@@ -533,7 +533,7 @@ const index: FC = () => {
         } else if (refId !== null) {
           localStorage.setItem("REFID", refId);
           await getOffers(refId);
-          setStep(11); //hcoded
+          // setStep(11); //hcoded
           // console.log("Processing based on Refid:", refId);
         } else {
           setErrorPage(true);
