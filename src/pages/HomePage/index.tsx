@@ -726,10 +726,10 @@ const index: FC = () => {
       })
       .catch((error: AxiosError) => {
         setIsLoading(false);
-        showAlert({
-          title: error.message,
-          description: "Please try after some time",
-        });
+        // showAlert({
+        //   title: error.message,
+        //   description: "Please try after some time",
+        // });
       });
   };
 
