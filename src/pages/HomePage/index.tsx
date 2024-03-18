@@ -3,11 +3,12 @@ import { type AxiosError } from "axios";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
 
-import coin from "../../assets/images/coin.png";
-import Second_screen from "../../assets/images/Second_screen.jpg";
-import Screen_5 from "../../assets/images/Screen_5.jpg";
-import Screen_6 from "../../assets/images/Screen_6.jpg";
-import MonarchLogo from "../../assets/images/monarch-logo.png";
+import coin from "@/assets/images/coin.png";
+import Second_screen from "@/assets/images/Second_screen.jpg";
+import Screen_5 from "@/assets/images/Screen_5.png";
+import Screen_6 from "@/assets/images/Screen_6.jpg";
+import MonarchLogo from "@/assets/images/monarch-logo.png";
+import EsignSteps from "@/assets/images/Esign_steps.png";
 
 import validations from "@/lib/validations";
 import crypto from "@/lib/crypto";
@@ -3790,7 +3791,7 @@ const index: FC = () => {
                               <h4>E-sign customer agreement</h4>
                               <img
                                 // style={{ width: "60%" }}
-                                src={Second_screen}
+                                src={EsignSteps}
                                 alt="enter-account-details-image"
                               />
                             </div>
