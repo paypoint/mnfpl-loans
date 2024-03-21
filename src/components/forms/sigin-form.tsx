@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Icons } from "@/components/icons";
 import { PasswordInput } from "@/components/password-input";
+import { onlyNumberValues } from "@/lib/utils";
 
 type Inputs = z.infer<typeof authSchema>;
 
@@ -26,8 +27,8 @@ export function SignInForm() {
   const form = useForm<Inputs>({
     resolver: zodResolver(authSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      phoneNumber: "",
+      otp: "",
     },
   });
 
@@ -43,14 +44,16 @@ export function SignInForm() {
       >
         <FormField
           control={form.control}
-          name="email"
+          name="phoneNumber"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>Phone number</FormLabel>
               <FormControl>
                 <Input
+                  maxLength={10}
+                  onKeyDown={(e) => onlyNumberValues(e)}
                   type="text"
-                  placeholder="Please enter email"
+                  placeholder="Please enter phone number"
                   {...field}
                 />
               </FormControl>
@@ -60,12 +63,17 @@ export function SignInForm() {
         />
         <FormField
           control={form.control}
-          name="password"
+          name="otp"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>OTP</FormLabel>
               <FormControl>
-                <PasswordInput placeholder="**********" {...field} />
+                <PasswordInput
+                  onKeyDown={(e) => onlyNumberValues(e)}
+                  maxLength={6}
+                  placeholder="******"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

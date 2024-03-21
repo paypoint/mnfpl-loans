@@ -18,11 +18,11 @@ const index: React.FC = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Sign in</CardTitle>
           <CardDescription>
-            Choose your preferred sign in method
+            Please enter mobile number and OTP to sign in
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <div className="relative">
+          {/* <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
@@ -31,7 +31,7 @@ const index: React.FC = () => {
                 Or continue with
               </span>
             </div>
-          </div>
+          </div> */}
 
           <SignInForm />
         </CardContent>
