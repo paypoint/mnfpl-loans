@@ -38,6 +38,12 @@ class App {
     );
   }
 
+  agreeKFS<TResponse>({ url, requestBody }: Request) {
+    return axios.post<TResponse>("https://uat-applyv2.mnfpl.com/agreekfs", {
+      requestBody,
+    });
+  }
+
   get<TResponse>({ url }: Request) {
     return client.get<TResponse>(url, {
       data: {},

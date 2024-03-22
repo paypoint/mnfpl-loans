@@ -467,7 +467,8 @@ const index: FC = () => {
 
       // setStep((prevStep) => prevStep + 1);
     } else if (step === 9) {
-      setStep((prevStep) => prevStep + 1);
+      agreeKFS();
+      // setStep((prevStep) => prevStep + 2);
     } else if (step === 10) {
       setOpenTermsDrawer(true);
     } else if (step === 11) {
@@ -514,27 +515,28 @@ const index: FC = () => {
       try {
         await getIPAddress();
         const searchParams = new URLSearchParams(location.search);
-        const urlMsg = searchParams.get("msg");
+        // const urlMsg = searchParams.get("msg");
         const refId = searchParams.get("RefId");
-        if (urlMsg !== null) {
-          const fixedUrl = urlMsg.replace(/ /g, "+");
-          let msg = crypto.CryptoGraphDecrypt(fixedUrl);
-          msg = msg.replace(/'/g, '"').replace(/(\w+):/g, '"$1":');
-          const esignMsg = JSON.parse(msg);
-          await getOffers(undefined, false);
-          if (esignMsg.Status === "Fail") {
-            toast.error(esignMsg.Msg || "E-sign failed please retry");
+        // if (urlMsg !== null) {
+        //   const fixedUrl = urlMsg.replace(/ /g, "+");
+        //   let msg = crypto.CryptoGraphDecrypt(fixedUrl);
+        //   msg = msg.replace(/'/g, '"').replace(/(\w+):/g, '"$1":');
+        //   const esignMsg = JSON.parse(msg);
+        //   await getOffers(undefined, false);
+        //   if (esignMsg.Status === "Fail") {
+        //     toast.error(esignMsg.Msg || "E-sign failed please retry");
 
-            setStep(10);
-          } else {
-            toast.success(esignMsg.Msg || "E-sign successfull");
+        //     setStep(11);
+        //   } else {
+        //     toast.success(esignMsg.Msg || "E-sign successfull");
 
-            setStep(11);
-          }
-        } else if (refId !== null) {
+        //     setStep(11);
+        //   }
+        // } else
+        if (refId !== null) {
           localStorage.setItem("REFID", refId);
           await getOffers(refId);
-          // setStep(11); //hcoded
+          // setStep(8); //hcoded
           // console.log("Processing based on Refid:", refId);
         } else {
           setErrorPage(true);
@@ -879,7 +881,7 @@ const index: FC = () => {
             return setStep(9);
           } else if (nextStep === 6) {
             //jump to esign
-            return setStep(10);
+            return setStep(11);
           } else if (nextStep === 7) {
             //jump to last step
             setStep(11);
@@ -963,7 +965,7 @@ const index: FC = () => {
               return setStep(9);
             } else if (nextStep === 6) {
               //jump to esign
-              return setStep(10);
+              return setStep(11);
             } else if (nextStep === 7) {
               //jump to last step
               setStep(11);
@@ -996,7 +998,7 @@ const index: FC = () => {
               return setStep(9);
             } else if (nextStep === 6) {
               //jump to esign
-              return setStep(10);
+              return setStep(11);
             } else if (nextStep === 7) {
               //jump to last step
               setStep(11);
@@ -1102,7 +1104,7 @@ const index: FC = () => {
             return setStep(9);
           } else if (nextStep === 6) {
             //jump to esign
-            return setStep(10);
+            return setStep(11);
           } else if (nextStep === 7) {
             //jump to last step
             setStep(11);
@@ -1173,7 +1175,7 @@ const index: FC = () => {
             await getKFSHTML(ApplicationID);
             return setStep(9);
           } else if (nextStep === 6) {
-            return setStep(10);
+            return setStep(11);
           } else if (nextStep === 7) {
             return setStep(11);
           }
@@ -1287,7 +1289,7 @@ const index: FC = () => {
             return;
           } else if (nextStep === 6) {
             //jump to esign
-            return setStep(10);
+            return setStep(11);
           } else if (nextStep === 7) {
             //jump to last step
             setStep(11);
@@ -1364,6 +1366,40 @@ const index: FC = () => {
           description: "Please try after some time",
         });
       });
+  };
+
+  const agreeKFS = async () => {
+    const body = {
+      LATLNG: `${locationDetails?.latitude}|${locationDetails?.longitude}`,
+      IPAddress: locationDetails?.IPv4,
+      ApplicationID: offers?.ApplicationID,
+      ResponseURL: "NA",
+    };
+
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .agreeKFS<ESignPacketsAPI>({
+        url: "/agreekfs",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
+          setStep(11);
+        } else {
+          toast.error(data.data);
+        }
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      })
+      .finally(() => setAlreadyRequest(false));
   };
 
   const getEsignRequestPackets = async () => {
@@ -3780,7 +3816,7 @@ const index: FC = () => {
                                 onClick={(e) => handleNext(e)}
                                 className="submit disabled:opacity-70 disabled:pointer-events-none"
                               >
-                                Next
+                                Agree
                               </button>
                             </div>
                           </div>
@@ -4013,21 +4049,17 @@ const index: FC = () => {
                                   hours subject to final approval.
                                 </p>
                               </div>
-                              {eSignUrl ? (
-                                <div className="flex justify-center items-center p-2">
+                              {eSignUrl && (
+                                <div className="flex justify-center items-center cursor-pointer p-2">
                                   <a
                                     href={`https://uat-applyv1.mnfpl.com/vhost/${eSignUrl}`}
                                     className="text-center"
                                     target="_blank"
                                     download="esignagreement.pdf"
                                   >
-                                    View esign agreement
+                                    View agreement
                                   </a>
                                 </div>
-                              ) : (
-                                <p className="text-center p-2 text-gray-500 text-sm">
-                                  Fail to get esign agreement
-                                </p>
                               )}
 
                               <hr className="my-6 border-gray-300" />

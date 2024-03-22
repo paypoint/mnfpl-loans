@@ -258,4 +258,5 @@ export type APIEndPoints =
   | "/getesignrequestpackets"
   | "/esignresponse"
   | "/gettermsconditions"
-  | "/getesigndocument";
+  | "/getesigndocument"
+  | "/agreekfs";
