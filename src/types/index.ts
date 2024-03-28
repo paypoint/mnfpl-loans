@@ -238,6 +238,80 @@ export type OfferDetails = {
   ApplicationID: string;
 };
 
+export type LoginOTPVerifyAPIResponeType = {
+  data: LoginOTPVerifyDataObject[];
+} & APIResponseType;
+
+export type LoginOTPVerifyDataObject = {
+  NaturalId: number;
+  Enc_Application_id: string | null;
+  Application_id: string;
+  Partner_code: string | null;
+  Application_date: string;
+  Customer_code: string;
+  Product_code: string;
+  Customer_name: string;
+  CreatedOn: string;
+  Mobile_no: string;
+  Pan: string | null;
+  Status: number;
+  Loan_amount: string;
+  Upfront_interest: string;
+  Upfront_fees: string;
+  Total_deduction: string;
+  Disbursement_amount: string;
+  Address: string;
+  Closed: string | null;
+  Date: string | null;
+  Remark: string | null;
+  DOB: string;
+  Gender: string;
+  Emergency: string;
+  Email: string;
+  UpdateOn: string | null;
+};
+
+export type InstallmentTrackerAPIResponeType = {
+  data: InstallmentTrackerDataArray[];
+} & APIResponseType;
+
+export type InstallmentTrackerDataArray = {
+  ApplicationID: string;
+  Day: number;
+  EDI: number;
+  PrincipalDue: number;
+  InterestDue: number;
+  UpfrontDeduction: number;
+  PrincipalRepaid: number;
+  InterestRepaid: number;
+  EDIDate: string;
+  EMICollectOrderId: null | string;
+  IsPaid: number;
+  PaymentMode: null | string;
+  PaymentRefNo: null | string;
+  FailAttemptCount: number;
+};
+
+export type LoanAccountledgerAPIResponeType = {
+  data: LoanAccountledgerDataObject[];
+} & APIResponseType;
+
+export type LoanAccountledgerDataObject = {
+  ledger_code: string;
+  name: string | null;
+  txn_id: string;
+  txn_ref_id: string;
+  voucher_number: string;
+  narration1: string;
+  ledger_name: string;
+  amount: number;
+  closing_balance: number;
+  is_credit: number;
+  is_debit: number;
+  created_on: string;
+  UserName: string | null;
+};
+
 export type APIEndPoints =
   | "/GetOffers"
   | "/SendOTP"
@@ -259,4 +333,8 @@ export type APIEndPoints =
   | "/esignresponse"
   | "/gettermsconditions"
   | "/getesigndocument"
-  | "/agreekfs";
+  | "/agreekfs"
+  | "/loginSendOTP"
+  | "/loginOTPVerify"
+  | "/installmentTracker"
+  | "/loanAccountledger";

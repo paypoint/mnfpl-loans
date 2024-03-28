@@ -9,16 +9,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Shell } from "@/components/shells/shell";
-import { SignInForm } from "@/components/forms/sigin-form";
+import { LogInForm } from "@/components/forms/login-form";
 
 const index: React.FC = () => {
   return (
     <Shell className="h-screen max-w-lg">
       <Card>
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Sign in</CardTitle>
+          <CardTitle className="text-2xl">Log in</CardTitle>
           <CardDescription>
-            Please enter mobile number and OTP to sign in
+            Please enter mobile number and OTP to log in
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
@@ -33,7 +33,7 @@ const index: React.FC = () => {
             </div>
           </div> */}
 
-          <SignInForm />
+          <LogInForm />
         </CardContent>
         {/* <CardFooter className="flex flex-wrap items-center justify-between gap-2">
           <div className="text-sm text-muted-foreground">
