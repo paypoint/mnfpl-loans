@@ -2,7 +2,7 @@ import { siteConfig } from "@/lib/config";
 import { APIEndPoints } from "@/types";
 import axios from "axios";
 
-const baseURL = siteConfig.API_STAGE_URL;
+const baseURL = siteConfig.API_LIVE_URL;
 
 const client = axios.create({
   baseURL: baseURL,
@@ -22,7 +22,7 @@ class App {
 
   postEsign<TResponse>({ url, requestBody }: Request) {
     return axios.post<TResponse>(
-      "https://uat-applyv2.mnfpl.com/getesignrequestpackets",
+      "https://preprod.mnfpl.com/getesignrequestpackets",
       {
         requestBody,
       }
@@ -31,7 +31,7 @@ class App {
 
   postKFS<TResponse>({ url, requestBody }: Request) {
     return axios.post<TResponse>(
-      "https://uat-applyv2.mnfpl.com/gettermsconditions",
+      "https://preprod.mnfpl.com/gettermsconditions",
       {
         requestBody,
       }
@@ -39,7 +39,7 @@ class App {
   }
 
   agreeKFS<TResponse>({ url, requestBody }: Request) {
-    return axios.post<TResponse>("https://uat-applyv2.mnfpl.com/agreekfs", {
+    return axios.post<TResponse>("https://preprod.mnfpl.com/agreekfs", {
       requestBody,
     });
   }
@@ -51,7 +51,7 @@ class App {
   }
 }
 
-let app = new App();
+const app = new App();
 
 export default {
   app,

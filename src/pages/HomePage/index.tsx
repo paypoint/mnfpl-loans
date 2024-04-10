@@ -427,6 +427,7 @@ const index: FC = () => {
     } else if (step === 8) {
       if (bankList && bankList?.length > 0) {
         await updateBank();
+        return;
       }
       //
       let formObjectHasError = false;
@@ -852,7 +853,7 @@ const index: FC = () => {
         if (data.status === "Success") {
           toast.success(data.message || "Address updated successfully");
           //Personal Details step === 4
-          let nextStep = apiSteps?.findIndex(
+          const nextStep = apiSteps?.findIndex(
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           )!;
@@ -937,7 +938,7 @@ const index: FC = () => {
           );
           if (id === "1") {
             //Pancard step === 6
-            let nextStep = apiSteps?.findIndex(
+            const nextStep = apiSteps?.findIndex(
               ({ kycStepCompletionStatus }) =>
                 kycStepCompletionStatus === "Pending"
             )!;
@@ -972,7 +973,7 @@ const index: FC = () => {
             }
           } else {
             //Selfie step === 5
-            let nextStep = apiSteps?.findIndex(
+            const nextStep = apiSteps?.findIndex(
               ({ kycStepCompletionStatus }) =>
                 kycStepCompletionStatus === "Pending"
             )!;
@@ -1076,7 +1077,7 @@ const index: FC = () => {
           toast.success("Aadhar verified successfully");
           await getBusinessBankDetails();
           //Aadhar details step === 7
-          let nextStep = apiSteps?.findIndex(
+          const nextStep = apiSteps?.findIndex(
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           )!;
@@ -1270,7 +1271,7 @@ const index: FC = () => {
           toast.success(data.message || "Bank added successfully");
 
           //Bank details step === 8
-          let nextStep = apiSteps?.findIndex(
+          const nextStep = apiSteps?.findIndex(
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           )!;
