@@ -26,7 +26,7 @@ const KFSDetailsCard: FC<KFSDetailsCardProps> = ({ offers }) => {
         <div className="KFSDetailsKey">
           Processing Fees{" "}
           <span className="text-gray-400 font-medium">
-            ({offers?.interest}% + {offers?.gst}% gst)
+            ({offers?.ProcessingFeesRate}% + {offers?.GSTRate}% gst)
           </span>
         </div>
         <div className="KFSDetailsValue">

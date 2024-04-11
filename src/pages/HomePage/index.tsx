@@ -2,6 +2,8 @@ import { FC, useEffect, useRef, useState } from "react";
 import { type AxiosError } from "axios";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
+import { useLocation } from "react-router-dom";
+import { CircleCheckBig, Landmark, X } from "lucide-react";
 
 import coin from "@/assets/images/coin.png";
 import Second_screen from "@/assets/images/Second_screen.jpg";
@@ -53,13 +55,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import Stepper from "@/components/Stepper";
-import { useLocation } from "react-router-dom";
-import { X } from "lucide-react";
-
 import { Icons } from "@/components/ui/Icons";
-import ErrorComponent from "@/components/Error";
+import Stepper from "@/components/Stepper";
 import KFSDetailsCard from "@/components/KFSDetailsCard";
+import CustomError from "@/components/CustomError";
+
+type CustomErrorT = {
+  image: boolean;
+  Heading: string;
+  Description: string;
+};
 
 const index: FC = () => {
   const [step, setStep] = useState(0);
@@ -79,8 +84,8 @@ const index: FC = () => {
   const [apiSteps, setApiSteps] = useState<Steps>();
   const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [ErrorPage, setErrorPage] = useState(false);
   const [eSignUrl, setESignUrl] = useState<string>();
+  const [customError, setCustomError] = useState<CustomErrorT>();
 
   const [selfieImage, setSelfieImage] = useState<FileWithPreview[] | null>(
     null
@@ -540,7 +545,12 @@ const index: FC = () => {
           // setStep(8); //hcoded
           // console.log("Processing based on Refid:", refId);
         } else {
-          setErrorPage(true);
+          setCustomError({
+            image: true,
+            Heading: "Page Not Found",
+            Description:
+              "Sorry, the page you are looking for could not be found.",
+          });
           // console.log("No relevant parameter found.");
         }
       } catch (error) {
@@ -580,6 +590,16 @@ const index: FC = () => {
           let offerDetails = data.message;
           offerDetails.loanAmount = Math.round(Number(offerDetails.loanAmount));
           offerDetails.tenor = Math.round(Number(offerDetails.tenor));
+          const expiryDate = new Date(offerDetails?.ExpiryDate);
+          const today = new Date();
+          if (expiryDate < today) {
+            return setCustomError({
+              image: false,
+              Heading: "Loan Offer Expired",
+              Description:
+                "Sorry, but the loan offer you were considering has expired",
+            });
+          }
           setOffers(offerDetails);
           let _formValues = { ...formValues };
           _formValues.mobile_no.value = offerDetails.MobileNumber;
@@ -589,16 +609,27 @@ const index: FC = () => {
             await getSteps(
               data.message.Merchant_Id,
               data.message.ApplicationID,
-              data.message.loanAmount.toString()
+              data.message.loanAmount.toString(),
+              data.message.LoanStatus
             );
           }
         } else {
-          setErrorPage(true);
+          setCustomError({
+            image: true,
+            Heading: "Page Not Found",
+            Description:
+              "Sorry, the page you are looking for could not be found.",
+          });
           toast.error(`${data.message}`);
         }
       })
       .catch((error: AxiosError) => {
-        setErrorPage(true);
+        setCustomError({
+          image: true,
+          Heading: error.message,
+          Description:
+            "Sorry, the page you are looking for could not be found.",
+        });
         showAlert({
           title: error.message,
           description: "Please try after some time",
@@ -1144,7 +1175,8 @@ const index: FC = () => {
   const getSteps = async (
     MerchantID?: string,
     ApplicationID?: string,
-    LoanAmount?: string
+    LoanAmount?: string,
+    LoanStatus?: OfferDetails["LoanStatus"]
   ) => {
     const body = {
       MerchantID: formValues.merchant_id.value || MerchantID,
@@ -1160,6 +1192,21 @@ const index: FC = () => {
       })
       .then(async (res) => {
         const { data } = res;
+        if (data.message === "Invalid or expire application.") {
+          if (
+            data.message === "Invalid or expire application." &&
+            LoanStatus !== "1"
+          ) {
+            return setCustomError({
+              image: false,
+              Heading: "Loan Application Already Submitted",
+              Description: "It looks like you've already applied for this loan",
+            });
+            return;
+          } else {
+            console.log("Move forward");
+          }
+        }
         if (data.status === "Success") {
           const steps = data.result;
           setApiSteps(steps);
@@ -1515,8 +1562,12 @@ const index: FC = () => {
           <img src={MonarchLogo} alt="monarch-logo" />
         </div>
 
-        {ErrorPage ? (
-          <ErrorComponent />
+        {customError?.Heading ? (
+          <CustomError
+            image={customError?.image}
+            Heading={customError?.Heading}
+            Description={customError?.Description}
+          />
         ) : (
           <>
             {step !== 0 && (
@@ -4063,40 +4114,75 @@ const index: FC = () => {
                                 </div>
                               )}
 
-                              <hr className="my-6 border-gray-300" />
-                              {bankList?.[0] && (
-                                <div className="space-y-4">
-                                  <div className="flex items-center space-x-2">
-                                    <Icons.BanknoteIcon className="text-[#5322ba] h-6 w-6" />
+                              {bankList?.[selectedBankID] && (
+                                <>
+                                  <hr className="my-6 border-gray-300" />
+                                  <h3 className=" font-black">
+                                    Loan disbured will be credited to below bank
+                                    account
+                                  </h3>
+                                  <div className="p-2 mt-2 space-y-4 rounded-lg border border-t-[#131314] border-black">
+                                    {/* <div className="p-2 space-x-2 border border-solid   border-black"></div> */}
+                                    <div className="flex   items-center space-x-2">
+                                      <Landmark className="text-[#5322ba] h-6 w-6" />
+                                      <div>
+                                        <h4 className="font-semibold">
+                                          {bankList?.[selectedBankID].Bank}
+                                        </h4>
+                                        <p className="text-sm">
+                                          {bankList?.[selectedBankID]
+                                            .AccountType === "SB"
+                                            ? "Savings Account"
+                                            : "Current Account"}
+                                        </p>
+                                      </div>
+                                    </div>
                                     <div>
-                                      <h4 className="font-bold">
-                                        {bankList?.[selectedBankID].Bank}
-                                      </h4>
-                                      <p className="text-sm">
-                                        {bankList?.[selectedBankID].AccountType}
+                                      <p className="text-sm font-medium">
+                                        <CircleCheckBig
+                                          style={{
+                                            color: "green",
+                                            display: "inline-flex",
+                                            marginRight: "0.2rem",
+                                          }}
+                                          height={"18"}
+                                          width={"18"}
+                                        />{" "}
+                                        Account Number -{" "}
+                                        <span className="font-semibold">
+                                          {
+                                            bankList?.[selectedBankID]
+                                              .AccountNumber
+                                          }
+                                        </span>
+                                      </p>
+                                    </div>
+
+                                    <div>
+                                      <p className="text-sm font-medium">
+                                        <CircleCheckBig
+                                          style={{
+                                            color: "green",
+                                            display: "inline-flex",
+                                            marginRight: "0.2rem",
+                                          }}
+                                          height={"18"}
+                                          width={"18"}
+                                        />{" "}
+                                        IFSC Code -{" "}
+                                        <span className="font-semibold">
+                                          {bankList?.[selectedBankID].IFSCCode}
+                                        </span>
                                       </p>
                                     </div>
                                   </div>
-                                  <div>
-                                    <p className="text-sm font-medium">
-                                      Account Number -{" "}
-                                      {bankList?.[selectedBankID].AccountNumber}
-                                    </p>
-                                  </div>
-
-                                  <div>
-                                    <p className="text-sm font-medium">
-                                      IFSC Code -{" "}
-                                      {bankList?.[selectedBankID].IFSCCode}
-                                    </p>
-                                  </div>
-                                </div>
+                                </>
                               )}
                             </div>
-                            <div className="mt-4 text-center">
-                              {/* <p className="text-xs text-gray-500">
+                            {/* <div className="mt-4 text-center">
+                              <p className="text-xs text-gray-500">
                                 Lending partner
-                              </p> */}
+                              </p>
                               <img
                                 alt="Lending Partner Logo"
                                 className="inline-block h-6"
@@ -4108,7 +4194,7 @@ const index: FC = () => {
                                 }}
                                 width="100"
                               />
-                            </div>
+                            </div> */}
                           </div>
                         )}
                       </form>

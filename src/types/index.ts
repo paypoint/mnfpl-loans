@@ -23,7 +23,7 @@ export type ESignPacketsAPI = {
 export type GetStepsAPIResponseType = {
   status: "Success" | "Fail";
   result: Steps;
-  message: string;
+  message: "Invalid or expire application." | "expired";
 };
 type kycStepCompletionStatus =
   | "Complete"
@@ -236,6 +236,9 @@ export type OfferDetails = {
   MobileNumber: string;
   ProductId: number;
   ApplicationID: string;
+  ProcessingFeesRate: number;
+  GSTRate: number;
+  LoanStatus: "1" | "2" | "5";
 };
 
 export type LoginOTPVerifyAPIResponeType = {
