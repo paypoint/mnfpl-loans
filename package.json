@@ -24,7 +24,7 @@
     "crypto-js": "^4.2.0",
     "date-fns": "^3.6.0",
     "lucide-react": "^0.367.0",
-    "pnpm": "^8.15.6",
+    "pnpm": "^8.15.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
