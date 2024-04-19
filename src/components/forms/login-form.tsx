@@ -63,7 +63,7 @@ export function LogInForm() {
     debugger;
     await api.app
       .post<LoginOTPVerifyAPIResponeType>({
-        url: "/loginSendOTP",
+        url: "/api/loginSendOTP",
         requestBody: encryptedBody,
       })
       .then(async (res) => {
@@ -92,7 +92,7 @@ export function LogInForm() {
     debugger;
     await api.app
       .post<LoginOTPVerifyAPIResponeType>({
-        url: "/loginOTPVerify",
+        url: "/api/loginOTPVerify",
         requestBody: encryptedBody,
       })
       .then(async (res) => {

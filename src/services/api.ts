@@ -20,30 +20,6 @@ class App {
     });
   }
 
-  postEsign<TResponse>({ url, requestBody }: Request) {
-    return axios.post<TResponse>(
-      "https://preprod.mnfpl.com/getesignrequestpackets",
-      {
-        requestBody,
-      }
-    );
-  }
-
-  postKFS<TResponse>({ url, requestBody }: Request) {
-    return axios.post<TResponse>(
-      "https://preprod.mnfpl.com/gettermsconditions",
-      {
-        requestBody,
-      }
-    );
-  }
-
-  agreeKFS<TResponse>({ url, requestBody }: Request) {
-    return axios.post<TResponse>("https://preprod.mnfpl.com/agreekfs", {
-      requestBody,
-    });
-  }
-
   get<TResponse>({ url }: Request) {
     return client.get<TResponse>(url, {
       data: {},

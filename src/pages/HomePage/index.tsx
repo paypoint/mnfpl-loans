@@ -31,6 +31,7 @@ import {
   ESignPacketsAPI,
   GetStepsAPIResponseType,
   Steps,
+  CustomErrorT,
 } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAlert } from "@/components/modals/alert-modal";
@@ -59,12 +60,6 @@ import { Icons } from "@/components/ui/Icons";
 import Stepper from "@/components/Stepper";
 import KFSDetailsCard from "@/components/KFSDetailsCard";
 import CustomError from "@/components/CustomError";
-
-type CustomErrorT = {
-  image: boolean;
-  Heading: string;
-  Description: string;
-};
 
 const index: FC = () => {
   const [step, setStep] = useState(0);
@@ -581,7 +576,7 @@ const index: FC = () => {
 
     await api.app
       .post<GetOffersResponseType>({
-        url: "/GetOffers",
+        url: "/api/GetOffers",
         requestBody: encryptedBody,
       })
       .then(async (res) => {
@@ -644,7 +639,7 @@ const index: FC = () => {
     await api.app
 
       .post<APIResponseType>({
-        url: "/SendOTP",
+        url: "/api/SendOTP",
         requestBody: encryptedBody,
       })
       .then((res) => {
@@ -682,16 +677,55 @@ const index: FC = () => {
     setIsLoading(true);
     await api.app
       .post<APIResponseType>({
-        url: "/OTPVerify",
+        url: "/api/OTPVerify",
         requestBody: encryptedBody,
       })
-      .then((res) => {
+      .then(async (res) => {
         setIsLoading(false);
         const { data } = res;
         if (data.status === "Success") {
           toast.success(data.message);
-          setStep((prevStep) => prevStep + 1);
-          getPersonalDetails();
+          const nextStep = apiSteps?.findIndex(
+            ({ kycStepCompletionStatus }) =>
+              kycStepCompletionStatus === "Pending"
+          )!;
+          if (!nextStep) {
+            await getPersonalDetails();
+            return setStep(4);
+          }
+          if (nextStep < 0) {
+            //jump to last step
+            return setStep(11);
+          } else if (nextStep === 0) {
+            //jump to personal details
+            await getPersonalDetails();
+            return setStep(4);
+          } else if (nextStep === 1) {
+            //jump to selfie
+            return setStep(5);
+          } else if (nextStep === 2) {
+            //jump to pan card upload
+            setStep(6);
+          } else if (nextStep === 3) {
+            //jump to aadhar details
+            setStep(7);
+          } else if (nextStep === 4) {
+            //jump to bank details
+            await getBusinessBankDetails();
+            setStep(8);
+          } else if (nextStep === 5) {
+            //jump to Kfs
+            await getKFSHTML();
+            return setStep(9);
+          } else if (nextStep === 6) {
+            //jump to esign
+            return setStep(11);
+          } else if (nextStep === 7) {
+            //jump to last step
+            setStep(11);
+          }
+          // setStep((prevStep) => prevStep + 1);
+          // getPersonalDetails();
         } else {
           toast.error(data.message);
         }
@@ -713,7 +747,7 @@ const index: FC = () => {
     setIsLoading(true);
     await api.app
       .post<GetBusinessMerchantDetailsAPIResponseType>({
-        url: "/BusinessMerchantDetails",
+        url: "/api/BusinessMerchantDetails",
         requestBody: encryptedBody,
       })
       .then(async (res) => {
@@ -816,7 +850,7 @@ const index: FC = () => {
     setIsLoading(true);
     await api.app
       .post<GetBankListAPI>({
-        url: "/BusinessBankDetails",
+        url: "/api/BusinessBankDetails",
         requestBody: encryptedBody,
       })
       .then(async (res) => {
@@ -875,7 +909,7 @@ const index: FC = () => {
     setIsLoading(true);
     await api.app
       .post<APIResponseType>({
-        url: "/update_businessMerchantDetails",
+        url: "/api/update_businessMerchantDetails",
         requestBody: encryptedBody,
       })
       .then(async (res) => {
@@ -955,7 +989,7 @@ const index: FC = () => {
     setIsLoading(true);
     await api.app
       .post<GetBusinessMerchantDetailsAPIResponseType>({
-        url: "/savekycdocuments",
+        url: "/api/savekycdocuments",
         requestBody: encryptedBody,
       })
       .then(async (res) => {
@@ -1061,7 +1095,7 @@ const index: FC = () => {
     setIsLoading(true);
     await api.app
       .post<AadharGetotpAPIRespnseType>({
-        url: "/aadhargetotp",
+        url: "/api/aadhargetotp",
         requestBody: encryptedBody,
       })
       .then((res) => {
@@ -1099,7 +1133,7 @@ const index: FC = () => {
     setIsLoading(true);
     await api.app
       .post<AadharGetotpAPIRespnseType>({
-        url: "/aadharotpvalidate",
+        url: "/api/aadharotpvalidate",
         requestBody: encryptedBody,
       })
       .then(async (res) => {
@@ -1187,7 +1221,7 @@ const index: FC = () => {
     setIsLoading(true);
     await api.app
       .post<GetStepsAPIResponseType>({
-        url: "/getapplicantmerchantdetails",
+        url: "/api/getapplicantmerchantdetails",
         requestBody: encryptedBody,
       })
       .then(async (res) => {
@@ -1202,7 +1236,6 @@ const index: FC = () => {
               Heading: "Loan Application Already Submitted",
               Description: "It looks like you've already applied for this loan",
             });
-            return;
           } else {
             console.log("Move forward");
           }
@@ -1214,21 +1247,27 @@ const index: FC = () => {
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           );
-          if (nextStep === 0) {
-            return setStep(1);
-            // await getPersonalDetails();
-          } else if (nextStep === 4) {
-            await getBusinessBankDetails();
-          } else if (nextStep === 5) {
-            await getKFSHTML(ApplicationID);
-            return setStep(9);
-          } else if (nextStep === 6) {
-            return setStep(11);
-          } else if (nextStep === 7) {
+          // debugger;
+
+          if (nextStep === 7) {
             return setStep(11);
           }
+          setStep(3);
+          // if (nextStep === 0) {
+          //   return setStep(1);
+          //   // await getPersonalDetails();
+          // } else if (nextStep === 4) {
+          //   await getBusinessBankDetails();
+          // } else if (nextStep === 5) {
+          //   await getKFSHTML(ApplicationID);
+          //   return setStep(9);
+          // } else if (nextStep === 6) {
+          //   return setStep(11);
+          // } else if (nextStep === 7) {
+          //   return setStep(11);
+          // }
 
-          setStep(nextStep + 4);
+          // setStep(nextStep + 4);
         } else {
           if (data.message === "Invalid or expire application.") return;
           toast.error(data.message);
@@ -1254,7 +1293,7 @@ const index: FC = () => {
     setIsLoading(true);
     await api.app
       .post<GetRegenerateloanoffersResponseType>({
-        url: "/regenerateloanoffers",
+        url: "/api/regenerateloanoffers",
         requestBody: encryptedBody,
       })
       .then(async (res) => {
@@ -1308,7 +1347,7 @@ const index: FC = () => {
     setIsLoading(true);
     await api.app
       .post<APIResponseType>({
-        url: "/updatebank",
+        url: "/api/updatebank",
         requestBody: encryptedBody,
       })
       .then(async (res) => {
@@ -1394,7 +1433,7 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .postKFS<EsignResponseType>({
+      .post<EsignResponseType>({
         url: "/gettermsconditions",
         requestBody: encryptedBody,
       })
@@ -1427,7 +1466,7 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .agreeKFS<ESignPacketsAPI>({
+      .post<ESignPacketsAPI>({
         url: "/agreekfs",
         requestBody: encryptedBody,
       })
@@ -1463,7 +1502,7 @@ const index: FC = () => {
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
-      .postEsign<ESignPacketsAPI>({
+      .post<ESignPacketsAPI>({
         url: "/getesignrequestpackets",
         requestBody: encryptedBody,
       })
@@ -1530,7 +1569,7 @@ const index: FC = () => {
     setIsLoading(true);
     await api.app
       .post<EsignResponseType>({
-        url: "/getesigndocument",
+        url: "/api/getesigndocument",
         requestBody: encryptedBody,
       })
       .then(async (res) => {

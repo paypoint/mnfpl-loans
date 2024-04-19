@@ -315,29 +315,35 @@ export type LoanAccountledgerDataObject = {
   UserName: string | null;
 };
 
+export type CustomErrorT = {
+  image: boolean;
+  Heading: string;
+  Description: string;
+};
+
 export type APIEndPoints =
-  | "/GetOffers"
-  | "/SendOTP"
-  | "/OTPVerify"
-  | "/BusinessBankDetails"
+  | "/api/GetOffers"
+  | "/api/SendOTP"
+  | "/api/OTPVerify"
+  | "/api/BusinessBankDetails"
   // | "/BusinessAddressDetails" <-- deprecated
-  | "/BusinessMerchantDetails"
-  | "/update_businessMerchantDetails"
-  | "/savekycdocuments"
-  | "/aadhargetotp"
-  | "/aadharotpvalidate"
-  | "/regenerateloanoffers"
-  | "/getapplicantmerchantdetails"
+  | "/api/BusinessMerchantDetails"
+  | "/api/update_businessMerchantDetails"
+  | "/api/savekycdocuments"
+  | "/api/aadhargetotp"
+  | "/api/aadharotpvalidate"
+  | "/api/regenerateloanoffers"
+  | "/api/getapplicantmerchantdetails"
   // | "/validatepan" <-- deprecated
-  | "/updatebank"
-  | "/getesignrequestterms1"
-  | "/getesignrequestterms2"
+  | "/api/updatebank"
+  | "/api/getesignrequestterms1"
+  | "/api/getesignrequestterms2"
   | "/getesignrequestpackets"
-  | "/esignresponse"
+  | "/api/esignresponse"
   | "/gettermsconditions"
-  | "/getesigndocument"
+  | "/api/getesigndocument"
   | "/agreekfs"
-  | "/loginSendOTP"
-  | "/loginOTPVerify"
-  | "/installmentTracker"
-  | "/loanAccountledger";
+  | "/api/loginSendOTP"
+  | "/api/loginOTPVerify"
+  | "/api/installmentTracker"
+  | "/api/loanAccountledger";
