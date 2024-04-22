@@ -1252,7 +1252,7 @@ const index: FC = () => {
           if (nextStep === 7) {
             return setStep(11);
           }
-          setStep(3);
+          setStep(2);
           // if (nextStep === 0) {
           //   return setStep(1);
           //   // await getPersonalDetails();
@@ -1749,6 +1749,7 @@ const index: FC = () => {
                               <div className="check">
                                 <div className="form-check form-check-inline">
                                   <Checkbox
+                                    disabled={isLoading}
                                     checked={formValues.termsCondition1.value}
                                     // value={formValues.termsCondition1.value}
                                     id="termsCondition1"
