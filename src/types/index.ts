@@ -6,11 +6,13 @@ export type FileWithPreview = FileWithPath & {
 export type APIResponseType = {
   status: "Success" | "Fail";
   message: string;
+  Token: string;
 };
 
 export type EsignResponseType = {
   data: string;
   status: "Success" | "Fail";
+  Token: string;
 };
 
 export type ESignPacketsAPI = {
@@ -18,13 +20,20 @@ export type ESignPacketsAPI = {
   data: string;
   redirect: string;
   post: string;
+  Token: string;
 };
 
 export type GetStepsAPIResponseType = {
   status: "Success" | "Fail";
+  Token: string;
   result: Steps;
   message: "Invalid or expire application." | "expired";
 };
+
+export type SendOTPAPIResponse = {
+  OTPToken: string;
+} & APIResponseType;
+
 type kycStepCompletionStatus =
   | "Complete"
   | "Document under-revirew"

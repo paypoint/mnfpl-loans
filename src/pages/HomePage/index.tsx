@@ -32,6 +32,7 @@ import {
   GetStepsAPIResponseType,
   Steps,
   CustomErrorT,
+  SendOTPAPIResponse,
 } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAlert } from "@/components/modals/alert-modal";
@@ -81,6 +82,7 @@ const index: FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [eSignUrl, setESignUrl] = useState<string>();
   const [customError, setCustomError] = useState<CustomErrorT>();
+  const [verificationToken, setVerificationToken] = useState("");
 
   const [selfieImage, setSelfieImage] = useState<FileWithPreview[] | null>(
     null
@@ -216,6 +218,10 @@ const index: FC = () => {
       error: false,
     },
     client_id: {
+      value: "",
+      error: false,
+    },
+    ref_id: {
       value: "",
       error: false,
     },
@@ -535,9 +541,9 @@ const index: FC = () => {
         //   }
         // } else
         if (refId !== null) {
-          localStorage.setItem("REFID", refId);
+          // localStorage.setItem("REFID", refId);
           await getOffers(refId);
-          // setStep(8); //hcoded
+          // setStep(3); //hcoded
           // console.log("Processing based on Refid:", refId);
         } else {
           setCustomError({
@@ -564,10 +570,10 @@ const index: FC = () => {
   };
 
   const getOffers = async (refID?: string, getStepsKey: boolean = true) => {
-    if (!refID) {
-      let localRefID = localStorage.getItem("REFID")!;
-      refID = localRefID;
-    }
+    // if (!refID) {
+    //   let localRefID = localStorage.getItem("REFID")!;
+    //   refID = localRefID;
+    // }
     setStep(1);
     const body = {
       RefID: refID,
@@ -597,17 +603,18 @@ const index: FC = () => {
           }
           setOffers(offerDetails);
           let _formValues = { ...formValues };
+          _formValues.ref_id.value = refID as string;
           _formValues.mobile_no.value = offerDetails.MobileNumber;
           _formValues.merchant_id.value = offerDetails.Merchant_Id;
           setFormValues(_formValues);
-          if (getStepsKey) {
-            await getSteps(
-              data.message.Merchant_Id,
-              data.message.ApplicationID,
-              data.message.loanAmount.toString(),
-              data.message.LoanStatus
-            );
-          }
+          // if (getStepsKey) {
+          //   await getSteps(
+          //     data.message.Merchant_Id,
+          //     data.message.ApplicationID,
+          //     data.message.loanAmount.toString(),
+          //     data.message.LoanStatus
+          //   );
+          // }
         } else {
           setCustomError({
             image: true,
@@ -633,12 +640,15 @@ const index: FC = () => {
   };
 
   const sendOTP = async (resend?: boolean) => {
-    const body = { MobileNumber: formValues.mobile_no.value };
+    const body = {
+      MobileNumber: formValues.mobile_no.value,
+      RefID: formValues.ref_id.value,
+    };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
 
-      .post<APIResponseType>({
+      .post<SendOTPAPIResponse>({
         url: "/api/SendOTP",
         requestBody: encryptedBody,
       })
@@ -646,6 +656,7 @@ const index: FC = () => {
         setIsLoading(false);
         const { data } = res;
         if (data.status === "Success") {
+          setVerificationToken(data.OTPToken);
           setInterval(() => {
             setCountDownTimer((PrevCountDown) => PrevCountDown - 1);
           }, 1000);
@@ -672,6 +683,8 @@ const index: FC = () => {
     const body = {
       MobileNumber: formValues.mobile_no.value,
       OTP: formValues.otp.value,
+      OTPToken: verificationToken,
+      RefID: formValues.ref_id.value,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
@@ -684,12 +697,19 @@ const index: FC = () => {
         setIsLoading(false);
         const { data } = res;
         if (data.status === "Success") {
+          setVerificationToken(data.Token);
           toast.success(data.message);
-          const nextStep = apiSteps?.findIndex(
+          let steps = await getSteps2(data.Token, step);
+
+          // if(steps.length === 0){
+          //   return  await getPersonalDetails();
+          //    setStep(4);
+          // }
+          const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           )!;
-          if (!nextStep) {
+          if (steps.length === 0) {
             await getPersonalDetails();
             return setStep(4);
           }
@@ -742,6 +762,9 @@ const index: FC = () => {
   const getPersonalDetails = async () => {
     const body = {
       MerchantID: formValues.merchant_id.value,
+      ApplicationID: offers?.ApplicationID,
+      MobileNo: offers?.MobileNumber,
+      Token: verificationToken,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
@@ -845,6 +868,9 @@ const index: FC = () => {
   const getBusinessBankDetails = async () => {
     const body = {
       MerchantID: formValues.merchant_id.value,
+      ApplicationID: offers?.ApplicationID,
+      MobileNo: offers?.MobileNumber,
+      Token: verificationToken,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
@@ -903,7 +929,9 @@ const index: FC = () => {
       cPinCode: formValues.current_pincode.value,
       cAddress1: formValues.current_address.value,
       cAddress2: "",
-      Application_ID: offers?.ApplicationID,
+      ApplicationID: offers?.ApplicationID,
+      MobileNo: offers?.MobileNumber,
+      Token: verificationToken,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
@@ -918,11 +946,13 @@ const index: FC = () => {
         if (data.status === "Success") {
           toast.success(data.message || "Address updated successfully");
           //Personal Details step === 4
-          const nextStep = apiSteps?.findIndex(
+          let steps = await getSteps2(data.Token, step);
+
+          const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           )!;
-          if (!nextStep) {
+          if (steps.length === 0) {
             return setStep(5);
           }
           if (nextStep < 0) {
@@ -969,7 +999,7 @@ const index: FC = () => {
    * Document upload api.
    * @param id 1 - pancard , 2 - selfie , 3 - aadhar e-kyc .
    * @param image image to be uploaded .
-   * @param imagename name of image to be uploaded .
+   * @param imagename name of image to be uploaded.
    */
   const uploadDocument = async (
     id: "1" | "2" | "3",
@@ -978,11 +1008,13 @@ const index: FC = () => {
   ) => {
     const body = {
       MerchantID: formValues.merchant_id.value,
-      Application_ID: offers?.ApplicationID,
+      ApplicationID: offers?.ApplicationID,
+      MobileNo: offers?.MobileNumber,
       DocumentFileImage: image,
       DocumentFilename: imagename,
       DocID: id,
       DocNumber: id === "1" ? formValues.pan_number.value.toUpperCase() : "",
+      Token: verificationToken,
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1003,11 +1035,13 @@ const index: FC = () => {
           );
           if (id === "1") {
             //Pancard step === 6
-            const nextStep = apiSteps?.findIndex(
+            let steps = await getSteps2(data.Token, step);
+
+            const nextStep = steps?.findIndex(
               ({ kycStepCompletionStatus }) =>
                 kycStepCompletionStatus === "Pending"
             )!;
-            if (!nextStep) {
+            if (steps.length === 0) {
               return setStep(7);
             }
             if (nextStep < 0) {
@@ -1038,11 +1072,13 @@ const index: FC = () => {
             }
           } else {
             //Selfie step === 5
-            const nextStep = apiSteps?.findIndex(
+            let steps = await getSteps2(data.Token, step);
+
+            const nextStep = steps?.findIndex(
               ({ kycStepCompletionStatus }) =>
                 kycStepCompletionStatus === "Pending"
             )!;
-            if (!nextStep) {
+            if (steps.length === 0) {
               return setStep(6);
             }
             if (nextStep < 0) {
@@ -1089,7 +1125,9 @@ const index: FC = () => {
     const body = {
       AadhaarNo: formValues.aadhar_no.value,
       MerchantID: formValues.merchant_id.value,
-      ApplicantID: offers?.ApplicationID,
+      ApplicationID: offers?.ApplicationID,
+      MobileNo: offers?.MobileNumber,
+      Token: verificationToken,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
@@ -1128,6 +1166,8 @@ const index: FC = () => {
       MerchantID: formValues.merchant_id.value,
       ApplicantID: offers?.ApplicationID,
       MobileNo: "",
+      ApplicationID: offers?.ApplicationID,
+      Token: verificationToken,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
@@ -1142,11 +1182,13 @@ const index: FC = () => {
           toast.success("Aadhar verified successfully");
           await getBusinessBankDetails();
           //Aadhar details step === 7
-          const nextStep = apiSteps?.findIndex(
+          let steps = await getSteps2(data.Token, step);
+
+          const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           )!;
-          if (!nextStep) {
+          if (steps.length === 0) {
             await getBusinessBankDetails();
             setStep(8);
             return;
@@ -1216,6 +1258,7 @@ const index: FC = () => {
       MerchantID: formValues.merchant_id.value || MerchantID,
       ApplicationID: ApplicationID || offers?.ApplicationID,
       LoanAmount: LoanAmount || offers?.loanAmount,
+      Token: verificationToken,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
@@ -1237,7 +1280,7 @@ const index: FC = () => {
               Description: "It looks like you've already applied for this loan",
             });
           } else {
-            console.log("Move forward");
+            // console.log("Move forward");
           }
         }
         if (data.status === "Success") {
@@ -1247,7 +1290,6 @@ const index: FC = () => {
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           );
-          // debugger;
 
           if (nextStep === 7) {
             return setStep(11);
@@ -1328,7 +1370,7 @@ const index: FC = () => {
 
   const updateBank = async () => {
     const body = {
-      Application_id: offers?.ApplicationID,
+      ApplicationID: offers?.ApplicationID,
       BankName: bankList?.[selectedBankID]?.Bank ?? formValues.bank_name.value,
       IFSCCode:
         bankList?.[selectedBankID]?.IFSCCode ?? formValues.ifsc_code.value,
@@ -1341,6 +1383,9 @@ const index: FC = () => {
       AccountHolderName:
         bankList?.[selectedBankID]?.AccountHolderName ??
         formValues.account_holder_name.value,
+      MerchantID: formValues.merchant_id.value,
+      MobileNo: offers?.MobileNumber,
+      Token: verificationToken,
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1357,11 +1402,13 @@ const index: FC = () => {
           toast.success(data.message || "Bank added successfully");
 
           //Bank details step === 8
-          const nextStep = apiSteps?.findIndex(
+          let steps = await getSteps2(data.Token, step);
+
+          const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           )!;
-          if (!nextStep) {
+          if (steps.length === 0) {
             await getKFSHTML();
             setStep(9);
             return;
@@ -1428,6 +1475,9 @@ const index: FC = () => {
   const getKFSHTML = async (ApplicationID?: string) => {
     const body = {
       ApplicationID: ApplicationID || offers?.ApplicationID,
+      MerchantID: formValues.merchant_id.value,
+      MobileNo: offers?.MobileNumber,
+      Token: verificationToken,
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1459,8 +1509,11 @@ const index: FC = () => {
     const body = {
       LATLNG: `${locationDetails?.latitude}|${locationDetails?.longitude}`,
       IPAddress: locationDetails?.IPv4,
+      MerchantID: formValues.merchant_id.value,
       ApplicationID: offers?.ApplicationID,
+      MobileNo: offers?.MobileNumber,
       ResponseURL: "NA",
+      Token: verificationToken,
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1495,7 +1548,10 @@ const index: FC = () => {
     const body = {
       LATLNG: `${locationDetails?.latitude}~${locationDetails?.longitude}`,
       IPAddress: locationDetails?.IPv4,
+      MerchantID: formValues.merchant_id.value,
       ApplicationID: offers?.ApplicationID,
+      MobileNo: offers?.MobileNumber,
+      Token: verificationToken,
       ResponseURL: "http://localhost:5173",
     };
 
@@ -1563,6 +1619,9 @@ const index: FC = () => {
     // getesigndocument
     const body = {
       ApplicationID: offers?.ApplicationID,
+      MerchantID: formValues.merchant_id.value,
+      MobileNo: offers?.MobileNumber,
+      Token: verificationToken,
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1588,6 +1647,67 @@ const index: FC = () => {
           description: "Please try after some time",
         });
       });
+  };
+
+  const getSteps2 = async (Token?: string, currentStep?: number) => {
+    const body = {
+      MerchantID: formValues.merchant_id.value,
+      ApplicationID: offers?.ApplicationID,
+      MobileNo: formValues?.mobile_no.value,
+      LoanAmount: offers?.loanAmount,
+      Token: Token ?? verificationToken,
+    };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    try {
+      const res = await api.app.post<GetStepsAPIResponseType>({
+        url: "/api/getapplicantmerchantdetails",
+        requestBody: encryptedBody,
+      });
+
+      const { data } = res;
+
+      if (data.message === "Invalid or expire application.") {
+        setVerificationToken(data.Token);
+        if (offers?.LoanStatus !== "1") {
+          setCustomError({
+            image: false,
+            Heading: "Loan Application Already Submitted",
+            Description: "It looks like you've already applied for this loan",
+          });
+        }
+      }
+
+      if (data.status === "Success") {
+        setVerificationToken(data.Token);
+        const steps = data.result;
+        setApiSteps(steps);
+
+        const nextStep = steps.findIndex(
+          ({ kycStepCompletionStatus }) => kycStepCompletionStatus === "Pending"
+        );
+
+        if (nextStep === 7) {
+          setStep(11);
+        }
+
+        return steps; // Return steps if everything is successful
+      } else {
+        if (data.message !== "Invalid or expire application.") {
+          toast.error(data.message);
+        }
+      }
+
+      return []; // Return empty array if no steps are found or there's an error
+    } catch (error: any) {
+      showAlert({
+        title: error.message,
+        description: "Please try after some time",
+      });
+      return []; // Return empty array if there's a catch error
+    } finally {
+      setIsLoading(false);
+    }
   };
   return (
     <>
@@ -1749,7 +1869,7 @@ const index: FC = () => {
                               <div className="check">
                                 <div className="form-check form-check-inline">
                                   <Checkbox
-                                    disabled={isLoading}
+                                    disabled={offers ? false : true}
                                     checked={formValues.termsCondition1.value}
                                     // value={formValues.termsCondition1.value}
                                     id="termsCondition1"
