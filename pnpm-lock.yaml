@@ -51,8 +51,8 @@ importers:
         specifier: ^0.372.0
         version: 0.372.0(react@18.2.0)
       pnpm:
-        specifier: ^9.0.4
-        version: 9.0.4
+        specifier: ^9.0.5
+        version: 9.0.5
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -1558,8 +1558,8 @@ packages:
     resolution: {integrity: sha512-saLsH7WeYYPiD25LDuLRRY/i+6HaPYr6G1OUlN39otzkSTxKnubR9RTxS3/Kk50s1g2JTgFwWQDQyplC5/SHZg==}
     engines: {node: '>= 6'}
 
-  pnpm@9.0.4:
-    resolution: {integrity: sha512-w3S1LePeiMWP2DM99mSnNyec2w4TRLpAVNOx//qaGjZwhU91XcpPFq3qPxS+mJan/K8WdAn+DBrWBHUnHa/oGg==}
+  pnpm@9.0.5:
+    resolution: {integrity: sha512-pyJXXBj9eR+e9x44fG4WzAPJDYWbmwmY0EKMoOMiCCizKpbm3nPOo07bwPUIJHcbGmnH6ja4bao7icfm2aPZEg==}
     engines: {node: '>=18.12'}
     hasBin: true
 
@@ -3329,7 +3329,7 @@ snapshots:
 
   pirates@4.0.6: {}
 
-  pnpm@9.0.4: {}
+  pnpm@9.0.5: {}
 
   postcss-import@15.1.0(postcss@8.4.38):
     dependencies:
