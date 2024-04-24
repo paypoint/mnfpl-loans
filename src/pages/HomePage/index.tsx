@@ -522,28 +522,27 @@ const index: FC = () => {
       try {
         await getIPAddress();
         const searchParams = new URLSearchParams(location.search);
-        // const urlMsg = searchParams.get("msg");
+        const urlMsg = searchParams.get("msg");
         const refId = searchParams.get("RefId");
-        // if (urlMsg !== null) {
-        //   const fixedUrl = urlMsg.replace(/ /g, "+");
-        //   let msg = crypto.CryptoGraphDecrypt(fixedUrl);
-        //   msg = msg.replace(/'/g, '"').replace(/(\w+):/g, '"$1":');
-        //   const esignMsg = JSON.parse(msg);
-        //   await getOffers(undefined, false);
-        //   if (esignMsg.Status === "Fail") {
-        //     toast.error(esignMsg.Msg || "E-sign failed please retry");
+        if (urlMsg !== null) {
+          const fixedUrl = urlMsg.replace(/ /g, "+");
+          let msg = crypto.CryptoGraphDecrypt(fixedUrl);
+          msg = msg.replace(/'/g, '"').replace(/(\w+):/g, '"$1":');
+          const esignMsg = JSON.parse(msg);
+          await getOffers(undefined, true);
+          if (esignMsg.Status === "Fail") {
+            toast.error(esignMsg.Msg || "E-sign failed please retry");
 
-        //     setStep(11);
-        //   } else {
-        //     toast.success(esignMsg.Msg || "E-sign successfull");
+            setStep(11);
+          } else {
+            toast.success(esignMsg.Msg || "E-sign successfull");
 
-        //     setStep(11);
-        //   }
-        // } else
-        if (refId !== null) {
-          // localStorage.setItem("REFID", refId);
+            setStep(11);
+          }
+        } else if (refId !== null) {
+          localStorage.setItem("REFID", refId);
           await getOffers(refId);
-          // setStep(3); //hcoded
+          // setStep(10); //hcoded
           // console.log("Processing based on Refid:", refId);
         } else {
           setCustomError({
@@ -569,11 +568,11 @@ const index: FC = () => {
     setLocationDetails(data);
   };
 
-  const getOffers = async (refID?: string, getStepsKey: boolean = true) => {
-    // if (!refID) {
-    //   let localRefID = localStorage.getItem("REFID")!;
-    //   refID = localRefID;
-    // }
+  const getOffers = async (refID?: string, getStepsKey: boolean = false) => {
+    if (!refID) {
+      let localRefID = localStorage.getItem("REFID")!;
+      refID = localRefID;
+    }
     setStep(1);
     const body = {
       RefID: refID,
@@ -699,7 +698,7 @@ const index: FC = () => {
         if (data.status === "Success") {
           setVerificationToken(data.Token);
           toast.success(data.message);
-          let steps = await getSteps2(data.Token, step);
+          const steps = await getSteps2(data.Token, step);
 
           // if(steps.length === 0){
           //   return  await getPersonalDetails();
@@ -739,7 +738,7 @@ const index: FC = () => {
             return setStep(9);
           } else if (nextStep === 6) {
             //jump to esign
-            return setStep(11);
+            return setStep(10);
           } else if (nextStep === 7) {
             //jump to last step
             setStep(11);
@@ -946,7 +945,7 @@ const index: FC = () => {
         if (data.status === "Success") {
           toast.success(data.message || "Address updated successfully");
           //Personal Details step === 4
-          let steps = await getSteps2(data.Token, step);
+          const steps = await getSteps2(data.Token, step);
 
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
@@ -977,7 +976,7 @@ const index: FC = () => {
             return setStep(9);
           } else if (nextStep === 6) {
             //jump to esign
-            return setStep(11);
+            return setStep(10);
           } else if (nextStep === 7) {
             //jump to last step
             setStep(11);
@@ -1035,7 +1034,7 @@ const index: FC = () => {
           );
           if (id === "1") {
             //Pancard step === 6
-            let steps = await getSteps2(data.Token, step);
+            const steps = await getSteps2(data.Token, step);
 
             const nextStep = steps?.findIndex(
               ({ kycStepCompletionStatus }) =>
@@ -1065,14 +1064,14 @@ const index: FC = () => {
               return setStep(9);
             } else if (nextStep === 6) {
               //jump to esign
-              return setStep(11);
+              return setStep(10);
             } else if (nextStep === 7) {
               //jump to last step
               setStep(11);
             }
           } else {
             //Selfie step === 5
-            let steps = await getSteps2(data.Token, step);
+            const steps = await getSteps2(data.Token, step);
 
             const nextStep = steps?.findIndex(
               ({ kycStepCompletionStatus }) =>
@@ -1100,7 +1099,7 @@ const index: FC = () => {
               return setStep(9);
             } else if (nextStep === 6) {
               //jump to esign
-              return setStep(11);
+              return setStep(10);
             } else if (nextStep === 7) {
               //jump to last step
               setStep(11);
@@ -1182,7 +1181,7 @@ const index: FC = () => {
           toast.success("Aadhar verified successfully");
           await getBusinessBankDetails();
           //Aadhar details step === 7
-          let steps = await getSteps2(data.Token, step);
+          const steps = await getSteps2(data.Token, step);
 
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
@@ -1212,7 +1211,7 @@ const index: FC = () => {
             return setStep(9);
           } else if (nextStep === 6) {
             //jump to esign
-            return setStep(11);
+            return setStep(10);
           } else if (nextStep === 7) {
             //jump to last step
             setStep(11);
@@ -1247,82 +1246,6 @@ const index: FC = () => {
       }
     }
   }, [formValues.aadhar_no.value]);
-
-  const getSteps = async (
-    MerchantID?: string,
-    ApplicationID?: string,
-    LoanAmount?: string,
-    LoanStatus?: OfferDetails["LoanStatus"]
-  ) => {
-    const body = {
-      MerchantID: formValues.merchant_id.value || MerchantID,
-      ApplicationID: ApplicationID || offers?.ApplicationID,
-      LoanAmount: LoanAmount || offers?.loanAmount,
-      Token: verificationToken,
-    };
-    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-    setIsLoading(true);
-    await api.app
-      .post<GetStepsAPIResponseType>({
-        url: "/api/getapplicantmerchantdetails",
-        requestBody: encryptedBody,
-      })
-      .then(async (res) => {
-        const { data } = res;
-        if (data.message === "Invalid or expire application.") {
-          if (
-            data.message === "Invalid or expire application." &&
-            LoanStatus !== "1"
-          ) {
-            return setCustomError({
-              image: false,
-              Heading: "Loan Application Already Submitted",
-              Description: "It looks like you've already applied for this loan",
-            });
-          } else {
-            // console.log("Move forward");
-          }
-        }
-        if (data.status === "Success") {
-          const steps = data.result;
-          setApiSteps(steps);
-          const nextStep = steps.findIndex(
-            ({ kycStepCompletionStatus }) =>
-              kycStepCompletionStatus === "Pending"
-          );
-
-          if (nextStep === 7) {
-            return setStep(11);
-          }
-          setStep(2);
-          // if (nextStep === 0) {
-          //   return setStep(1);
-          //   // await getPersonalDetails();
-          // } else if (nextStep === 4) {
-          //   await getBusinessBankDetails();
-          // } else if (nextStep === 5) {
-          //   await getKFSHTML(ApplicationID);
-          //   return setStep(9);
-          // } else if (nextStep === 6) {
-          //   return setStep(11);
-          // } else if (nextStep === 7) {
-          //   return setStep(11);
-          // }
-
-          // setStep(nextStep + 4);
-        } else {
-          if (data.message === "Invalid or expire application.") return;
-          toast.error(data.message);
-        }
-      })
-      .catch((error: AxiosError) => {
-        showAlert({
-          title: error.message,
-          description: "Please try after some time",
-        });
-      })
-      .finally(() => setIsLoading(false));
-  };
 
   const regenerateloanoffers = async () => {
     const body = {
@@ -1402,7 +1325,7 @@ const index: FC = () => {
           toast.success(data.message || "Bank added successfully");
 
           //Bank details step === 8
-          let steps = await getSteps2(data.Token, step);
+          const steps = await getSteps2(data.Token, step);
 
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
@@ -1423,7 +1346,7 @@ const index: FC = () => {
             return;
           } else if (nextStep === 6) {
             //jump to esign
-            return setStep(11);
+            return setStep(10);
           } else if (nextStep === 7) {
             //jump to last step
             setStep(11);
@@ -1517,6 +1440,7 @@ const index: FC = () => {
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    return setStep(10);
     setIsLoading(true);
     await api.app
       .post<ESignPacketsAPI>({
@@ -1527,7 +1451,7 @@ const index: FC = () => {
         const { data } = res;
         setIsLoading(false);
         if (data.status === "Success") {
-          setStep(11);
+          setStep(10);
         } else {
           toast.error(data.data);
         }
@@ -1554,7 +1478,6 @@ const index: FC = () => {
       Token: verificationToken,
       ResponseURL: "http://localhost:5173",
     };
-
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
@@ -1621,7 +1544,7 @@ const index: FC = () => {
       ApplicationID: offers?.ApplicationID,
       MerchantID: formValues.merchant_id.value,
       MobileNo: offers?.MobileNumber,
-      Token: verificationToken,
+      Token: verificationToken || localStorage.getItem("TOKEN"),
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1637,7 +1560,7 @@ const index: FC = () => {
         if (data.status === "Success") {
           setESignUrl(data.data);
         } else {
-          toast.error(data.data);
+          // toast.error(data.data);
         }
       })
       .catch((error: AxiosError) => {
@@ -1666,7 +1589,7 @@ const index: FC = () => {
       });
 
       const { data } = res;
-
+      localStorage.setItem("TOKEN", data.Token);
       if (data.message === "Invalid or expire application.") {
         setVerificationToken(data.Token);
         if (offers?.LoanStatus !== "1") {

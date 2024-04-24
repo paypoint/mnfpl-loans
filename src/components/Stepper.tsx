@@ -103,7 +103,7 @@ const Stepper: FC<StepperProps> = ({ activeStep }) => {
             </div>
           </div>
 
-          {/* <div className="step">
+          <div className="step">
             <p>E-Sign</p>
             <div className="bullet">
               <i
@@ -113,7 +113,7 @@ const Stepper: FC<StepperProps> = ({ activeStep }) => {
               />
               <div className="check fas fa-check" />
             </div>
-          </div> */}
+          </div>
           <div className="step">
             <p>Confirm</p>
             <div className="bullet">

@@ -2,7 +2,7 @@ import { siteConfig } from "@/lib/config";
 import { APIEndPoints } from "@/types";
 import axios from "axios";
 
-const baseURL = siteConfig.API_LIVE_URL;
+const baseURL = siteConfig.API_STAGE_URL;
 
 const client = axios.create({
   baseURL: baseURL,
