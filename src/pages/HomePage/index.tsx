@@ -522,25 +522,26 @@ const index: FC = () => {
       try {
         await getIPAddress();
         const searchParams = new URLSearchParams(location.search);
-        const urlMsg = searchParams.get("msg");
+        // const urlMsg = searchParams.get("msg");
         const refId = searchParams.get("RefId");
-        if (urlMsg !== null) {
-          const fixedUrl = urlMsg.replace(/ /g, "+");
-          let msg = crypto.CryptoGraphDecrypt(fixedUrl);
-          msg = msg.replace(/'/g, '"').replace(/(\w+):/g, '"$1":');
-          const esignMsg = JSON.parse(msg);
-          await getOffers(undefined, true);
-          if (esignMsg.Status === "Fail") {
-            toast.error(esignMsg.Msg || "E-sign failed please retry");
+        // if (urlMsg !== null) {
+        //   const fixedUrl = urlMsg.replace(/ /g, "+");
+        //   let msg = crypto.CryptoGraphDecrypt(fixedUrl);
+        //   msg = msg.replace(/'/g, '"').replace(/(\w+):/g, '"$1":');
+        //   const esignMsg = JSON.parse(msg);
+        //   await getOffers(undefined, true);
+        //   if (esignMsg.Status === "Fail") {
+        //     toast.error(esignMsg.Msg || "E-sign failed please retry");
 
-            setStep(11);
-          } else {
-            toast.success(esignMsg.Msg || "E-sign successfull");
+        //     setStep(11);
+        //   } else {
+        //     toast.success(esignMsg.Msg || "E-sign successfull");
 
-            setStep(11);
-          }
-        } else if (refId !== null) {
-          localStorage.setItem("REFID", refId);
+        //     setStep(11);
+        //   }
+        // } else
+        if (refId !== null) {
+          // localStorage.setItem("REFID", refId);
           await getOffers(refId);
           // setStep(10); //hcoded
           // console.log("Processing based on Refid:", refId);
@@ -569,10 +570,10 @@ const index: FC = () => {
   };
 
   const getOffers = async (refID?: string, getStepsKey: boolean = false) => {
-    if (!refID) {
-      let localRefID = localStorage.getItem("REFID")!;
-      refID = localRefID;
-    }
+    // if (!refID) {
+    //   let localRefID = localStorage.getItem("REFID")!;
+    //   refID = localRefID;
+    // }
     setStep(1);
     const body = {
       RefID: refID,
@@ -738,7 +739,7 @@ const index: FC = () => {
             return setStep(9);
           } else if (nextStep === 6) {
             //jump to esign
-            return setStep(10);
+            return setStep(11);
           } else if (nextStep === 7) {
             //jump to last step
             setStep(11);
@@ -976,7 +977,7 @@ const index: FC = () => {
             return setStep(9);
           } else if (nextStep === 6) {
             //jump to esign
-            return setStep(10);
+            return setStep(11);
           } else if (nextStep === 7) {
             //jump to last step
             setStep(11);
@@ -1064,7 +1065,7 @@ const index: FC = () => {
               return setStep(9);
             } else if (nextStep === 6) {
               //jump to esign
-              return setStep(10);
+              return setStep(11);
             } else if (nextStep === 7) {
               //jump to last step
               setStep(11);
@@ -1099,7 +1100,7 @@ const index: FC = () => {
               return setStep(9);
             } else if (nextStep === 6) {
               //jump to esign
-              return setStep(10);
+              return setStep(11);
             } else if (nextStep === 7) {
               //jump to last step
               setStep(11);
@@ -1211,7 +1212,7 @@ const index: FC = () => {
             return setStep(9);
           } else if (nextStep === 6) {
             //jump to esign
-            return setStep(10);
+            return setStep(11);
           } else if (nextStep === 7) {
             //jump to last step
             setStep(11);
@@ -1346,7 +1347,7 @@ const index: FC = () => {
             return;
           } else if (nextStep === 6) {
             //jump to esign
-            return setStep(10);
+            return setStep(11);
           } else if (nextStep === 7) {
             //jump to last step
             setStep(11);
@@ -1440,7 +1441,6 @@ const index: FC = () => {
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-    return setStep(10);
     setIsLoading(true);
     await api.app
       .post<ESignPacketsAPI>({
@@ -1451,7 +1451,7 @@ const index: FC = () => {
         const { data } = res;
         setIsLoading(false);
         if (data.status === "Success") {
-          setStep(10);
+          setStep(11);
         } else {
           toast.error(data.data);
         }
@@ -1544,7 +1544,7 @@ const index: FC = () => {
       ApplicationID: offers?.ApplicationID,
       MerchantID: formValues.merchant_id.value,
       MobileNo: offers?.MobileNumber,
-      Token: verificationToken || localStorage.getItem("TOKEN"),
+      Token: verificationToken,
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1589,7 +1589,6 @@ const index: FC = () => {
       });
 
       const { data } = res;
-      localStorage.setItem("TOKEN", data.Token);
       if (data.message === "Invalid or expire application.") {
         setVerificationToken(data.Token);
         if (offers?.LoanStatus !== "1") {
