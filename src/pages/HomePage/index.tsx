@@ -19,7 +19,6 @@ import { FileDialog } from "@/components/ui/file-dialog";
 import {
   BankList,
   FileWithPreview,
-  GeoLocationAPIResponeObject,
   GetBusinessMerchantDetailsAPIResponseType,
   OfferDetails,
   APIResponseType,
@@ -38,7 +37,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAlert } from "@/components/modals/alert-modal";
 
 import "./style.css";
-import { cn, getBase64, onlyNumberValues } from "@/lib/utils";
+import { cn, getBase64, onlyNumberValues, getGeolocation } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -70,14 +69,11 @@ const index: FC = () => {
   const [countDownTimer, setCountDownTimer] = useState(120);
   const [selectedBankID, setSelectedBankID] = useState(0);
   const [aadharOTPcountDownTimer, setAadharOTPcountDownTimer] = useState(60);
-  const [locationDetails, setLocationDetails] =
-    useState<GeoLocationAPIResponeObject>();
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [bankList, setBankList] = useState<BankList[]>();
   const [isLoading, setIsLoading] = useState(false);
   const [KFSHTML, setKFSHTML] = useState<string>();
   const [openTermsDrawer, setOpenTermsDrawer] = useState(false);
-  const [apiSteps, setApiSteps] = useState<Steps>();
   const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [eSignUrl, setESignUrl] = useState<string>();
@@ -91,6 +87,7 @@ const index: FC = () => {
     null
   );
   const [showAlert, AlertModal] = useAlert();
+  const [position, setPosition] = useState({ latitude: null, longitude: null });
 
   const defaultFormValues = {
     //step-1
@@ -515,12 +512,21 @@ const index: FC = () => {
     { key: "F", value: "Female" },
     { key: "O", value: "Other" },
   ];
-  const relationDropDown = ["Father", "Mother", "Daughter"];
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await getIPAddress();
+        getGeolocation()
+          .then((position: any) => {
+            setPosition(position);
+          })
+          .catch((error) => {
+            setCustomError({
+              image: false,
+              Heading: "Please Enable Location",
+              Description: error,
+            });
+          });
         const searchParams = new URLSearchParams(location.search);
         // const urlMsg = searchParams.get("msg");
         const refId = searchParams.get("RefId");
@@ -562,12 +568,6 @@ const index: FC = () => {
 
     fetchData();
   }, []);
-
-  const getIPAddress = async () => {
-    const response = await fetch("https://geolocation-db.com/json/");
-    const data: GeoLocationAPIResponeObject = await response.json();
-    setLocationDetails(data);
-  };
 
   const getOffers = async (refID?: string, getStepsKey: boolean = false) => {
     // if (!refID) {
@@ -1431,8 +1431,8 @@ const index: FC = () => {
 
   const agreeKFS = async () => {
     const body = {
-      LATLNG: `${locationDetails?.latitude}|${locationDetails?.longitude}`,
-      IPAddress: locationDetails?.IPv4,
+      LATLNG: `${position?.latitude}|${position?.longitude}`,
+      IPAddress: "",
       MerchantID: formValues.merchant_id.value,
       ApplicationID: offers?.ApplicationID,
       MobileNo: offers?.MobileNumber,
@@ -1470,8 +1470,8 @@ const index: FC = () => {
     if (alreadyRequest) return;
     setAlreadyRequest(true);
     const body = {
-      LATLNG: `${locationDetails?.latitude}~${locationDetails?.longitude}`,
-      IPAddress: locationDetails?.IPv4,
+      LATLNG: `${position?.latitude}~${position?.longitude}`,
+      IPAddress: "",
       MerchantID: formValues.merchant_id.value,
       ApplicationID: offers?.ApplicationID,
       MobileNo: offers?.MobileNumber,
@@ -1603,7 +1603,6 @@ const index: FC = () => {
       if (data.status === "Success") {
         setVerificationToken(data.Token);
         const steps = data.result;
-        setApiSteps(steps);
 
         const nextStep = steps.findIndex(
           ({ kycStepCompletionStatus }) => kycStepCompletionStatus === "Pending"

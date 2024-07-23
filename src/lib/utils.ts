@@ -4,6 +4,7 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
 export function formatBytes(
   bytes: number,
   decimals = 0,
@@ -38,6 +39,26 @@ export async function getBase64(
     reader.onerror = reject;
   });
 }
+
+export const getGeolocation = () => {
+  return new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => {
+          reject(error.message);
+        }
+      );
+    } else {
+      reject("Geolocation is not supported by this browser.");
+    }
+  });
+};
 
 export const onlyNumber = (event: React.KeyboardEvent<HTMLInputElement>) => {
   const keyCode = event.which || event.keyCode;
