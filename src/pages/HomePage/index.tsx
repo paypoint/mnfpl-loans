@@ -29,7 +29,7 @@ import {
   EsignResponseType,
   ESignPacketsAPI,
   GetStepsAPIResponseType,
-  Steps,
+  GeolocationData,
   CustomErrorT,
   SendOTPAPIResponse,
 } from "@/types";
@@ -87,7 +87,7 @@ const index: FC = () => {
     null
   );
   const [showAlert, AlertModal] = useAlert();
-  const [position, setPosition] = useState({ latitude: null, longitude: null });
+  const [position, setPosition] = useState<GeolocationData>();
 
   const defaultFormValues = {
     //step-1
@@ -1590,13 +1590,14 @@ const index: FC = () => {
 
       const { data } = res;
       if (data.message === "Invalid or expire application.") {
-        setVerificationToken(data.Token);
-        if (offers?.LoanStatus !== "1") {
+        if (offers?.LoanStatus !== "1" || !data.Token) {
           setCustomError({
             image: false,
             Heading: "Loan Application Already Submitted",
             Description: "It looks like you've already applied for this loan",
           });
+        } else {
+          setVerificationToken(data.Token);
         }
       }
 

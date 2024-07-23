@@ -155,6 +155,11 @@ export type GetBankListAPI = {
   data: BankList[];
 } & APIResponseType;
 
+export type GeolocationData = {
+  latitude: number;
+  longitude: number;
+};
+
 export type ParsedMerchantDetails = {
   IdentificationCode: string;
   Salutation: string;
