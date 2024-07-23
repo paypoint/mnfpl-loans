@@ -1590,7 +1590,7 @@ const index: FC = () => {
 
       const { data } = res;
       if (data.message === "Invalid or expire application.") {
-        if (offers?.LoanStatus !== "1" || !data.Token) {
+        if (offers?.LoanStatus !== "1" && !data.Token) {
           setCustomError({
             image: false,
             Heading: "Loan Application Already Submitted",
