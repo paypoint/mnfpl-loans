@@ -61,6 +61,7 @@ import Stepper from "@/components/Stepper";
 import KFSDetailsCard from "@/components/KFSDetailsCard";
 import CustomError from "@/components/CustomError";
 import OfferedLoanAmountS1 from "./Steps/OfferedLoanAmountS1";
+import EnterMobileNoS2 from "./Steps/EnterMobileNoS2";
 
 const index: FC = () => {
   const [step, setStep] = useState(0);
@@ -1662,59 +1663,18 @@ const index: FC = () => {
                         {step === 1 && (
                           <OfferedLoanAmountS1
                             offers={offers}
-                            handleNext={handleNext}
+                            handleNext={() =>
+                              setStep((prevStep) => prevStep + 1)
+                            }
                           />
                         )}
 
                         {step === 2 && (
-                          <div className="page">
-                            <div className="main_step_2">
-                              <h4>Enter Your Mobile Number</h4>
-                              <img
-                                src={Second_screen}
-                                alt="enter-mobile-number-image"
-                              />
-                            </div>
-                            <div className="main_step_2 text-left">
-                              <label htmlFor="number">Mobile Number*</label>
-                              <input
-                                readOnly
-                                value={formValues.mobile_no.value}
-                                maxLength={10}
-                                name="number"
-                                className="form-control"
-                                placeholder="Enter Mobile Number"
-                                type="text"
-                                onKeyDown={(e) => onlyNumberValues(e)}
-                                required
-                                id="number"
-                                onChange={(e) =>
-                                  onInputChange("mobile_no", e.target.value)
-                                }
-                              />
-                              {formValues.mobile_no.error ? (
-                                <span
-                                  style={{ color: "red", fontSize: "14px" }}
-                                >
-                                  Please enter valid mobile number
-                                </span>
-                              ) : (
-                                ""
-                              )}
-                            </div>
-                            <div className="field btns">
-                              <button
-                                disabled={isLoading}
-                                onClick={(e) => handleNext(e)}
-                                className={cn(
-                                  "next-2 next disabled:opacity-70 disabled:pointer-events-none",
-                                  isLoading && "animate-pulse"
-                                )}
-                              >
-                                send otp
-                              </button>
-                            </div>
-                          </div>
+                          <EnterMobileNoS2
+                            mobile_no={formValues.mobile_no.value}
+                            isLoading={isLoading}
+                            handleNext={handleNext}
+                          />
                         )}
                         {step === 3 && (
                           <div className="page">

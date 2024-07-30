@@ -1,4 +1,4 @@
-import { onlyNumberValues, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { FC } from "react";
 import Second_screen from "@/assets/images/Second_screen.jpg";
 

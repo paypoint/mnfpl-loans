@@ -1,6 +1,5 @@
 import KFSDetailsCard from "@/components/KFSDetailsCard";
 import { Button } from "@/components/ui/button";
-import { DialogHeader } from "@/components/ui/dialog";
 import {
   Drawer,
   DrawerContent,
@@ -9,14 +8,15 @@ import {
 } from "@/components/ui/drawer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { onlyNumberValues, cn } from "@/lib/utils";
-import { Checkbox } from "@radix-ui/react-checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
-  DialogTitle,
   DialogDescription,
-} from "@radix-ui/react-dialog";
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { FC, useState } from "react";
 
@@ -32,9 +32,7 @@ import { useAlert } from "@/components/modals/alert-modal";
 
 interface OfferedLoanAmountS1Props {
   offers: OfferDetails | undefined;
-  handleNext: (
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => Promise<void>;
+  handleNext: () => void;
 }
 
 const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
@@ -278,7 +276,7 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
               !offers || !formValues.termsCondition1.value
               // || !formValues.termsCondition2.value
             }
-            onClick={(e) => handleNext(e)}
+            onClick={() => handleNext()}
             className={cn(
               "firstNext next disabled:opacity-70 disabled:pointer-events-none",
               !offers && "animate-pulse"
