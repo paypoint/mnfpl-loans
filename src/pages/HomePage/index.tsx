@@ -14,7 +14,7 @@ import EsignSteps from "@/assets/images/Esign_steps.png";
 
 import validations from "@/lib/validations";
 import crypto from "@/lib/crypto";
-import api from "@/services/api";
+import api, { baseURL } from "@/services/api";
 import { FileDialog } from "@/components/ui/file-dialog";
 import {
   BankList,
@@ -4186,7 +4186,7 @@ const index: FC = () => {
                               {eSignUrl && (
                                 <div className="flex justify-center items-center cursor-pointer p-2">
                                   <a
-                                    href={`https://uat-applyv1.mnfpl.com/vhost/${eSignUrl}`}
+                                    href={`${baseURL}/vhost/${eSignUrl}`}
                                     className="text-center"
                                     target="_blank"
                                     download="esignagreement.pdf"
