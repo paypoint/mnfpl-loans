@@ -3,9 +3,8 @@ import { type AxiosError } from "axios";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
 import { useLocation } from "react-router-dom";
-import { CircleCheckBig, Landmark, X } from "lucide-react";
+import { X } from "lucide-react";
 
-import coin from "@/assets/images/coin.png";
 import Second_screen from "@/assets/images/Second_screen.jpg";
 import Screen_5 from "@/assets/images/Screen_5.png";
 import Screen_6 from "@/assets/images/Screen_6.jpg";
@@ -14,7 +13,7 @@ import EsignSteps from "@/assets/images/Esign_steps.png";
 
 import validations from "@/lib/validations";
 import crypto from "@/lib/crypto";
-import api, { baseURL } from "@/services/api";
+import api from "@/services/api";
 import { FileDialog } from "@/components/ui/file-dialog";
 import {
   BankList,
@@ -23,7 +22,6 @@ import {
   OfferDetails,
   APIResponseType,
   AadharGetotpAPIRespnseType,
-  GetRegenerateloanoffersResponseType,
   GetOffersResponseType,
   GetBankListAPI,
   EsignResponseType,
@@ -33,7 +31,6 @@ import {
   CustomErrorT,
   SendOTPAPIResponse,
 } from "@/types";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useAlert } from "@/components/modals/alert-modal";
 
 import "./style.css";
@@ -48,26 +45,17 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Icons } from "@/components/ui/Icons";
 import Stepper from "@/components/Stepper";
 import KFSDetailsCard from "@/components/KFSDetailsCard";
 import CustomError from "@/components/CustomError";
 import OfferedLoanAmountS1 from "./Steps/OfferedLoanAmountS1";
 import EnterMobileNoS2 from "./Steps/EnterMobileNoS2";
+import LoanSanctionedS11 from "./Steps/LoanSanctionedS11";
 
 const index: FC = () => {
   const [step, setStep] = useState(0);
-  const [openDrawer, setOpenDrawer] = useState(false);
   const [alreadyRequest, setAlreadyRequest] = useState(false);
-  const [open, setOpen] = useState(false);
   const [countDownTimer, setCountDownTimer] = useState(120);
   const [selectedBankID, setSelectedBankID] = useState(0);
   const [aadharOTPcountDownTimer, setAadharOTPcountDownTimer] = useState(60);
@@ -92,19 +80,6 @@ const index: FC = () => {
   const [position, setPosition] = useState<GeolocationData>();
 
   const defaultFormValues = {
-    //step-1
-    termsCondition1: {
-      value: false,
-      error: false,
-    },
-    termsCondition2: {
-      value: false,
-      error: false,
-    },
-    edit_loan_amount: {
-      value: "",
-      error: false,
-    },
     //step-2
     mobile_no: {
       value: "",
@@ -268,14 +243,7 @@ const index: FC = () => {
     e.preventDefault();
     let _formValues = { ...formValues };
     if (step === 1) {
-      let termsCondition1HasError = !_formValues.termsCondition1.value;
-      // let termsCondition2HasError = !_formValues.termsCondition2.value;
-      if (termsCondition1HasError) {
-        _formValues.termsCondition1.error = true;
-        setFormValues(_formValues);
-      } else {
-        setStep((prevStep) => prevStep + 1);
-      }
+      setStep((prevStep) => prevStep + 1);
     } else if (step === 2) {
       let MobileNo1HasError = !validations.isMobileNumberValid(
         _formValues.mobile_no.value
@@ -1250,50 +1218,6 @@ const index: FC = () => {
     }
   }, [formValues.aadhar_no.value]);
 
-  const regenerateloanoffers = async () => {
-    const body = {
-      MerchantID: offers?.Merchant_Id,
-      LoanAmount: formValues.edit_loan_amount.value,
-      ProductId: offers?.ProductId,
-      LoanOffered: offers?.LoanOffered,
-    };
-    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-    setIsLoading(true);
-    await api.app
-      .post<GetRegenerateloanoffersResponseType>({
-        url: "/api/regenerateloanoffers",
-        requestBody: encryptedBody,
-      })
-      .then(async (res) => {
-        const { data } = res;
-        if (data.status === "Success") {
-          let offerDetails = {
-            ...data.data,
-            LoanOffered: offers?.LoanOffered,
-            MobileNumber: offers?.MobileNumber,
-            ProductId: offers?.ProductId,
-            ApplicationID: offers?.ApplicationID,
-            ExpiryDate: offers?.ExpiryDate,
-          };
-          offerDetails.loanAmount = Math.round(Number(offerDetails.loanAmount));
-          offerDetails.tenor = Math.round(Number(offerDetails.tenor));
-
-          //@ts-ignore
-          setOffers(offerDetails);
-          // setKFSDetails(data.data);
-        } else {
-          toast.error(data.message);
-        }
-      })
-      .catch((error: AxiosError) => {
-        showAlert({
-          title: error.message,
-          description: "Please try after some time",
-        });
-      })
-      .finally(() => setIsLoading(false));
-  };
-
   const updateBank = async () => {
     const body = {
       ApplicationID: offers?.ApplicationID,
@@ -1365,31 +1289,6 @@ const index: FC = () => {
           description: "Please try after some time",
         });
       });
-  };
-
-  const onEditAmount = async () => {
-    let _formValues = { ...formValues };
-
-    let formObjectHasError = false;
-    Object.keys(_formValues).forEach((key) => {
-      if (key === "edit_loan_amount") {
-        let hasError =
-          !validations.isRequired(_formValues[key].value) ||
-          Number(_formValues[key].value) > Number(offers?.LoanOffered);
-        _formValues[key].error =
-          !validations.isRequired(_formValues[key].value) ||
-          Number(_formValues[key].value) > Number(offers?.LoanOffered);
-        if (hasError) {
-          formObjectHasError = true;
-        }
-      }
-    });
-    if (!formObjectHasError) {
-      setOpen(false);
-      regenerateloanoffers();
-    } else {
-      setFormValues(_formValues);
-    }
   };
 
   const startAadharOTPTimer = () => {
@@ -3005,151 +2904,12 @@ const index: FC = () => {
                           </DrawerContent>
                         </Drawer>
                         {step === 11 && (
-                          // <div className="page">
-                          <div className="max-w-lg mx-auto my-8 p-6 bg-white rounded-lg shadow-md">
-                            <div className="flex justify-between items-start">
-                              <div className="flex space-x-2 items-center">
-                                <Icons.AlertCircleIcon className="text-[#5322ba] h-6 w-6" />
-                                <h2 className="text-xl font-semibold">
-                                  Loan sanctioned
-                                </h2>
-                              </div>
-                            </div>
-                            <div className="mt-6 p-6 bg-gray-100 rounded-lg">
-                              <div className="text-center">
-                                <h3 className="text-lg font-medium">
-                                  Loan amount
-                                </h3>
-                                <p className="text-4xl font-bold mt-2">
-                                  ₹ {offers?.loanAmount}
-                                </p>
-                              </div>
-                              <hr className="my-6 border-[#5322ba]" />
-                              <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                  <p className="font-medium">EDMI</p>
-                                  <p className="font-bold">
-                                    ₹ {Math.round(offers?.emi!)}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="font-medium">Tenure</p>
-                                  <p className="font-bold">
-                                    {offers?.tenor} days
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="font-medium">Interest</p>
-                                  <p className="font-bold">
-                                    {offers?.interest}% p.m
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="mt-6">
-                              <div className="flex space-x-2 items-center">
-                                <Icons.InfoIcon className="text-[#5322ba] h-6 w-6" />
-                                <p className="text-sm">
-                                  Your Loan application has been acknowledged.
-                                  The amount will be disbursed within 24 working
-                                  hours subject to final approval.
-                                </p>
-                              </div>
-                              {eSignUrl && (
-                                <div className="flex justify-center items-center cursor-pointer p-2">
-                                  <a
-                                    href={`${baseURL}/vhost/${eSignUrl}`}
-                                    className="text-center"
-                                    target="_blank"
-                                    download="esignagreement.pdf"
-                                  >
-                                    View agreement
-                                  </a>
-                                </div>
-                              )}
-
-                              {bankList?.[selectedBankID] && (
-                                <>
-                                  <hr className="my-6 border-gray-300" />
-                                  <h3 className=" font-black">
-                                    Loan disbured will be credited to below bank
-                                    account
-                                  </h3>
-                                  <div className="p-2 mt-2 space-y-4 rounded-lg border border-t-[#131314] border-black">
-                                    {/* <div className="p-2 space-x-2 border border-solid   border-black"></div> */}
-                                    <div className="flex   items-center space-x-2">
-                                      <Landmark className="text-[#5322ba] h-6 w-6" />
-                                      <div>
-                                        <h4 className="font-semibold">
-                                          {bankList?.[selectedBankID].Bank}
-                                        </h4>
-                                        <p className="text-sm">
-                                          {bankList?.[selectedBankID]
-                                            .AccountType === "SB"
-                                            ? "Savings Account"
-                                            : "Current Account"}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <p className="text-sm font-medium">
-                                        <CircleCheckBig
-                                          style={{
-                                            color: "green",
-                                            display: "inline-flex",
-                                            marginRight: "0.2rem",
-                                          }}
-                                          height={"18"}
-                                          width={"18"}
-                                        />{" "}
-                                        Account Number -{" "}
-                                        <span className="font-semibold">
-                                          {
-                                            bankList?.[selectedBankID]
-                                              .AccountNumber
-                                          }
-                                        </span>
-                                      </p>
-                                    </div>
-
-                                    <div>
-                                      <p className="text-sm font-medium">
-                                        <CircleCheckBig
-                                          style={{
-                                            color: "green",
-                                            display: "inline-flex",
-                                            marginRight: "0.2rem",
-                                          }}
-                                          height={"18"}
-                                          width={"18"}
-                                        />{" "}
-                                        IFSC Code -{" "}
-                                        <span className="font-semibold">
-                                          {bankList?.[selectedBankID].IFSCCode}
-                                        </span>
-                                      </p>
-                                    </div>
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                            {/* <div className="mt-4 text-center">
-                              <p className="text-xs text-gray-500">
-                                Lending partner
-                              </p>
-                              <img
-                                alt="Lending Partner Logo"
-                                className="inline-block h-6"
-                                height="24"
-                                src={MonarchLogo}
-                                style={{
-                                  aspectRatio: "100/24",
-                                  objectFit: "cover",
-                                }}
-                                width="100"
-                              />
-                            </div> */}
-                          </div>
+                          <LoanSanctionedS11
+                            offers={offers}
+                            eSignUrl={eSignUrl}
+                            bankList={bankList}
+                            selectedBankID={selectedBankID}
+                          />
                         )}
                       </form>
                     </div>

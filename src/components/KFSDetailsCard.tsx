@@ -10,7 +10,7 @@ const KFSDetailsCard: FC<KFSDetailsCardProps> = ({ offers }) => {
   return (
     <div className="main_step_10bottom">
       <div className="grid grid-cols-2 gap-y-4">
-        <div className="KFSDetailsKey">Tenor</div>
+        <div className="KFSDetailsKey">Tenure</div>
         <div className="KFSDetailsValue">{offers.tenor} days</div>
         <div className="KFSDetailsKey">Offer Expiry Date</div>
         <div className="KFSDetailsValue">

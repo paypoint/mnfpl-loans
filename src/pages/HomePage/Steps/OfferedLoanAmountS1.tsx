@@ -234,7 +234,7 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
                     </DialogContent>
                   </Dialog>
                 </p>
-                <strong>Tenor: {offers.tenor} days</strong>
+                <strong>Tenure: {offers.tenor} days</strong>
                 <span>
                   Offer Expriy Date:
                   {" " + format(new Date(offers.ExpiryDate), "dd/MM/yyyy")}
