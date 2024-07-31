@@ -22,11 +22,6 @@ const OTPVerificationS3: FC<OTPVerificationS3Props> = ({
   ref_id,
   verifyOTP,
 }) => {
-  useEffect(() => {
-    setInterval(() => {
-      setCountDownTimer((PrevCountDown) => PrevCountDown - 1);
-    }, 1000);
-  }, []);
   const inputRefs = Array.from({ length: 6 }, () =>
     useRef<HTMLInputElement>(null)
   );
@@ -42,6 +37,12 @@ const OTPVerificationS3: FC<OTPVerificationS3Props> = ({
       error: false,
     },
   });
+
+  useEffect(() => {
+    setInterval(() => {
+      setCountDownTimer((PrevCountDown) => PrevCountDown - 1);
+    }, 1000);
+  }, []);
 
   const digitValidate = (index: number, value: string) => {
     // Update the OTP values in the state

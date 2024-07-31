@@ -45,13 +45,13 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Icons } from "@/components/ui/Icons";
 import Stepper from "@/components/Stepper";
 import KFSDetailsCard from "@/components/KFSDetailsCard";
 import CustomError from "@/components/CustomError";
 import OfferedLoanAmountS1 from "./Steps/OfferedLoanAmountS1";
 import EnterMobileNoS2 from "./Steps/EnterMobileNoS2";
 import LoanSanctionedS11 from "./Steps/LoanSanctionedS11";
+import LoaderModal from "@/components/modals/loader-modal";
 
 const index: FC = () => {
   const [step, setStep] = useState(0);
@@ -549,13 +549,14 @@ const index: FC = () => {
       RefID: refID,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-
+    setIsLoading(true);
     await api.app
       .post<GetOffersResponseType>({
         url: "/api/GetOffers",
         requestBody: encryptedBody,
       })
       .then(async (res) => {
+        setIsLoading(false);
         const { data } = res;
         if (data.status === "Success") {
           let offerDetails = data.message;
@@ -596,6 +597,7 @@ const index: FC = () => {
         }
       })
       .catch((error: AxiosError) => {
+        setIsLoading(false);
         setCustomError({
           image: true,
           Heading: error.message,
@@ -613,6 +615,7 @@ const index: FC = () => {
     const body = {
       MobileNumber: formValues.mobile_no.value,
       RefID: formValues.ref_id.value,
+      ApplicationID: offers?.ApplicationID,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
@@ -655,6 +658,7 @@ const index: FC = () => {
       OTP: formValues.otp.value,
       OTPToken: verificationToken,
       RefID: formValues.ref_id.value,
+      ApplicationID: offers?.ApplicationID,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
@@ -1538,6 +1542,7 @@ const index: FC = () => {
         title: "",
         description: "",
       })}
+      <LoaderModal open={isLoading} onClose={() => setIsLoading(false)} />
       <div className="container">
         <div className="flex justify-center p-2 items-center">
           {" "}
