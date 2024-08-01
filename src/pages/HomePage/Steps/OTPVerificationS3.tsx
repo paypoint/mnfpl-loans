@@ -1,19 +1,24 @@
 import { FC, useEffect, useRef, useState } from "react";
-import { onlyNumberValues, cn } from "@/lib/utils";
-import Second_screen from "@/assets/images/Second_screen.jpg";
-import { Button } from "@/components/ui/button";
-import crypto from "@/lib/crypto";
-import api from "@/services/api";
-import { SendOTPAPIResponse } from "@/types";
 import { AxiosError } from "axios";
 import toast from "react-hot-toast";
+
+import Second_screen from "@/assets/images/Second_screen.jpg";
+
+import { Button } from "@/components/ui/button";
 import { useAlert } from "@/components/modals/alert-modal";
+
+import { onlyNumberValues, cn } from "@/lib/utils";
+import crypto from "@/lib/crypto";
+import api from "@/services/api";
+
+import { OfferDetails, SendOTPAPIResponse } from "@/types";
 
 interface OTPVerificationS3Props {
   setVerificationToken: (token: string) => void;
   mobile_no: string;
   ref_id: string;
   verifyOTP: (otp: string) => Promise<void>;
+  offers?: OfferDetails;
 }
 
 const OTPVerificationS3: FC<OTPVerificationS3Props> = ({
@@ -21,6 +26,7 @@ const OTPVerificationS3: FC<OTPVerificationS3Props> = ({
   mobile_no,
   ref_id,
   verifyOTP,
+  offers,
 }) => {
   const inputRefs = Array.from({ length: 6 }, () =>
     useRef<HTMLInputElement>(null)
@@ -77,6 +83,7 @@ const OTPVerificationS3: FC<OTPVerificationS3Props> = ({
     const body = {
       MobileNumber: mobile_no,
       RefID: ref_id,
+      ApplicationID: offers?.ApplicationID,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);

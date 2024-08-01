@@ -1570,6 +1570,7 @@ const index: FC = () => {
                             handleNext={() =>
                               setStep((prevStep) => prevStep + 1)
                             }
+                            setOffers={setOffers}
                           />
                         )}
 

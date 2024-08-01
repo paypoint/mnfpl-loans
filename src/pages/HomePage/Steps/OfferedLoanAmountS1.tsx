@@ -1,3 +1,11 @@
+import { format } from "date-fns";
+import { FC, useState } from "react";
+import { AxiosError } from "axios";
+import toast from "react-hot-toast";
+
+import coin from "@/assets/images/coin.png";
+import MonarchLogo from "@/assets/images/monarch-logo.png";
+
 import KFSDetailsCard from "@/components/KFSDetailsCard";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,7 +15,6 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Skeleton } from "@/components/ui/skeleton";
-import { onlyNumberValues, cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -17,27 +24,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { format } from "date-fns";
-import { FC, useState } from "react";
-
-import coin from "@/assets/images/coin.png";
-import MonarchLogo from "@/assets/images/monarch-logo.png";
-import validations from "@/lib/validations";
-import api from "@/services/api";
-import { GetRegenerateloanoffersResponseType, OfferDetails } from "@/types";
-import { AxiosError } from "axios";
-import toast from "react-hot-toast";
-import crypto from "@/lib/crypto";
 import { useAlert } from "@/components/modals/alert-modal";
 
+import validations from "@/lib/validations";
+import api from "@/services/api";
+import { onlyNumberValues, cn } from "@/lib/utils";
+import crypto from "@/lib/crypto";
+
+import { GetRegenerateloanoffersResponseType, OfferDetails } from "@/types";
+
 interface OfferedLoanAmountS1Props {
-  offers: OfferDetails | undefined;
+  offers?: OfferDetails;
   handleNext: () => void;
+  setOffers: React.Dispatch<React.SetStateAction<OfferDetails | undefined>>;
 }
 
 const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
   offers,
   handleNext,
+  setOffers,
 }) => {
   const defaultFormValues = {
     //step-1
@@ -102,6 +107,7 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
       LoanAmount: formValues.edit_loan_amount.value,
       ProductId: offers?.ProductId,
       LoanOffered: offers?.LoanOffered,
+      ApplicationID: offers?.ApplicationID,
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);

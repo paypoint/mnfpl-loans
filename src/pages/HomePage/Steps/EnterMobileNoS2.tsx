@@ -1,6 +1,8 @@
-import { cn } from "@/lib/utils";
 import { FC } from "react";
+
 import Second_screen from "@/assets/images/Second_screen.jpg";
+
+import { cn } from "@/lib/utils";
 
 interface EnterMobileNoS2Props {
   mobile_no: string;

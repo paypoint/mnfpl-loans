@@ -1,13 +1,16 @@
 import { FC } from "react";
-import { Icons } from "@/components/ui/Icons";
-import { BankList, OfferDetails } from "@/types";
-import { baseURL } from "@/services/api";
 import { Landmark, CircleCheckBig } from "lucide-react";
 
+import { Icons } from "@/components/ui/Icons";
+
+import { baseURL } from "@/services/api";
+
+import { BankList, OfferDetails } from "@/types";
+
 interface LoanSanctionedS4Props {
-  offers: OfferDetails | undefined;
-  eSignUrl: string | undefined;
-  bankList: BankList[] | undefined;
+  offers?: OfferDetails;
+  eSignUrl?: string;
+  bankList?: BankList[];
   selectedBankID: number;
 }
 
