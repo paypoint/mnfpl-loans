@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import toast from "react-hot-toast";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { AxiosError } from "axios";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -117,6 +117,10 @@ const PersonalDetailsS4: FC<PersonalDetailsS4Props> = ({
     { key: "O", value: "Other" },
   ];
 
+  useEffect(() => {
+    getPersonalDetails();
+  }, []);
+
   const getPersonalDetails = async () => {
     const body = {
       MerchantID: merchant_id,
@@ -182,14 +186,15 @@ const PersonalDetailsS4: FC<PersonalDetailsS4Props> = ({
         // });
       });
   };
+
   return (
     <div className="page">
       {/* <div className="main_step_4">
-<h4>Personal Details</h4>
-<h5 className="detailsAdditional">
-Click From The Dropdown to View More Employment Status
-</h5>
-</div> */}
+        <h4>Personal Details</h4>
+        <h5 className="detailsAdditional">
+        Click From The Dropdown to View More Employment Status
+        </h5>
+        </div> */}
       <div className="main_step_4" style={{ height: 550, overflow: "auto" }}>
         <div className="Detail_Form">
           <h4>Personal Details</h4>

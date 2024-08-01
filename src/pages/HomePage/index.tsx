@@ -48,10 +48,11 @@ import {
 import Stepper from "@/components/Stepper";
 import KFSDetailsCard from "@/components/KFSDetailsCard";
 import CustomError from "@/components/CustomError";
+import LoaderModal from "@/components/modals/loader-modal";
+
 import OfferedLoanAmountS1 from "./Steps/OfferedLoanAmountS1";
 import EnterMobileNoS2 from "./Steps/EnterMobileNoS2";
 import LoanSanctionedS11 from "./Steps/LoanSanctionedS11";
-import LoaderModal from "@/components/modals/loader-modal";
 
 const index: FC = () => {
   const [step, setStep] = useState(0);
