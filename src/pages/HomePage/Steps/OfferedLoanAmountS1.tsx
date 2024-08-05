@@ -488,7 +488,7 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
                                 href="https://www.mnclgroup.com/"
                                 target="_blank"
                               >
-                                <u>www.mnclgroup.com</u>
+                                <u>www.mnfclgroup.com</u>
                               </a>
                             </li>
                             <li>Customer Support Helpline - +91 9033839897</li>
@@ -508,7 +508,7 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
                                 href="https://www.mnclgroup.com/"
                                 target="_blank"
                               >
-                                <u>www.mnclgroup.com</u>
+                                <u>www.mnfclgroup.com</u>
                               </a>
                             </li>
                             <li>Grievance Support Helpline - +91 9033839897</li>
@@ -522,7 +522,7 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
                               href="https://www.mnclgroup.com/"
                               target="_blank"
                             >
-                              <u>www.mnclgroup.com</u>
+                              <u>www.mnfclgroup.com</u>
                             </a>
                           </p>
                           <h4>
@@ -550,7 +550,7 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
                               href="https://www.mnclgroup.com/"
                               target="_blank"
                             >
-                              <u>www.mnclgroup.com</u>
+                              <u>www.mnfclgroup.com</u>
                             </a>
                           </p>
                           <h4>
@@ -891,7 +891,7 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
                           <br /> <strong>Website</strong>
                           &nbsp;–{" "}
                           <a href="https://www.mnclgroup.com/" target="_blank">
-                            <u>www.mnclgroup.com</u>
+                            <u>www.mnfclgroup.com</u>
                           </a>
                           <br /> <strong>Telephone-</strong> +91 -22-6202 1600
                           <br /> <strong>Email </strong>
