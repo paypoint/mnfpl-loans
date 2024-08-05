@@ -155,15 +155,9 @@ export type GetBankListAPI = {
   data: BankList[];
 } & APIResponseType;
 
-export type GeoLocationAPIResponeObject = {
-  country_code: string;
-  country_name: string;
-  city: string;
-  postal: string;
+export type GeolocationData = {
   latitude: number;
   longitude: number;
-  IPv4: string;
-  state: string;
 };
 
 export type ParsedMerchantDetails = {
