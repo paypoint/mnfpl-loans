@@ -1428,7 +1428,7 @@ const index: FC = () => {
         if (data.status === "Success") {
           setStep(11);
         } else {
-          toast.error(data.data);
+          toast.error(data.data || data.message);
         }
       })
       .catch((error: AxiosError) => {
