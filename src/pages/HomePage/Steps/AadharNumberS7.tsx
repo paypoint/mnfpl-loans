@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useState, MouseEvent } from "react";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
 
@@ -7,12 +7,13 @@ import { useAlert } from "@/components/modals/alert-modal";
 
 import { cn, onlyNumberValues } from "@/lib/utils";
 import crypto from "@/lib/crypto";
+import validations from "@/lib/validations";
 import api from "@/services/api";
 
 import { AadharGetotpAPIRespnseType, OfferDetails } from "@/types";
 
 interface AadharNumberS7Props {
-  handleNext: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  handleNext: (e: any) => Promise<void>;
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   merchant_id: string;
@@ -114,101 +115,163 @@ const AadharNumberS7: FC<AadharNumberS7Props> = ({
       }
     }
   }, [formValues.aadhar_no.value]);
+
+  const onVerifyOTP = async () => {
+    let _formValues = { ...formValues };
+    let formObjectHasError = false;
+    Object.keys(_formValues).forEach((key) => {
+      if (key === "aadhar_otp") {
+        let hasError = !validations.isOTPValid(_formValues[key].value);
+        _formValues[key].error = !validations.isOTPValid(
+          _formValues[key].value
+        );
+        if (hasError) {
+          formObjectHasError = true;
+        }
+      }
+    });
+    if (!formObjectHasError) {
+      await validateAadharOTP();
+    } else {
+      setFormValues(_formValues);
+    }
+  };
+
+  const validateAadharOTP = async () => {
+    const body = {
+      clientId: formValues.client_id.value,
+      OTP: formValues.aadhar_otp.value,
+      MerchantID: merchant_id,
+      ApplicantID: offers?.ApplicationID,
+      MobileNo: "",
+      ApplicationID: offers?.ApplicationID,
+      Token: verificationToken,
+    };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<AadharGetotpAPIRespnseType>({
+        url: "/api/aadharotpvalidate",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        if (data.status === "Success") {
+          toast.success("Aadhar verified successfully");
+        } else {
+          toast.error(data.message);
+        }
+      })
+      .catch((error: AxiosError) => {
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      })
+      .finally(() => setIsLoading(false));
+  };
+
   return (
-    <div className="page pt-2">
-      <div className="col-md-12 mt-2">
-        <div className="form-group ">
-          <label htmlFor="enter_aadhar_number mt-2">Aadhar number *</label>
-          <input
-            className="form-control"
-            type="password"
-            name="enter_aadhar_number"
-            placeholder="Enter aadhar number"
-            id="enter_aadhar_number"
-            required
-            maxLength={12}
-            onKeyDown={(e) => onlyNumberValues(e)}
-            onChange={(e) => onInputChange("aadhar_no", e.target.value)}
-          />
-          {formValues.aadhar_no.error ? (
-            <span style={{ color: "red", fontSize: "14px" }}>
-              Please enter correct aadhar number
-            </span>
-          ) : (
-            ""
-          )}{" "}
-          {isLoading && formValues.aadhar_otp.value.length !== 6 && (
-            <span className="text-sm">Verifying aadhar number...</span>
-          )}
+    <>
+      {AlertModal({
+        title: "",
+        description: "",
+      })}{" "}
+      <div className="page pt-2">
+        <div className="col-md-12 mt-2">
+          <div className="form-group ">
+            <label htmlFor="enter_aadhar_number mt-2">Aadhar number *</label>
+            <input
+              className="form-control"
+              type="password"
+              name="enter_aadhar_number"
+              placeholder="Enter aadhar number"
+              id="enter_aadhar_number"
+              required
+              maxLength={12}
+              onKeyDown={(e) => onlyNumberValues(e)}
+              onChange={(e) => onInputChange("aadhar_no", e.target.value)}
+            />
+            {formValues.aadhar_no.error ? (
+              <span style={{ color: "red", fontSize: "14px" }}>
+                Please enter correct aadhar number
+              </span>
+            ) : (
+              ""
+            )}{" "}
+            {isLoading && formValues.aadhar_otp.value.length !== 6 && (
+              <span className="text-sm">Verifying aadhar number...</span>
+            )}
+          </div>
+        </div>
+        <div className="col-md-12 mt-2">
+          <div className="form-group">
+            <label htmlFor="aadhar_otp">Aadhar OTP *</label>
+            <input
+              readOnly={
+                formValues.aadhar_no.error ||
+                formValues.aadhar_no.value.length < 12
+              }
+              className="form-control"
+              type="password"
+              name="aadhar_otp"
+              placeholder="Enter aadhar otp"
+              id="aadhar_otp"
+              autoComplete="one-time-code"
+              required
+              maxLength={6}
+              onKeyDown={(e) => onlyNumberValues(e)}
+              onChange={(e) => onInputChange("aadhar_otp", e.target.value)}
+            />
+            {formValues.aadhar_otp.error ? (
+              <span style={{ color: "red", fontSize: "14px" }}>
+                Please enter correct otp
+              </span>
+            ) : (
+              ""
+            )}
+          </div>
+        </div>{" "}
+        {aadharOTPcountDownTimer < 60 && (
+          <div className="flex p-4 justify-end">
+            {aadharOTPcountDownTimer < 60 && aadharOTPcountDownTimer > 0 ? (
+              <h5>
+                Please Wait 00:
+                {aadharOTPcountDownTimer < 10
+                  ? `0${aadharOTPcountDownTimer}`
+                  : aadharOTPcountDownTimer}
+              </h5>
+            ) : (
+              ""
+            )}
+            {aadharOTPcountDownTimer <= 0 && (
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  generateAadharOTP();
+                }}
+                className="border border-purple-900"
+                variant={"outline"}
+              >
+                Resend
+              </Button>
+            )}
+          </div>
+        )}
+        <div className="field btns">
+          <button
+            disabled={isLoading || formValues.aadhar_no.value.length < 12}
+            onClick={() => onVerifyOTP()}
+            className={cn(
+              "next-4 next disabled:opacity-70 disabled:pointer-events-none",
+              isLoading && "animate-pulse"
+            )}
+          >
+            next
+          </button>
         </div>
       </div>
-      <div className="col-md-12 mt-2">
-        <div className="form-group">
-          <label htmlFor="aadhar_otp">Aadhar OTP *</label>
-          <input
-            readOnly={
-              formValues.aadhar_no.error ||
-              formValues.aadhar_no.value.length < 12
-            }
-            className="form-control"
-            type="password"
-            name="aadhar_otp"
-            placeholder="Enter aadhar otp"
-            id="aadhar_otp"
-            autoComplete="one-time-code"
-            required
-            maxLength={6}
-            onKeyDown={(e) => onlyNumberValues(e)}
-            onChange={(e) => onInputChange("aadhar_otp", e.target.value)}
-          />
-          {formValues.aadhar_otp.error ? (
-            <span style={{ color: "red", fontSize: "14px" }}>
-              Please enter correct otp
-            </span>
-          ) : (
-            ""
-          )}
-        </div>
-      </div>{" "}
-      {aadharOTPcountDownTimer < 60 && (
-        <div className="flex p-4 justify-end">
-          {aadharOTPcountDownTimer < 60 && aadharOTPcountDownTimer > 0 ? (
-            <h5>
-              Please Wait 00:
-              {aadharOTPcountDownTimer < 10
-                ? `0${aadharOTPcountDownTimer}`
-                : aadharOTPcountDownTimer}
-            </h5>
-          ) : (
-            ""
-          )}
-          {aadharOTPcountDownTimer <= 0 && (
-            <Button
-              onClick={(e) => {
-                e.preventDefault();
-                generateAadharOTP();
-              }}
-              className="border border-purple-900"
-              variant={"outline"}
-            >
-              Resend
-            </Button>
-          )}
-        </div>
-      )}
-      <div className="field btns">
-        <button
-          disabled={isLoading || formValues.aadhar_no.value.length < 12}
-          onClick={(e) => handleNext(e)}
-          className={cn(
-            "next-4 next disabled:opacity-70 disabled:pointer-events-none",
-            isLoading && "animate-pulse"
-          )}
-        >
-          next
-        </button>
-      </div>
-    </div>
+    </>
   );
 };
 
