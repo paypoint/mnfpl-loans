@@ -22,7 +22,7 @@ interface FileDialogProps extends React.HTMLAttributes<HTMLDivElement> {
   setFiles: React.Dispatch<React.SetStateAction<FileWithPreview[] | null>>;
   isUploading?: boolean;
   disabled?: boolean;
-  image: string;
+  image?: string;
 }
 
 export function FileDialog({

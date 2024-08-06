@@ -70,6 +70,7 @@ const index: FC = () => {
   const [eSignUrl, setESignUrl] = useState<string>();
   const [customError, setCustomError] = useState<CustomErrorT>();
   const [verificationToken, setVerificationToken] = useState("");
+  const [aadharVerified, setAadharVerified] = useState(false);
 
   const [selfieImage, setSelfieImage] = useState<FileWithPreview[] | null>(
     null
@@ -77,6 +78,12 @@ const index: FC = () => {
   const [panCardImage, setPanCardImage] = useState<FileWithPreview[] | null>(
     null
   );
+  const [aadharFrontImage, setAadharFrontImage] = useState<
+    FileWithPreview[] | null
+  >(null);
+  const [aadharBackImage, setAadharBackImage] = useState<
+    FileWithPreview[] | null
+  >(null);
   const [showAlert, AlertModal] = useAlert();
   const [position, setPosition] = useState<GeolocationData>();
 
@@ -442,8 +449,8 @@ const index: FC = () => {
 
       // setStep((prevStep) => prevStep + 1);
     } else if (step === 9) {
-      agreeKFS();
-      // setStep((prevStep) => prevStep + 2);
+      // agreeKFS();
+      setStep((prevStep) => prevStep + 1);
     } else if (step === 10) {
       setOpenTermsDrawer(true);
     } else if (step === 11) {
@@ -519,7 +526,7 @@ const index: FC = () => {
         } else if (refId !== null) {
           localStorage.setItem("REFID", refId);
           await getOffers(refId);
-          // setStep(10); //hcoded
+          // setStep(7); //hcoded
           // console.log("Processing based on Refid:", refId);
         } else {
           setCustomError({
@@ -704,17 +711,21 @@ const index: FC = () => {
             //jump to aadhar details
             setStep(7);
           } else if (nextStep === 4) {
+            //jump to aadhar upload
+            setStep(7);
+            setAadharVerified(true);
+          } else if (nextStep === 5) {
             //jump to bank details
             await getBusinessBankDetails();
             setStep(8);
-          } else if (nextStep === 5) {
+          } else if (nextStep === 6) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(9);
-          } else if (nextStep === 6) {
+          } else if (nextStep === 7) {
             //jump to esign
             return setStep(10);
-          } else if (nextStep === 7) {
+          } else if (nextStep === 8) {
             //jump to last step
             setStep(11);
           }
@@ -942,17 +953,21 @@ const index: FC = () => {
             //jump to aadhar details
             setStep(7);
           } else if (nextStep === 4) {
+            //jump to aadhar upload
+            setStep(7);
+            setAadharVerified(true);
+          } else if (nextStep === 5) {
             //jump to bank details
             await getBusinessBankDetails();
             setStep(8);
-          } else if (nextStep === 5) {
+          } else if (nextStep === 6) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(9);
-          } else if (nextStep === 6) {
+          } else if (nextStep === 7) {
             //jump to esign
             return setStep(10);
-          } else if (nextStep === 7) {
+          } else if (nextStep === 8) {
             //jump to last step
             setStep(11);
           }
@@ -1030,17 +1045,21 @@ const index: FC = () => {
               //jump to aadhar details
               return setStep(7);
             } else if (nextStep === 4) {
+              //jump to aadhar upload
+              setStep(7);
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
               //jump to bank details
               await getBusinessBankDetails();
               setStep(8);
-            } else if (nextStep === 5) {
+            } else if (nextStep === 6) {
               //jump to Kfs
               await getKFSHTML();
               return setStep(9);
-            } else if (nextStep === 6) {
+            } else if (nextStep === 7) {
               //jump to esign
               return setStep(10);
-            } else if (nextStep === 7) {
+            } else if (nextStep === 8) {
               //jump to last step
               setStep(11);
             }
@@ -1065,17 +1084,21 @@ const index: FC = () => {
               //jump to aadhar details
               setStep(7);
             } else if (nextStep === 4) {
+              //jump to aadhar upload
+              setStep(7);
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
               //jump to bank details
               await getBusinessBankDetails();
               setStep(8);
-            } else if (nextStep === 5) {
+            } else if (nextStep === 6) {
               //jump to Kfs
               await getKFSHTML();
               return setStep(9);
-            } else if (nextStep === 6) {
+            } else if (nextStep === 7) {
               //jump to esign
               return setStep(10);
-            } else if (nextStep === 7) {
+            } else if (nextStep === 8) {
               //jump to last step
               setStep(11);
             }
@@ -1154,7 +1177,72 @@ const index: FC = () => {
         const { data } = res;
         if (data.status === "Success") {
           toast.success("Aadhar verified successfully");
-          await getBusinessBankDetails();
+          setAadharVerified(true);
+        } else {
+          toast.error(data.message);
+        }
+      })
+      .catch((error: AxiosError) => {
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      })
+      .finally(() => setIsLoading(false));
+  };
+
+  useEffect(() => {
+    if (formValues.aadhar_no.value.length >= 12) {
+      if (isNaN(Number(formValues.aadhar_no.value))) {
+        let _formValues = { ...formValues };
+        _formValues.aadhar_no.error = true;
+        setFormValues(_formValues);
+        toast.error("Please enter valid aadhar number");
+      } else {
+        let _formValues = { ...formValues };
+        _formValues.aadhar_no.error = false;
+        setFormValues(_formValues);
+        generateAadharOTP();
+      }
+    }
+  }, [formValues.aadhar_no.value]);
+
+  const handleAadharUpload = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    e.preventDefault();
+    if (aadharFrontImage && aadharBackImage) {
+      const frontImageBase64 = (await getBase64(aadharFrontImage[0])) as string;
+      const backImageBase64 = (await getBase64(aadharBackImage[0])) as string;
+      await aadharUploadAPI(frontImageBase64, backImageBase64).catch((err) =>
+        alert(err)
+      );
+    } else {
+      alert("Please upload aadhar front image");
+    }
+  };
+
+  const aadharUploadAPI = async (FrontAadhar: string, BackAadhar: string) => {
+    const body = {
+      ApplicationID: offers?.ApplicationID,
+      FrontAadhar: FrontAadhar,
+      BackAadhar: BackAadhar,
+      Token: verificationToken,
+    };
+
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    debugger;
+    await api.app
+      .post<APIResponseType>({
+        url: "/api/saveaadharocrdocument",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
+          toast.success(data.message || "Aadhar uploaded successfully");
           //Aadhar details step === 7
           const steps = await getSteps2(data.Token, step);
 
@@ -1191,36 +1279,18 @@ const index: FC = () => {
             //jump to last step
             setStep(11);
           }
-
-          // setStep((prevStep) => prevStep + 1);
         } else {
           toast.error(data.message);
         }
       })
       .catch((error: AxiosError) => {
+        setIsLoading(false);
         showAlert({
           title: error.message,
           description: "Please try after some time",
         });
-      })
-      .finally(() => setIsLoading(false));
+      });
   };
-
-  useEffect(() => {
-    if (formValues.aadhar_no.value.length >= 12) {
-      if (isNaN(Number(formValues.aadhar_no.value))) {
-        let _formValues = { ...formValues };
-        _formValues.aadhar_no.error = true;
-        setFormValues(_formValues);
-        toast.error("Please enter valid aadhar number");
-      } else {
-        let _formValues = { ...formValues };
-        _formValues.aadhar_no.error = false;
-        setFormValues(_formValues);
-        generateAadharOTP();
-      }
-    }
-  }, [formValues.aadhar_no.value]);
 
   const updateBank = async () => {
     const body = {
@@ -1270,15 +1340,15 @@ const index: FC = () => {
           if (nextStep < 0) {
             //jump to last step
             return setStep(11);
-          } else if (nextStep <= 5) {
+          } else if (nextStep <= 6) {
             //jump to kfs
             await getKFSHTML();
             setStep(9);
             return;
-          } else if (nextStep === 6) {
+          } else if (nextStep === 7) {
             //jump to esign
             return setStep(10);
-          } else if (nextStep === 7) {
+          } else if (nextStep === 8) {
             //jump to last step
             setStep(11);
           }
@@ -1515,7 +1585,7 @@ const index: FC = () => {
           ({ kycStepCompletionStatus }) => kycStepCompletionStatus === "Pending"
         );
 
-        if (nextStep === 7) {
+        if (nextStep === 8) {
           setStep(11);
         }
 
@@ -2272,7 +2342,7 @@ const index: FC = () => {
                             </div>
                           </div>
                         )}
-                        {step === 7 && (
+                        {step === 7 && !aadharVerified && (
                           <div className="page pt-2">
                             <div className="col-md-12 mt-2">
                               <div className="form-group ">
@@ -2385,6 +2455,40 @@ const index: FC = () => {
                             </div>
                           </div>
                         )}
+                        {step === 7 && aadharVerified && (
+                          <div className="page pt-3 space-y-4">
+                            <FileDialog
+                              files={aadharFrontImage}
+                              setFiles={setAadharFrontImage}
+                              title={"Front of Aadhar Card"}
+                              description={"Click here to upload aadhar card"}
+                            />
+
+                            <FileDialog
+                              files={aadharBackImage}
+                              setFiles={setAadharBackImage}
+                              title={"Back of Aadhar Card"}
+                              description={"Click here to upload aadhar card"}
+                            />
+                            <div className="field btns px-3">
+                              <button
+                                disabled={
+                                  isLoading ||
+                                  !aadharFrontImage ||
+                                  !aadharBackImage
+                                }
+                                onClick={(e) => handleAadharUpload(e)}
+                                className={cn(
+                                  "next-4 next disabled:opacity-70 disabled:pointer-events-none",
+                                  isLoading && "animate-pulse"
+                                )}
+                              >
+                                next
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
                         {step === 8 && (
                           <div className="page">
                             <div className="main_step_8">

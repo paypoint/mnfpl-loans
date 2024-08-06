@@ -57,6 +57,10 @@ export type Steps = [
     kycStepCompletionStatus: kycStepCompletionStatus;
   },
   {
+    kycStepName: "AadharDocumentDetails";
+    kycStepCompletionStatus: kycStepCompletionStatus;
+  },
+  {
     kycStepName: "BankDetails";
     kycStepCompletionStatus: kycStepCompletionStatus;
   },
@@ -350,4 +354,5 @@ export type APIEndPoints =
   | "/api/loginSendOTP"
   | "/api/loginOTPVerify"
   | "/api/installmentTracker"
-  | "/api/loanAccountledger";
+  | "/api/loanAccountledger"
+  | "/api/saveaadharocrdocument";
