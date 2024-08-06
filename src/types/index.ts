@@ -21,6 +21,7 @@ export type ESignPacketsAPI = {
   redirect: string;
   post: string;
   Token: string;
+  message: string;
 };
 
 export type GetStepsAPIResponseType = {

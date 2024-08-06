@@ -1384,6 +1384,7 @@ const index: FC = () => {
       ResponseURL: "http://localhost:5173",
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    debugger;
     setIsLoading(true);
     await api.app
       .post<ESignPacketsAPI>({
@@ -1394,8 +1395,8 @@ const index: FC = () => {
         const { data } = res;
         setIsLoading(false);
         if (data.status === "Success") {
-          let msg = JSON.parse(data.data);
-          let resultMessage = msg;
+          const msg = JSON.parse(data.data);
+          const resultMessage = msg;
           const esignUrl = data.redirect;
 
           // Create a meta element
@@ -1424,7 +1425,7 @@ const index: FC = () => {
 
           setOpenTermsDrawer(false);
         } else {
-          toast.error(data.data);
+          toast.error(data.data || data.message);
         }
       })
       .catch((error: AxiosError) => {
