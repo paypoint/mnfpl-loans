@@ -1143,7 +1143,11 @@ const index: FC = () => {
           _formValues.client_id.value = data.client_id;
           setFormValues(_formValues);
         } else {
-          toast.error(data.message);
+          if (data.message.includes("422")) {
+            toast.error("OTP entered is incorrect, Please enter correct OTP");
+          } else {
+            toast.error(data.message);
+          }
         }
       })
       .catch((error: AxiosError) => {
@@ -1302,19 +1306,20 @@ const index: FC = () => {
             nextStep === 0 ||
             nextStep === 2 ||
             nextStep === 3 ||
-            nextStep === 4
+            nextStep === 4 ||
+            nextStep === 5
           ) {
             //jump to bank details
             await getBusinessBankDetails();
             setStep(8);
-          } else if (nextStep === 5) {
+          } else if (nextStep === 6) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(9);
-          } else if (nextStep === 6) {
+          } else if (nextStep === 7) {
             //jump to esign
             return setStep(10);
-          } else if (nextStep === 7) {
+          } else if (nextStep === 8) {
             //jump to last step
             setStep(11);
           }
@@ -1612,11 +1617,13 @@ const index: FC = () => {
           });
         } else {
           setVerificationToken(data.Token);
+          localStorage.setItem("TOKEN", data.Token);
         }
       }
 
       if (data.status === "Success") {
         setVerificationToken(data.Token);
+        localStorage.setItem("TOKEN", data.Token);
         const steps = data.result;
 
         const nextStep = steps.findIndex(
