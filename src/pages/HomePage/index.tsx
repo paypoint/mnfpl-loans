@@ -10,6 +10,8 @@ import Screen_5 from "@/assets/images/Screen_5.png";
 import Screen_6 from "@/assets/images/Screen_6.jpg";
 import MonarchLogo from "@/assets/images/monarch-logo.png";
 import EsignSteps from "@/assets/images/Esign_steps.png";
+import AadharFrontImage from "@/assets/images/AadharFrontImage.png";
+import AadharBackImage from "@/assets/images/AadharBackImage.png";
 
 import validations from "@/lib/validations";
 import crypto from "@/lib/crypto";
@@ -1144,7 +1146,9 @@ const index: FC = () => {
           setFormValues(_formValues);
         } else {
           if (data.message.includes("422")) {
-            toast.error("OTP entered is incorrect, Please enter correct OTP");
+            toast.error(
+              "Invalid Aadhaar Number, please enter valid Aadhaar Number"
+            );
           } else {
             toast.error(data.message);
           }
@@ -2506,12 +2510,14 @@ const index: FC = () => {
                             <FileDialog
                               files={aadharFrontImage}
                               setFiles={setAadharFrontImage}
+                              image={AadharFrontImage}
                               title={"Front of Aadhar Card"}
                               description={"Click here to upload aadhar card"}
                             />
 
                             <FileDialog
                               files={aadharBackImage}
+                              image={AadharBackImage}
                               setFiles={setAadharBackImage}
                               title={"Back of Aadhar Card"}
                               description={"Click here to upload aadhar card"}
