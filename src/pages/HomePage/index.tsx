@@ -1232,7 +1232,6 @@ const index: FC = () => {
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
-    debugger;
     await api.app
       .post<APIResponseType>({
         url: "/api/saveaadharocrdocument",
@@ -1454,7 +1453,6 @@ const index: FC = () => {
       ResponseURL: "http://localhost:5173",
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-    debugger;
     setIsLoading(true);
     await api.app
       .post<ESignPacketsAPI>({
@@ -2985,7 +2983,10 @@ const index: FC = () => {
                               <div className="flex flex-wrap items-center justify-end rounded-br-[calc(0.3rem_-_1px)] rounded-bl-[calc(0.3rem_-_1px)] p-3 border-t-[#dee2e6] border-t border-solid mx-auto">
                                 <div className="container space-x-2 flex">
                                   <Button
-                                    onClick={() => getEsignRequestPackets()}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      getEsignRequestPackets();
+                                    }}
                                     type="button"
                                     disabled={isLoading}
                                     className={cn(
