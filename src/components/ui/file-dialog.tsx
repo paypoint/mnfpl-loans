@@ -188,7 +188,11 @@ function FileCard({ i, file, files, setFiles }: FileCardProps) {
           className="h-7 w-7"
           onClick={() => {
             if (!files) return;
-            setFiles(files.filter((_, j) => j !== i));
+            if (files.length > 1) {
+              setFiles(files.filter((_, j) => j !== i));
+            } else {
+              setFiles(null);
+            }
           }}
         >
           <X className="h-4 w-4" aria-hidden="true" />

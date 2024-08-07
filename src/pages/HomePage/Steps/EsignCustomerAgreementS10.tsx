@@ -21,10 +21,10 @@ import api from "@/services/api";
 import { ESignPacketsAPI, GeolocationData, OfferDetails } from "@/types";
 
 interface EsignCustomerAgreementS10Props {
-  handleNext: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  handleNext: (event: any) => void;
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  position: GeolocationData;
+  position?: GeolocationData;
   verificationToken: string;
   offers?: OfferDetails;
   merchant_id: string;

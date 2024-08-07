@@ -37,12 +37,14 @@ interface OfferedLoanAmountS1Props {
   offers?: OfferDetails;
   handleNext: () => void;
   setOffers: React.Dispatch<React.SetStateAction<OfferDetails | undefined>>;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
   offers,
   handleNext,
   setOffers,
+  setIsLoading,
 }) => {
   const defaultFormValues = {
     //step-1
@@ -62,7 +64,6 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
 
   const [formValues, setFormValues] = useState(defaultFormValues);
   const [open, setOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [showAlert, AlertModal] = useAlert();
   const [openDrawer, setOpenDrawer] = useState(false);
 
@@ -202,7 +203,7 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
                               id="amount"
                               value={formValues.edit_loan_amount.value}
                               required
-                              maxLength={12}
+                              maxLength={7}
                               onKeyDown={(e) => onlyNumberValues(e)}
                               onChange={(e) =>
                                 onInputChange(
@@ -218,7 +219,7 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
                                   fontSize: "14px",
                                 }}
                               >
-                                Amount should not be less than offered amount
+                                Amount should not be greater than offered amount
                               </span>
                             ) : (
                               ""

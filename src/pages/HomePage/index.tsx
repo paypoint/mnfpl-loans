@@ -294,8 +294,8 @@ const index: FC = () => {
           }
         }
         if (key === "email") {
-          let hasError = !validations.isRequired(_formValues[key].value);
-          _formValues[key].error = !validations.isRequired(
+          let hasError = !validations.isEmailValid(_formValues[key].value);
+          _formValues[key].error = !validations.isEmailValid(
             _formValues[key].value
           );
           if (hasError) {
@@ -350,7 +350,7 @@ const index: FC = () => {
         setFormValues(_formValues);
       }
     } else if (step === 5) {
-      if (selfieImage) {
+      if (selfieImage?.[0]) {
         await getBase64(selfieImage[0])
           .then(
             async (res) =>
@@ -374,7 +374,7 @@ const index: FC = () => {
         }
       });
       if (!formObjectHasError) {
-        if (panCardImage) {
+        if (panCardImage?.[0]) {
           await getBase64(panCardImage[0])
             .then(
               async (res) =>
@@ -1177,9 +1177,49 @@ const index: FC = () => {
         const { data } = res;
         if (data.status === "Success") {
           toast.success("Aadhar verified successfully");
-          setAadharVerified(true);
+          const steps = await getSteps2(data.Token, step);
+
+          const nextStep = steps?.findIndex(
+            ({ kycStepCompletionStatus }) =>
+              kycStepCompletionStatus === "Pending"
+          )!;
+          if (steps.length === 0) {
+            setAadharVerified(true);
+            return;
+          }
+          if (nextStep < 0) {
+            //jump to last step
+            return setStep(11);
+          } else if (
+            nextStep === 1 ||
+            nextStep === 0 ||
+            nextStep === 2 ||
+            nextStep === 3 ||
+            nextStep === 4
+          ) {
+            //jump to aadhar upload
+            setAadharVerified(true);
+          } else if (nextStep === 5) {
+            //jump to bank details
+            await getBusinessBankDetails();
+            setStep(8);
+          } else if (nextStep === 6) {
+            //jump to Kfs
+            await getKFSHTML();
+            return setStep(9);
+          } else if (nextStep === 7) {
+            //jump to esign
+            return setStep(10);
+          } else if (nextStep === 8) {
+            //jump to last step
+            setStep(11);
+          }
         } else {
-          toast.error(data.message);
+          if (data.message.includes("422")) {
+            toast.error("OTP entered is incorrect, Please enter correct OTP");
+          } else {
+            toast.error(data.message);
+          }
         }
       })
       .catch((error: AxiosError) => {
@@ -1211,7 +1251,7 @@ const index: FC = () => {
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
     e.preventDefault();
-    if (aadharFrontImage && aadharBackImage) {
+    if (aadharFrontImage?.[0] && aadharBackImage?.[0]) {
       const frontImageBase64 = (await getBase64(aadharFrontImage[0])) as string;
       const backImageBase64 = (await getBase64(aadharBackImage[0])) as string;
       await aadharUploadAPI(frontImageBase64, backImageBase64).catch((err) =>
@@ -1635,6 +1675,7 @@ const index: FC = () => {
                       <form action="#">
                         {step === 1 && (
                           <OfferedLoanAmountS1
+                            setIsLoading={setIsLoading}
                             offers={offers}
                             handleNext={() =>
                               setStep((prevStep) => prevStep + 1)
