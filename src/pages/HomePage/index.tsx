@@ -1656,6 +1656,14 @@ const index: FC = () => {
       setIsLoading(false);
     }
   };
+
+  const kfsFileName =
+    Number(offers?.ProductId) == 4
+      ? "CspAgreement"
+      : Number(offers?.ProductId) == 8
+      ? "DistributorAgreement"
+      : "customerAgreement";
+
   return (
     <>
       {AlertModal({
@@ -2925,9 +2933,9 @@ const index: FC = () => {
                                     I have read and agree to the{" "}
                                     <a
                                       target="_blank"
-                                      href="https://paypointindia.co.in/PDF/retailer_agreement.pdf"
+                                      href={`https://backoffice.mnfpl.com/pdf/${kfsFileName}.pdf`}
                                     >
-                                      customer agreement
+                                      {kfsFileName}
                                     </a>
                                   </label>
                                 </div>
