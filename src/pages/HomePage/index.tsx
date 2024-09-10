@@ -451,8 +451,11 @@ const index: FC = () => {
 
       // setStep((prevStep) => prevStep + 1);
     } else if (step === 9) {
-      // agreeKFS();
-      setStep((prevStep) => prevStep + 1);
+      if (Number(offers?.ProductId) === 8) {
+        agreeKFS();
+      } else {
+        setStep((prevStep) => prevStep + 1);
+      }
     } else if (step === 10) {
       setOpenTermsDrawer(true);
     } else if (step === 11) {
@@ -1658,9 +1661,9 @@ const index: FC = () => {
   };
 
   const kfsFileName =
-    Number(offers?.ProductId) == 4
+    Number(offers?.ProductId) === 4
       ? "CspAgreement"
-      : Number(offers?.ProductId) == 8
+      : Number(offers?.ProductId) === 8
       ? "DistributorAgreement"
       : "customerAgreement";
 
