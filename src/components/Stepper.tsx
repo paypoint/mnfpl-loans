@@ -1,10 +1,12 @@
+import { OfferDetails } from "@/types";
 import { FC } from "react";
 
 interface StepperProps {
   activeStep: number;
+  offers?: OfferDetails;
 }
 
-const Stepper: FC<StepperProps> = ({ activeStep }) => {
+const Stepper: FC<StepperProps> = ({ activeStep, offers }) => {
   return (
     <div className="row">
       <div className="col-md-12">
@@ -103,17 +105,20 @@ const Stepper: FC<StepperProps> = ({ activeStep }) => {
             </div>
           </div>
 
-          {/* <div className="step">
-            <p>E-Sign</p>
-            <div className="bullet">
-              <i
-                className={`fas fa-file-signature ${
-                  activeStep > 9 ? "" : "inactive"
-                } `}
-              />
-              <div className="check fas fa-check" />
+          {Number(offers?.ProductId) != 8 && (
+            <div className="step">
+              <p>E-Sign</p>
+              <div className="bullet">
+                <i
+                  className={`fas fa-file-signature ${
+                    activeStep > 9 ? "" : "inactive"
+                  } `}
+                />
+                <div className="check fas fa-check" />
+              </div>
             </div>
-          </div> */}
+          )}
+
           <div className="step">
             <p>Confirm</p>
             <div className="bullet">

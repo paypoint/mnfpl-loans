@@ -3,6 +3,7 @@ import { APIEndPoints } from "@/types";
 import axios from "axios";
 
 export const baseURL = siteConfig.API_LIVE_URL;
+export const vhostURL = siteConfig.VHOST_LIVE_URL;
 
 const client = axios.create({
   baseURL: baseURL,

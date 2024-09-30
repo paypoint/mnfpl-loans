@@ -10,6 +10,8 @@ import Screen_5 from "@/assets/images/Screen_5.png";
 import Screen_6 from "@/assets/images/Screen_6.jpg";
 import MonarchLogo from "@/assets/images/monarch-logo.png";
 import EsignSteps from "@/assets/images/Esign_steps.png";
+import AadharFrontImage from "@/assets/images/AadharFrontImage.png";
+import AadharBackImage from "@/assets/images/AadharBackImage.png";
 
 import validations from "@/lib/validations";
 import crypto from "@/lib/crypto";
@@ -70,6 +72,7 @@ const index: FC = () => {
   const [eSignUrl, setESignUrl] = useState<string>();
   const [customError, setCustomError] = useState<CustomErrorT>();
   const [verificationToken, setVerificationToken] = useState("");
+  const [aadharVerified, setAadharVerified] = useState(false);
 
   const [selfieImage, setSelfieImage] = useState<FileWithPreview[] | null>(
     null
@@ -77,6 +80,12 @@ const index: FC = () => {
   const [panCardImage, setPanCardImage] = useState<FileWithPreview[] | null>(
     null
   );
+  const [aadharFrontImage, setAadharFrontImage] = useState<
+    FileWithPreview[] | null
+  >(null);
+  const [aadharBackImage, setAadharBackImage] = useState<
+    FileWithPreview[] | null
+  >(null);
   const [showAlert, AlertModal] = useAlert();
   const [position, setPosition] = useState<GeolocationData>();
 
@@ -287,8 +296,8 @@ const index: FC = () => {
           }
         }
         if (key === "email") {
-          let hasError = !validations.isRequired(_formValues[key].value);
-          _formValues[key].error = !validations.isRequired(
+          let hasError = !validations.isEmailValid(_formValues[key].value);
+          _formValues[key].error = !validations.isEmailValid(
             _formValues[key].value
           );
           if (hasError) {
@@ -343,7 +352,7 @@ const index: FC = () => {
         setFormValues(_formValues);
       }
     } else if (step === 5) {
-      if (selfieImage) {
+      if (selfieImage?.[0]) {
         await getBase64(selfieImage[0])
           .then(
             async (res) =>
@@ -367,7 +376,7 @@ const index: FC = () => {
         }
       });
       if (!formObjectHasError) {
-        if (panCardImage) {
+        if (panCardImage?.[0]) {
           await getBase64(panCardImage[0])
             .then(
               async (res) =>
@@ -442,8 +451,11 @@ const index: FC = () => {
 
       // setStep((prevStep) => prevStep + 1);
     } else if (step === 9) {
-      agreeKFS();
-      // setStep((prevStep) => prevStep + 2);
+      if (Number(offers?.ProductId) === 8) {
+        agreeKFS();
+      } else {
+        setStep((prevStep) => prevStep + 1);
+      }
     } else if (step === 10) {
       setOpenTermsDrawer(true);
     } else if (step === 11) {
@@ -499,28 +511,27 @@ const index: FC = () => {
             });
           });
         const searchParams = new URLSearchParams(location.search);
-        // const urlMsg = searchParams.get("msg");
+        const urlMsg = searchParams.get("msg");
         const refId = searchParams.get("RefId");
-        // if (urlMsg !== null) {
-        //   const fixedUrl = urlMsg.replace(/ /g, "+");
-        //   let msg = crypto.CryptoGraphDecrypt(fixedUrl);
-        //   msg = msg.replace(/'/g, '"').replace(/(\w+):/g, '"$1":');
-        //   const esignMsg = JSON.parse(msg);
-        //   await getOffers(undefined, true);
-        //   if (esignMsg.Status === "Fail") {
-        //     toast.error(esignMsg.Msg || "E-sign failed please retry");
+        if (urlMsg !== null) {
+          const fixedUrl = urlMsg.replace(/ /g, "+");
+          let msg = crypto.CryptoGraphDecrypt(fixedUrl);
+          msg = msg.replace(/'/g, '"').replace(/(\w+):/g, '"$1":');
+          const esignMsg = JSON.parse(msg);
+          await getOffers(undefined, true);
+          if (esignMsg.Status === "Fail") {
+            toast.error(esignMsg.Msg || "E-sign failed please retry");
 
-        //     setStep(11);
-        //   } else {
-        //     toast.success(esignMsg.Msg || "E-sign successfull");
+            setStep(11);
+          } else {
+            toast.success(esignMsg.Msg || "E-sign successfull");
 
-        //     setStep(11);
-        //   }
-        // } else
-        if (refId !== null) {
-          // localStorage.setItem("REFID", refId);
+            setStep(11);
+          }
+        } else if (refId !== null) {
+          localStorage.setItem("REFID", refId);
           await getOffers(refId);
-          // setStep(10); //hcoded
+          // setStep(7); //hcoded
           // console.log("Processing based on Refid:", refId);
         } else {
           setCustomError({
@@ -541,10 +552,10 @@ const index: FC = () => {
   }, []);
 
   const getOffers = async (refID?: string, getStepsKey: boolean = false) => {
-    // if (!refID) {
-    //   let localRefID = localStorage.getItem("REFID")!;
-    //   refID = localRefID;
-    // }
+    if (!refID) {
+      let localRefID = localStorage.getItem("REFID")!;
+      refID = localRefID;
+    }
     setStep(1);
     const body = {
       RefID: refID,
@@ -705,17 +716,21 @@ const index: FC = () => {
             //jump to aadhar details
             setStep(7);
           } else if (nextStep === 4) {
+            //jump to aadhar upload
+            setStep(7);
+            setAadharVerified(true);
+          } else if (nextStep === 5) {
             //jump to bank details
             await getBusinessBankDetails();
             setStep(8);
-          } else if (nextStep === 5) {
+          } else if (nextStep === 6) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(9);
-          } else if (nextStep === 6) {
-            //jump to esign
-            return setStep(11);
           } else if (nextStep === 7) {
+            //jump to esign
+            return setStep(10);
+          } else if (nextStep === 8) {
             //jump to last step
             setStep(11);
           }
@@ -943,17 +958,21 @@ const index: FC = () => {
             //jump to aadhar details
             setStep(7);
           } else if (nextStep === 4) {
+            //jump to aadhar upload
+            setStep(7);
+            setAadharVerified(true);
+          } else if (nextStep === 5) {
             //jump to bank details
             await getBusinessBankDetails();
             setStep(8);
-          } else if (nextStep === 5) {
+          } else if (nextStep === 6) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(9);
-          } else if (nextStep === 6) {
-            //jump to esign
-            return setStep(11);
           } else if (nextStep === 7) {
+            //jump to esign
+            return setStep(10);
+          } else if (nextStep === 8) {
             //jump to last step
             setStep(11);
           }
@@ -1031,17 +1050,21 @@ const index: FC = () => {
               //jump to aadhar details
               return setStep(7);
             } else if (nextStep === 4) {
+              //jump to aadhar upload
+              setStep(7);
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
               //jump to bank details
               await getBusinessBankDetails();
               setStep(8);
-            } else if (nextStep === 5) {
+            } else if (nextStep === 6) {
               //jump to Kfs
               await getKFSHTML();
               return setStep(9);
-            } else if (nextStep === 6) {
-              //jump to esign
-              return setStep(11);
             } else if (nextStep === 7) {
+              //jump to esign
+              return setStep(10);
+            } else if (nextStep === 8) {
               //jump to last step
               setStep(11);
             }
@@ -1066,17 +1089,21 @@ const index: FC = () => {
               //jump to aadhar details
               setStep(7);
             } else if (nextStep === 4) {
+              //jump to aadhar upload
+              setStep(7);
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
               //jump to bank details
               await getBusinessBankDetails();
               setStep(8);
-            } else if (nextStep === 5) {
+            } else if (nextStep === 6) {
               //jump to Kfs
               await getKFSHTML();
               return setStep(9);
-            } else if (nextStep === 6) {
-              //jump to esign
-              return setStep(11);
             } else if (nextStep === 7) {
+              //jump to esign
+              return setStep(10);
+            } else if (nextStep === 8) {
               //jump to last step
               setStep(11);
             }
@@ -1121,7 +1148,13 @@ const index: FC = () => {
           _formValues.client_id.value = data.client_id;
           setFormValues(_formValues);
         } else {
-          toast.error(data.message);
+          if (data.message.includes("422")) {
+            toast.error(
+              "Invalid Aadhaar Number, please enter valid Aadhaar Number"
+            );
+          } else {
+            toast.error(data.message);
+          }
         }
       })
       .catch((error: AxiosError) => {
@@ -1155,8 +1188,6 @@ const index: FC = () => {
         const { data } = res;
         if (data.status === "Success") {
           toast.success("Aadhar verified successfully");
-          await getBusinessBankDetails();
-          //Aadhar details step === 7
           const steps = await getSteps2(data.Token, step);
 
           const nextStep = steps?.findIndex(
@@ -1164,8 +1195,7 @@ const index: FC = () => {
               kycStepCompletionStatus === "Pending"
           )!;
           if (steps.length === 0) {
-            await getBusinessBankDetails();
-            setStep(8);
+            setAadharVerified(true);
             return;
           }
           if (nextStep < 0) {
@@ -1178,24 +1208,29 @@ const index: FC = () => {
             nextStep === 3 ||
             nextStep === 4
           ) {
+            //jump to aadhar upload
+            setAadharVerified(true);
+          } else if (nextStep === 5) {
             //jump to bank details
             await getBusinessBankDetails();
             setStep(8);
-          } else if (nextStep === 5) {
+          } else if (nextStep === 6) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(9);
-          } else if (nextStep === 6) {
-            //jump to esign
-            return setStep(11);
           } else if (nextStep === 7) {
+            //jump to esign
+            return setStep(10);
+          } else if (nextStep === 8) {
             //jump to last step
             setStep(11);
           }
-
-          // setStep((prevStep) => prevStep + 1);
         } else {
-          toast.error(data.message);
+          if (data.message.includes("422")) {
+            toast.error("OTP entered is incorrect, Please enter correct OTP");
+          } else {
+            toast.error(data.message);
+          }
         }
       })
       .catch((error: AxiosError) => {
@@ -1222,6 +1257,91 @@ const index: FC = () => {
       }
     }
   }, [formValues.aadhar_no.value]);
+
+  const handleAadharUpload = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    e.preventDefault();
+    if (aadharFrontImage?.[0] && aadharBackImage?.[0]) {
+      const frontImageBase64 = (await getBase64(aadharFrontImage[0])) as string;
+      const backImageBase64 = (await getBase64(aadharBackImage[0])) as string;
+      await aadharUploadAPI(frontImageBase64, backImageBase64).catch((err) =>
+        alert(err)
+      );
+    } else {
+      alert("Please upload aadhar front image");
+    }
+  };
+
+  const aadharUploadAPI = async (FrontAadhar: string, BackAadhar: string) => {
+    const body = {
+      ApplicationID: offers?.ApplicationID,
+      FrontAadhar: FrontAadhar,
+      BackAadhar: BackAadhar,
+      Token: verificationToken,
+    };
+
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<APIResponseType>({
+        url: "/api/saveaadharocrdocument",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
+          toast.success(data.message || "Aadhar uploaded successfully");
+          //Aadhar details step === 7
+          const steps = await getSteps2(data.Token, step);
+
+          const nextStep = steps?.findIndex(
+            ({ kycStepCompletionStatus }) =>
+              kycStepCompletionStatus === "Pending"
+          )!;
+          if (steps.length === 0) {
+            await getBusinessBankDetails();
+            setStep(8);
+            return;
+          }
+          if (nextStep < 0) {
+            //jump to last step
+            return setStep(11);
+          } else if (
+            nextStep === 1 ||
+            nextStep === 0 ||
+            nextStep === 2 ||
+            nextStep === 3 ||
+            nextStep === 4 ||
+            nextStep === 5
+          ) {
+            //jump to bank details
+            await getBusinessBankDetails();
+            setStep(8);
+          } else if (nextStep === 6) {
+            //jump to Kfs
+            await getKFSHTML();
+            return setStep(9);
+          } else if (nextStep === 7) {
+            //jump to esign
+            return setStep(10);
+          } else if (nextStep === 8) {
+            //jump to last step
+            setStep(11);
+          }
+        } else {
+          toast.error(data.message);
+        }
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
+  };
 
   const updateBank = async () => {
     const body = {
@@ -1271,15 +1391,15 @@ const index: FC = () => {
           if (nextStep < 0) {
             //jump to last step
             return setStep(11);
-          } else if (nextStep <= 5) {
+          } else if (nextStep <= 6) {
             //jump to kfs
             await getKFSHTML();
             setStep(9);
             return;
-          } else if (nextStep === 6) {
-            //jump to esign
-            return setStep(11);
           } else if (nextStep === 7) {
+            //jump to esign
+            return setStep(10);
+          } else if (nextStep === 8) {
             //jump to last step
             setStep(11);
           }
@@ -1359,7 +1479,7 @@ const index: FC = () => {
         if (data.status === "Success") {
           setStep(11);
         } else {
-          toast.error(data.data);
+          toast.error(data.data || data.message);
         }
       })
       .catch((error: AxiosError) => {
@@ -1381,7 +1501,7 @@ const index: FC = () => {
       MerchantID: formValues.merchant_id.value,
       ApplicationID: offers?.ApplicationID,
       MobileNo: offers?.MobileNumber,
-      Token: verificationToken,
+      Token: verificationToken || localStorage.getItem("TOKEN"),
       ResponseURL: "http://localhost:5173",
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1395,8 +1515,8 @@ const index: FC = () => {
         const { data } = res;
         setIsLoading(false);
         if (data.status === "Success") {
-          let msg = JSON.parse(data.data);
-          let resultMessage = msg;
+          const msg = JSON.parse(data.data);
+          const resultMessage = msg;
           const esignUrl = data.redirect;
 
           // Create a meta element
@@ -1425,7 +1545,7 @@ const index: FC = () => {
 
           setOpenTermsDrawer(false);
         } else {
-          toast.error(data.data);
+          toast.error(data.data || data.message);
         }
       })
       .catch((error: AxiosError) => {
@@ -1450,7 +1570,7 @@ const index: FC = () => {
       ApplicationID: offers?.ApplicationID,
       MerchantID: formValues.merchant_id.value,
       MobileNo: offers?.MobileNumber,
-      Token: verificationToken,
+      Token: verificationToken || localStorage.getItem("TOKEN"),
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1504,18 +1624,20 @@ const index: FC = () => {
           });
         } else {
           setVerificationToken(data.Token);
+          localStorage.setItem("TOKEN", data.Token);
         }
       }
 
       if (data.status === "Success") {
         setVerificationToken(data.Token);
+        localStorage.setItem("TOKEN", data.Token);
         const steps = data.result;
 
         const nextStep = steps.findIndex(
           ({ kycStepCompletionStatus }) => kycStepCompletionStatus === "Pending"
         );
 
-        if (nextStep === 7) {
+        if (nextStep === 8) {
           setStep(11);
         }
 
@@ -1537,6 +1659,14 @@ const index: FC = () => {
       setIsLoading(false);
     }
   };
+
+  const kfsFileName =
+    Number(offers?.ProductId) === 4
+      ? "CspAgreement"
+      : Number(offers?.ProductId) === 8
+      ? "DistributorAgreement"
+      : "customerAgreement";
+
   return (
     <>
       {AlertModal({
@@ -1567,6 +1697,7 @@ const index: FC = () => {
                       <form action="#">
                         {step === 1 && (
                           <OfferedLoanAmountS1
+                            setIsLoading={setIsLoading}
                             offers={offers}
                             handleNext={() =>
                               setStep((prevStep) => prevStep + 1)
@@ -2272,7 +2403,7 @@ const index: FC = () => {
                             </div>
                           </div>
                         )}
-                        {step === 7 && (
+                        {step === 7 && !aadharVerified && (
                           <div className="page pt-2">
                             <div className="col-md-12 mt-2">
                               <div className="form-group ">
@@ -2385,6 +2516,42 @@ const index: FC = () => {
                             </div>
                           </div>
                         )}
+                        {step === 7 && aadharVerified && (
+                          <div className="page pt-3 space-y-4">
+                            <FileDialog
+                              files={aadharFrontImage}
+                              setFiles={setAadharFrontImage}
+                              image={AadharFrontImage}
+                              title={"Front of Aadhar Card"}
+                              description={"Click here to upload aadhar card"}
+                            />
+
+                            <FileDialog
+                              files={aadharBackImage}
+                              image={AadharBackImage}
+                              setFiles={setAadharBackImage}
+                              title={"Back of Aadhar Card"}
+                              description={"Click here to upload aadhar card"}
+                            />
+                            <div className="field btns px-3">
+                              <button
+                                disabled={
+                                  isLoading ||
+                                  !aadharFrontImage ||
+                                  !aadharBackImage
+                                }
+                                onClick={(e) => handleAadharUpload(e)}
+                                className={cn(
+                                  "next-4 next disabled:opacity-70 disabled:pointer-events-none",
+                                  isLoading && "animate-pulse"
+                                )}
+                              >
+                                next
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
                         {step === 8 && (
                           <div className="page">
                             <div className="main_step_8">
@@ -2769,9 +2936,9 @@ const index: FC = () => {
                                     I have read and agree to the{" "}
                                     <a
                                       target="_blank"
-                                      href="https://paypointindia.co.in/PDF/retailer_agreement.pdf"
+                                      href={`https://backoffice.mnfpl.com/pdf/${kfsFileName}.pdf`}
                                     >
-                                      customer agreement
+                                      {kfsFileName}
                                     </a>
                                   </label>
                                 </div>
@@ -2881,7 +3048,10 @@ const index: FC = () => {
                               <div className="flex flex-wrap items-center justify-end rounded-br-[calc(0.3rem_-_1px)] rounded-bl-[calc(0.3rem_-_1px)] p-3 border-t-[#dee2e6] border-t border-solid mx-auto">
                                 <div className="container space-x-2 flex">
                                   <Button
-                                    onClick={() => getEsignRequestPackets()}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      getEsignRequestPackets();
+                                    }}
                                     type="button"
                                     disabled={isLoading}
                                     className={cn(

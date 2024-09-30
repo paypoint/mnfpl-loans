@@ -21,6 +21,7 @@ export type ESignPacketsAPI = {
   redirect: string;
   post: string;
   Token: string;
+  message: string;
 };
 
 export type GetStepsAPIResponseType = {
@@ -53,6 +54,10 @@ export type Steps = [
   },
   {
     kycStepName: "AadharDetails";
+    kycStepCompletionStatus: kycStepCompletionStatus;
+  },
+  {
+    kycStepName: "AadharDocumentDetails";
     kycStepCompletionStatus: kycStepCompletionStatus;
   },
   {
@@ -349,4 +354,5 @@ export type APIEndPoints =
   | "/api/loginSendOTP"
   | "/api/loginOTPVerify"
   | "/api/installmentTracker"
-  | "/api/loanAccountledger";
+  | "/api/loanAccountledger"
+  | "/api/saveaadharocrdocument";
