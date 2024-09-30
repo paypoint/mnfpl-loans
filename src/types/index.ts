@@ -355,4 +355,8 @@ export type APIEndPoints =
   | "/api/loginOTPVerify"
   | "/api/installmentTracker"
   | "/api/loanAccountledger"
-  | "/api/saveaadharocrdocument";
+  | "/api/saveaadharocrdocument"
+  | "/api/savecustomerdata"
+  | "/api/uploaddocuments"
+  | "/api/savenewloanbyleaddetail"
+  | "/api/PostLetterByFinanceId";

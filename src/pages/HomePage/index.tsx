@@ -1598,6 +1598,110 @@ const index: FC = () => {
       });
   };
 
+  const savecustomerdata = async () => {
+    // getesigndocument
+    const body = {
+      ApplicationID: offers?.ApplicationID,
+    };
+
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<EsignResponseType>({
+        url: "/api/savecustomerdata",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
+  };
+
+  const uploaddocuments = async () => {
+    // getesigndocument
+    const body = {
+      ApplicationID: offers?.ApplicationID,
+    };
+
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<EsignResponseType>({
+        url: "/api/uploaddocuments",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
+  };
+
+  const savenewloanbyleaddetail = async () => {
+    // getesigndocument
+    const body = {
+      ApplicationID: offers?.ApplicationID,
+    };
+
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<EsignResponseType>({
+        url: "/api/savenewloanbyleaddetail",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
+  };
+
+  const PostLetterByFinanceId = async () => {
+    // getesigndocument
+    const body = {
+      ApplicationID: offers?.ApplicationID,
+    };
+
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<EsignResponseType>({
+        url: "/api/PostLetterByFinanceId",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
+  };
+
   const getSteps2 = async (Token?: string, currentStep?: number) => {
     const body = {
       MerchantID: formValues.merchant_id.value,
