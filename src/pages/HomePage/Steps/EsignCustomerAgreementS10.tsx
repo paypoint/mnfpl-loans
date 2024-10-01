@@ -78,7 +78,7 @@ const EsignCustomerAgreementS10: FC<EsignCustomerAgreementS10Props> = ({
     setIsLoading(true);
     await api.app
       .post<ESignPacketsAPI>({
-        url: "/getesignrequestpackets",
+        url: "/getesignrequestpackets_allcloud",
         requestBody: encryptedBody,
       })
       .then(async (res) => {
