@@ -1786,7 +1786,7 @@ const index: FC = () => {
           )!;
           if (steps.length === 0) {
             setShowProgressLoader(true);
-            return setProgress(30);
+            return setProgress(60);
           }
           if (nextStep < 0) {
             //jump to last step
@@ -1846,8 +1846,9 @@ const index: FC = () => {
               kycStepCompletionStatus === "Pending"
           )!;
           if (steps.length === 0) {
-            setShowProgressLoader(true);
-            return setProgress(30);
+            //jump to Kfs
+            await getKFSHTML();
+            return setStep(9);
           }
           if (nextStep < 0) {
             //jump to last step
@@ -1867,15 +1868,6 @@ const index: FC = () => {
           showAlert({
             //@ts-ignore
             title: data.message || "Something went wrong",
-            description: "Please try after some time",
-          });
-        }
-        if (data.status === "Success") {
-          setProgress(90);
-        } else {
-          showAlert({
-            //@ts-ignore
-            title: data.message,
             description: "Please try after some time",
           });
         }
