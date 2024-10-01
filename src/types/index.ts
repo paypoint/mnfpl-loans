@@ -65,6 +65,18 @@ export type Steps = [
     kycStepCompletionStatus: kycStepCompletionStatus;
   },
   {
+    kycStepName: "Allcloud_Persondetails";
+    kycStepCompletionStatus: kycStepCompletionStatus;
+  },
+  {
+    kycStepName: "Allcloud_UploadDocuments";
+    kycStepCompletionStatus: kycStepCompletionStatus;
+  },
+  {
+    kycStepName: "Allcloud_SaveNewLoanByLeadDetail";
+    kycStepCompletionStatus: kycStepCompletionStatus;
+  },
+  {
     kycStepName: "KFS";
     kycStepCompletionStatus: kycStepCompletionStatus;
   },
@@ -346,7 +358,7 @@ export type APIEndPoints =
   | "/api/updatebank"
   | "/api/getesignrequestterms1"
   | "/api/getesignrequestterms2"
-  | "/getesignrequestpackets"
+  | "/getesignrequestpackets_allcloud"
   | "/api/esignresponse"
   | "/gettermsconditions"
   | "/api/getesigndocument"
@@ -356,7 +368,8 @@ export type APIEndPoints =
   | "/api/installmentTracker"
   | "/api/loanAccountledger"
   | "/api/saveaadharocrdocument"
-  | "/api/savecustomerdata"
+  | "/api/customer/savecustomerdata"
   | "/api/uploaddocuments"
-  | "/api/savenewloanbyleaddetail"
-  | "/api/PostLetterByFinanceId";
+  | "/api/loan/savenewloanbyleaddetail"
+  | "/api/getesigndocument"
+  | "/api/getesignallcloud";
