@@ -13,6 +13,7 @@ export type EsignResponseType = {
   data: string;
   status: "Success" | "Fail";
   Token: string;
+  message: string;
 };
 
 export type ESignPacketsAPI = {

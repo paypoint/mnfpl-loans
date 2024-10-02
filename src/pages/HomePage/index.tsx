@@ -1514,9 +1514,8 @@ const index: FC = () => {
       ApplicationID: ApplicationID || offers?.ApplicationID,
       MerchantID: formValues.merchant_id.value,
       MobileNo: offers?.MobileNumber,
-      Token: verificationToken,
+      Token: localStorage.getItem("TOKEN") || verificationToken,
     };
-
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
     await api.app
@@ -1659,7 +1658,7 @@ const index: FC = () => {
       ApplicationID: offers?.ApplicationID,
       MerchantID: formValues.merchant_id.value,
       MobileNo: offers?.MobileNumber,
-      Token: verificationToken || localStorage.getItem("TOKEN"),
+      Token: localStorage.getItem("TOKEN") || verificationToken,
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1700,7 +1699,7 @@ const index: FC = () => {
   const savecustomerdata = async () => {
     const body = {
       ApplicationID: offers?.ApplicationID,
-      Token: verificationToken || localStorage.getItem("TOKEN"),
+      Token: localStorage.getItem("TOKEN") || verificationToken,
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1746,7 +1745,6 @@ const index: FC = () => {
           }
         } else {
           showAlert({
-            //@ts-ignore
             title: data.message || "Something went wrong",
             description: "Please try after some time",
           });
@@ -1765,7 +1763,7 @@ const index: FC = () => {
   const uploaddocuments = async () => {
     const body = {
       ApplicationID: offers?.ApplicationID,
-      Token: verificationToken || localStorage.getItem("TOKEN"),
+      Token: localStorage.getItem("TOKEN") || verificationToken,
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1778,6 +1776,14 @@ const index: FC = () => {
       .then(async (res) => {
         const { data } = res;
         setIsLoading(false);
+        if (data.message === "Documents not found or pending for approval") {
+          showAlert({
+            title: data.message || "Something went wrong",
+            description: "",
+          });
+          setShowProgressLoader(false);
+          return;
+        }
         if (data.status === "Success") {
           const steps = await getSteps2(data.Token, step);
           const nextStep = steps?.findIndex(
@@ -1808,7 +1814,6 @@ const index: FC = () => {
           }
         } else {
           showAlert({
-            //@ts-ignore
             title: data.message || "Something went wrong",
             description: "Please try after some time",
           });
@@ -1826,61 +1831,72 @@ const index: FC = () => {
   const savenewloanbyleaddetail = async () => {
     const body = {
       ApplicationID: offers?.ApplicationID,
-      Token: verificationToken || localStorage.getItem("TOKEN"),
+      Token: localStorage.getItem("TOKEN") || verificationToken,
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
-    await api.app
-      .post<EsignResponseType>({
-        url: "/api/loan/savenewloanbyleaddetail",
-        requestBody: encryptedBody,
-      })
-      .then(async (res) => {
+
+    const startTime = Date.now();
+    const timeout = 2 * 60 * 1000; // 2 minutes in milliseconds
+    const interval = 30 * 1000; // 30 seconds in milliseconds
+
+    const makeApiCall = async (): Promise<void> => {
+      try {
+        const res = await api.app.post<EsignResponseType>({
+          url: "/api/loan/savenewloanbyleaddetail",
+          requestBody: encryptedBody,
+        });
+
         const { data } = res;
         setIsLoading(false);
+
         if (data.status === "Success") {
           const steps = await getSteps2(data.Token, step);
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           )!;
+
           if (steps.length === 0) {
-            //jump to Kfs
             await getKFSHTML();
             return setStep(9);
           }
+
           if (nextStep < 0) {
-            //jump to last step
             return setStep(11);
           } else if (nextStep <= 9) {
-            //jump to Kfs
             await getKFSHTML();
             return setStep(9);
           } else if (nextStep === 10) {
-            //jump to esign
             return setStep(10);
           } else if (nextStep === 11) {
-            //jump to last step
             setStep(11);
           }
         } else {
-          showAlert({
-            //@ts-ignore
-            title: data.message || "Something went wrong",
-            description: "Please try after some time",
-          });
+          if (Date.now() - startTime < timeout) {
+            console.log("Retrying API call...");
+            setTimeout(makeApiCall, interval);
+          } else {
+            setIsLoading(false);
+            showAlert({
+              title: "Timeout Error",
+              description:
+                "The operation timed out after two minutes. Please try again later.",
+            });
+          }
         }
-      })
-      .catch((error: AxiosError) => {
+      } catch (error: any) {
         setIsLoading(false);
         showAlert({
           title: error.message,
           description: "Please try after some time",
         });
-      });
-  };
+      }
+    };
 
+    makeApiCall();
+  };
   // const PostLetterByFinanceId = async () => {
   //   const body = {
   //     ApplicationID: offers?.ApplicationID,
