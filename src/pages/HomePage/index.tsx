@@ -3230,33 +3230,88 @@ const index: FC = () => {
                           </div>
                         )}
                         {step === 9 && (
-                          <div className="page overflow-auto max-h-[600px]">
-                            {/* {offers ? <KFSDetailsCard offers={offers} /> : ""} */}
-
-                            {KFSHTML && (
-                              <div className="main_step_10bottom">
-                                <div className="flex justify-center items-center cursor-pointer p-2">
-                                  <a
-                                    href={KFSHTML}
-                                    className="text-center"
-                                    target="_blank"
-                                    download="kfs.pdf"
+                          <div className="page">
+                            <div className="main_step_8">
+                              <h4>E-sign customer agreement</h4>
+                              <img
+                                // style={{ width: "60%" }}
+                                src={EsignSteps}
+                                alt="enter-account-details-image"
+                              />
+                            </div>
+                            {/* <div
+                             dangerouslySetInnerHTML={{ __html: esignTerms! }}
+                             className="main_step_9 col-md-12 pt-2 bg-cover max-h-[32rem]   overflow-auto relative"
+                           ></div> */}
+                            <div className="check_box">
+                              <div className="check">
+                                <div className="form-check form-check-inline">
+                                  <Checkbox
+                                    checked={formValues.esign_terms.value}
+                                    // value={formValues.esign_terms.value}
+                                    id="esign_terms"
+                                    className="form-check-input"
+                                    name="esign_terms"
+                                    defaultValue="true"
+                                    required
+                                    onCheckedChange={(checked) => {
+                                      onInputChange("esign_terms", checked);
+                                    }}
+                                  />
+                                  <label
+                                    htmlFor="esign_terms"
+                                    className="form-check-label"
                                   >
-                                    View KFS
-                                  </a>
+                                    I have read and agree to the{" "}
+                                    <a target="_blank" href={KFSHTML}>
+                                      {kfsFileName}
+                                    </a>
+                                  </label>
                                 </div>
                               </div>
-                            )}
+                            </div>
                             <div className="field btns">
                               <button
-                                disabled={isLoading}
+                                disabled={
+                                  isLoading || !formValues.esign_terms.value
+                                }
                                 onClick={(e) => handleNext(e)}
-                                className="submit disabled:opacity-70 disabled:pointer-events-none"
+                                className={cn(
+                                  "next-4 next disabled:opacity-70 disabled:pointer-events-none",
+                                  isLoading && "animate-pulse"
+                                )}
                               >
-                                Agree
+                                next
                               </button>
                             </div>
                           </div>
+                          // <div className="page overflow-auto max-h-[600px]">
+                          //   {offers ? <KFSDetailsCard offers={offers} /> : ""}
+
+                          //   {KFSHTML && (
+                          //     <div className="main_step_10bottom">
+                          //       <div className="flex justify-center items-center cursor-pointer p-2">
+                          //         <a
+                          //           href={KFSHTML}
+                          //           className="text-center"
+                          //           target="_blank"
+                          //           download="kfs.pdf"
+                          //         >
+                          //           View KFS
+                          //         </a>
+                          //       </div>
+                          //     </div>
+                          //   )}
+                          //   <div className="field btns">
+                          //     <button
+                          //       disabled={isLoading}
+                          //       onClick={(e) => handleNext(e)}
+                          //       className="submit disabled:opacity-70 disabled:pointer-events-none"
+                          //     >
+                          //       Agree
+                          //     </button>
+                          //   </div>
+                          // </div>
                         )}
                         {step === 10 && (
                           <div className="page">
