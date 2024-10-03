@@ -698,7 +698,6 @@ const index: FC = () => {
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           )!;
-          debugger;
           if (steps.length === 0) {
             await getPersonalDetails();
             return setStep(4);
@@ -742,7 +741,7 @@ const index: FC = () => {
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
-            return setStep(9);
+            return setStep(10);
           } else if (nextStep === 10) {
             //jump to esign
             return setStep(10);
@@ -908,10 +907,10 @@ const index: FC = () => {
       })
       .catch((error: AxiosError) => {
         setIsLoading(false);
-        showAlert({
-          title: error.message,
-          description: "Please try after some time",
-        });
+        // showAlert({
+        //   title: error.message,
+        //   description: "Please try after some time",
+        // });
       });
   };
 
@@ -996,7 +995,7 @@ const index: FC = () => {
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
-            return setStep(9);
+            return setStep(10);
           } else if (nextStep === 10) {
             //jump to esign
             return setStep(10);
@@ -1281,7 +1280,7 @@ const index: FC = () => {
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
-            return setStep(9);
+            return setStep(10);
           } else if (nextStep === 10) {
             //jump to esign
             return setStep(10);
@@ -1398,7 +1397,7 @@ const index: FC = () => {
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
-            return setStep(9);
+            return setStep(10);
           } else if (nextStep === 10) {
             //jump to esign
             return setStep(10);
@@ -1482,7 +1481,7 @@ const index: FC = () => {
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
-            return setStep(9);
+            return setStep(10);
           } else if (nextStep === 10) {
             //jump to esign
             return setStep(10);
@@ -1713,6 +1712,7 @@ const index: FC = () => {
         const { data } = res;
         if (data.status === "Success") {
           const steps = await getSteps2(data.Token, step);
+          setIsLoading(false);
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
@@ -1733,25 +1733,29 @@ const index: FC = () => {
             setShowProgressLoader(true);
             return setProgress(60);
           } else if (nextStep === 9) {
+            setShowProgressLoader(false);
             //jump to Kfs
             await getKFSHTML();
-            return setStep(9);
+            return setStep(10);
           } else if (nextStep === 10) {
+            setShowProgressLoader(false);
             //jump to esign
             return setStep(10);
           } else if (nextStep === 11) {
+            setShowProgressLoader(false);
             //jump to last step
             setStep(11);
           }
         } else {
+          setShowProgressLoader(false);
           showAlert({
             title: data.message || "Something went wrong",
             description: "Please try after some time",
           });
         }
-        setIsLoading(false);
       })
       .catch((error: AxiosError) => {
+        setShowProgressLoader(false);
         setIsLoading(false);
         showAlert({
           title: error.message,
@@ -1803,16 +1807,20 @@ const index: FC = () => {
             return setProgress(60);
           } else if (nextStep === 9) {
             //jump to Kfs
+            setShowProgressLoader(false);
             await getKFSHTML();
-            return setStep(9);
+            return setStep(10);
           } else if (nextStep === 10) {
             //jump to esign
+            setShowProgressLoader(false);
             return setStep(10);
           } else if (nextStep === 11) {
             //jump to last step
+            setShowProgressLoader(false);
             setStep(11);
           }
         } else {
+          setShowProgressLoader(false);
           showAlert({
             title: data.message || "Something went wrong",
             description: "Please try after some time",
@@ -1820,6 +1828,7 @@ const index: FC = () => {
         }
       })
       .catch((error: AxiosError) => {
+        setShowProgressLoader(false);
         setIsLoading(false);
         showAlert({
           title: error.message,
@@ -1850,6 +1859,7 @@ const index: FC = () => {
 
         const { data } = res;
         setIsLoading(false);
+        setShowProgressLoader(false);
 
         if (data.status === "Success") {
           const steps = await getSteps2(data.Token, step);
@@ -1860,20 +1870,20 @@ const index: FC = () => {
 
           if (steps.length === 0) {
             await getKFSHTML();
-            return setStep(9);
+            return setStep(10);
           }
 
           if (nextStep < 0) {
             return setStep(11);
           } else if (nextStep <= 9) {
             await getKFSHTML();
-            return setStep(9);
+            return setStep(10);
           } else if (nextStep === 10) {
             return setStep(10);
           } else if (nextStep === 11) {
             setStep(11);
           }
-        } else {
+        } else if (data.status === "Fail" && data.message === "") {
           if (Date.now() - startTime < timeout) {
             console.log("Retrying API call...");
             setTimeout(makeApiCall, interval);
@@ -1885,8 +1895,16 @@ const index: FC = () => {
                 "The operation timed out after two minutes. Please try again later.",
             });
           }
+        } else {
+          setShowProgressLoader(false);
+          setIsLoading(false);
+          showAlert({
+            title: data.message || "Something went wrong",
+            description: "Please try after some time",
+          });
         }
       } catch (error: any) {
+        setShowProgressLoader(false);
         setIsLoading(false);
         showAlert({
           title: error.message,
@@ -3274,10 +3292,7 @@ const index: FC = () => {
                                     className="form-check-label"
                                   >
                                     I have read and agree to the{" "}
-                                    <a
-                                      target="_blank"
-                                      href={`https://backoffice.mnfpl.com/pdf/${kfsFileName}.pdf`}
-                                    >
+                                    <a target="_blank" href={KFSHTML}>
                                       {kfsFileName}
                                     </a>
                                   </label>

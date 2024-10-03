@@ -37,7 +37,8 @@ const ProgressModal = ({
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
       <AlertDialogContent className="flex flex-col justify-center items-center max-w-[15rem]">
-        {title} <Progress value={progress} className="w-[60%]" />
+        {progress > 1 ? `Loading ${progress}%` : title}
+        <Progress value={progress} className="w-[60%]" />
       </AlertDialogContent>
     </AlertDialog>
   );
