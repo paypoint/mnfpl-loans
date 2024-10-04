@@ -63,6 +63,7 @@ const index: FC = () => {
   const [countDownTimer, setCountDownTimer] = useState(120);
   const [selectedBankID, setSelectedBankID] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [progressTitle, setProgressTitle] = useState("Please wait...");
   const [showProgressLoader, setShowProgressLoader] = useState(false);
   const [aadharOTPcountDownTimer, setAadharOTPcountDownTimer] = useState(60);
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
@@ -454,11 +455,12 @@ const index: FC = () => {
 
       // setStep((prevStep) => prevStep + 1);
     } else if (step === 9) {
-      if (Number(offers?.ProductId) === 8) {
-        agreeKFS();
-      } else {
-        setStep((prevStep) => prevStep + 1);
-      }
+      setOpenTermsDrawer(true);
+      // if (Number(offers?.ProductId) === 8) {
+      //   agreeKFS();
+      // } else {
+      //   setStep((prevStep) => prevStep + 1);
+      // }
     } else if (step === 10) {
       setOpenTermsDrawer(true);
     } else if (step === 11) {
@@ -729,22 +731,24 @@ const index: FC = () => {
           } else if (nextStep === 6) {
             //jump to Kfs
             setShowProgressLoader(true);
+            setProgressTitle("Saving Customer data");
             return setProgress(1);
           } else if (nextStep === 7) {
             //jump to Kfs
             setShowProgressLoader(true);
+            setProgressTitle("Generating Customer ID");
             return setProgress(30);
           } else if (nextStep === 8) {
             //jump to Kfs
-            setShowProgressLoader(true);
-            return setProgress(60);
+            await getKFSHTML();
+            return setStep(10);
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(10);
           } else if (nextStep === 10) {
-            //jump to esign
-            return setStep(10);
+            //jump to last step
+            return setStep(11);
           } else if (nextStep === 11) {
             //jump to last step
             setStep(11);
@@ -983,22 +987,24 @@ const index: FC = () => {
           } else if (nextStep === 6) {
             //jump to Kfs
             setShowProgressLoader(true);
+            setProgressTitle("Saving Customer data");
             return setProgress(1);
           } else if (nextStep === 7) {
             //jump to Kfs
             setShowProgressLoader(true);
+            setProgressTitle("Generating Customer ID");
             return setProgress(30);
           } else if (nextStep === 8) {
             //jump to Kfs
-            setShowProgressLoader(true);
-            return setProgress(60);
+            await getKFSHTML();
+            return setStep(10);
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(10);
           } else if (nextStep === 10) {
-            //jump to esign
-            return setStep(10);
+            //jump to last step
+            return setStep(11);
           } else if (nextStep === 11) {
             //jump to last step
             setStep(11);
@@ -1087,22 +1093,24 @@ const index: FC = () => {
             } else if (nextStep === 6) {
               //jump to Kfs
               setShowProgressLoader(true);
+              setProgressTitle("Saving Customer data");
               return setProgress(1);
             } else if (nextStep === 7) {
               //jump to Kfs
               setShowProgressLoader(true);
+              setProgressTitle("Generating Customer ID");
               return setProgress(30);
             } else if (nextStep === 8) {
               //jump to Kfs
-              setShowProgressLoader(true);
-              return setProgress(60);
+              await getKFSHTML();
+              return setStep(10);
             } else if (nextStep === 9) {
               //jump to Kfs
               await getKFSHTML();
-              return setStep(9);
-            } else if (nextStep === 10) {
-              //jump to esign
               return setStep(10);
+            } else if (nextStep === 10) {
+              //jump to last step
+              return setStep(11);
             } else if (nextStep === 11) {
               //jump to last step
               setStep(11);
@@ -1138,22 +1146,24 @@ const index: FC = () => {
             } else if (nextStep === 6) {
               //jump to Kfs
               setShowProgressLoader(true);
+              setProgressTitle("Saving Customer data");
               return setProgress(1);
             } else if (nextStep === 7) {
               //jump to Kfs
               setShowProgressLoader(true);
+              setProgressTitle("Generating Customer ID");
               return setProgress(30);
             } else if (nextStep === 8) {
               //jump to Kfs
-              setShowProgressLoader(true);
-              return setProgress(60);
+              await getKFSHTML();
+              return setStep(10);
             } else if (nextStep === 9) {
               //jump to Kfs
               await getKFSHTML();
-              return setStep(9);
-            } else if (nextStep === 10) {
-              //jump to esign
               return setStep(10);
+            } else if (nextStep === 10) {
+              //jump to last step
+              return setStep(11);
             } else if (nextStep === 11) {
               //jump to last step
               setStep(11);
@@ -1268,22 +1278,24 @@ const index: FC = () => {
           } else if (nextStep === 6) {
             //jump to Kfs
             setShowProgressLoader(true);
+            setProgressTitle("Saving Customer data");
             return setProgress(1);
           } else if (nextStep === 7) {
             //jump to Kfs
             setShowProgressLoader(true);
+            setProgressTitle("Generating Customer ID");
             return setProgress(30);
           } else if (nextStep === 8) {
             //jump to Kfs
-            setShowProgressLoader(true);
-            return setProgress(60);
+            await getKFSHTML();
+            return setStep(10);
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(10);
           } else if (nextStep === 10) {
-            //jump to esign
-            return setStep(10);
+            //jump to last step
+            return setStep(11);
           } else if (nextStep === 11) {
             //jump to last step
             setStep(11);
@@ -1385,22 +1397,24 @@ const index: FC = () => {
           } else if (nextStep === 6) {
             //jump to Kfs
             setShowProgressLoader(true);
+            setProgressTitle("Saving Customer data");
             return setProgress(1);
           } else if (nextStep === 7) {
             //jump to Kfs
             setShowProgressLoader(true);
+            setProgressTitle("Generating Customer ID");
             return setProgress(30);
           } else if (nextStep === 8) {
             //jump to Kfs
-            setShowProgressLoader(true);
-            return setProgress(60);
+            await getKFSHTML();
+            return setStep(10);
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(10);
           } else if (nextStep === 10) {
-            //jump to esign
-            return setStep(10);
+            //jump to last step
+            return setStep(11);
           } else if (nextStep === 11) {
             //jump to last step
             setStep(11);
@@ -1469,22 +1483,24 @@ const index: FC = () => {
           } else if (nextStep === 6) {
             //jump to Kfs
             setShowProgressLoader(true);
+            setProgressTitle("Saving Customer data");
             return setProgress(1);
           } else if (nextStep === 7) {
             //jump to Kfs
             setShowProgressLoader(true);
+            setProgressTitle("Generating Customer ID");
             return setProgress(30);
           } else if (nextStep === 8) {
             //jump to Kfs
-            setShowProgressLoader(true);
-            return setProgress(60);
+            await getKFSHTML();
+            return setStep(10);
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(10);
           } else if (nextStep === 10) {
-            //jump to esign
-            return setStep(10);
+            //jump to last step
+            return setStep(11);
           } else if (nextStep === 11) {
             //jump to last step
             setStep(11);
@@ -1689,7 +1705,7 @@ const index: FC = () => {
     if (progress === 1) {
       savecustomerdata();
     } else if (progress === 30) {
-      uploaddocuments();
+      savenewloanbyleaddetail();
     } else if (progress === 60) {
       savenewloanbyleaddetail();
     }
@@ -1730,93 +1746,19 @@ const index: FC = () => {
             return setProgress(30);
           } else if (nextStep === 8) {
             //jump to Kfs
-            setShowProgressLoader(true);
-            return setProgress(60);
+            await getKFSHTML();
+            return setStep(10);
           } else if (nextStep === 9) {
-            setShowProgressLoader(false);
             //jump to Kfs
             await getKFSHTML();
             return setStep(10);
           } else if (nextStep === 10) {
             setShowProgressLoader(false);
             //jump to esign
-            return setStep(10);
-          } else if (nextStep === 11) {
-            setShowProgressLoader(false);
-            //jump to last step
-            setStep(11);
-          }
-        } else {
-          setShowProgressLoader(false);
-          showAlert({
-            title: data.message || "Something went wrong",
-            description: "Please try after some time",
-          });
-        }
-      })
-      .catch((error: AxiosError) => {
-        setShowProgressLoader(false);
-        setIsLoading(false);
-        showAlert({
-          title: error.message,
-          description: "Please try after some time",
-        });
-      });
-  };
-
-  const uploaddocuments = async () => {
-    const body = {
-      ApplicationID: offers?.ApplicationID,
-      Token: localStorage.getItem("TOKEN") || verificationToken,
-    };
-
-    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-    setIsLoading(true);
-    await api.app
-      .post<EsignResponseType>({
-        url: "/api/uploaddocuments",
-        requestBody: encryptedBody,
-      })
-      .then(async (res) => {
-        const { data } = res;
-        setIsLoading(false);
-        if (data.message === "Documents not found or pending for approval") {
-          showAlert({
-            title: data.message || "Something went wrong",
-            description: "",
-          });
-          setShowProgressLoader(false);
-          return;
-        }
-        if (data.status === "Success") {
-          const steps = await getSteps2(data.Token, step);
-          const nextStep = steps?.findIndex(
-            ({ kycStepCompletionStatus }) =>
-              kycStepCompletionStatus === "Pending"
-          )!;
-          if (steps.length === 0) {
-            setShowProgressLoader(true);
-            return setProgress(60);
-          }
-          if (nextStep < 0) {
-            //jump to last step
             return setStep(11);
-          } else if (nextStep <= 8) {
-            //jump to Kfs
-            setShowProgressLoader(true);
-            return setProgress(60);
-          } else if (nextStep === 9) {
-            //jump to Kfs
-            setShowProgressLoader(false);
-            await getKFSHTML();
-            return setStep(10);
-          } else if (nextStep === 10) {
-            //jump to esign
-            setShowProgressLoader(false);
-            return setStep(10);
           } else if (nextStep === 11) {
-            //jump to last step
             setShowProgressLoader(false);
+            //jump to last step
             setStep(11);
           }
         } else {
@@ -1836,6 +1778,79 @@ const index: FC = () => {
         });
       });
   };
+
+  // const uploaddocuments = async () => {
+  //   const body = {
+  //     ApplicationID: offers?.ApplicationID,
+  //     Token: localStorage.getItem("TOKEN") || verificationToken,
+  //   };
+
+  //   const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+  //   setIsLoading(true);
+  //   await api.app
+  //     .post<EsignResponseType>({
+  //       url: "/api/uploaddocuments",
+  //       requestBody: encryptedBody,
+  //     })
+  //     .then(async (res) => {
+  //       const { data } = res;
+  //       setIsLoading(false);
+  //       if (data.message === "Documents not found or pending for approval") {
+  //         showAlert({
+  //           title: data.message || "Something went wrong",
+  //           description: "",
+  //         });
+  //         setShowProgressLoader(false);
+  //         return;
+  //       }
+  //       if (data.status === "Success") {
+  //         const steps = await getSteps2(data.Token, step);
+  //         const nextStep = steps?.findIndex(
+  //           ({ kycStepCompletionStatus }) =>
+  //             kycStepCompletionStatus === "Pending"
+  //         )!;
+  //         if (steps.length === 0) {
+  //           setShowProgressLoader(true);
+  //           return setProgress(60);
+  //         }
+  //         if (nextStep < 0) {
+  //           //jump to last step
+  //           return setStep(11);
+  //         } else if (nextStep <= 8) {
+  //           //jump to Kfs
+  //           setShowProgressLoader(true);
+  //           return setProgress(60);
+  //         } else if (nextStep === 9) {
+  //           //jump to Kfs
+  //           setShowProgressLoader(false);
+  //           await getKFSHTML();
+  //           return setStep(10);
+  //         } else if (nextStep === 10) {
+  //           //jump to esign
+  //           setShowProgressLoader(false);
+  //           return setStep(10);
+  //         } else if (nextStep === 11) {
+  //           //jump to last step
+  //           setShowProgressLoader(false);
+  //           setStep(11);
+  //         }
+  //       } else {
+  //         setShowProgressLoader(false);
+  //         showAlert({
+  //           title: data.message || "Something went wrong",
+  //           description: "Please try after some time",
+  //         });
+  //       }
+  //     })
+  //     .catch((error: AxiosError) => {
+  //       setShowProgressLoader(false);
+  //       setIsLoading(false);
+  //       showAlert({
+  //         title: error.message,
+  //         description: "Please try after some time",
+  //       });
+  //     });
+  // };
 
   const savenewloanbyleaddetail = async () => {
     const body = {
@@ -1879,12 +1894,13 @@ const index: FC = () => {
             await getKFSHTML();
             return setStep(10);
           } else if (nextStep === 10) {
-            return setStep(10);
+            return setStep(11);
           } else if (nextStep === 11) {
             setStep(11);
           }
         } else if (data.status === "Fail" && data.message === "") {
           if (Date.now() - startTime < timeout) {
+            setProgressTitle("Generating Customer ID, this might take time.");
             console.log("Retrying API call...");
             setTimeout(makeApiCall, interval);
           } else {
@@ -2018,7 +2034,7 @@ const index: FC = () => {
         description: "",
       })}
       <ProgressModal
-        title="Please wait.."
+        title={progressTitle}
         open={showProgressLoader}
         progress={progress}
         onClose={() => setShowProgressLoader(false)}
