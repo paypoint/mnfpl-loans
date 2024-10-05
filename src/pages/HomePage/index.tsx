@@ -736,19 +736,21 @@ const index: FC = () => {
           } else if (nextStep === 7) {
             //jump to Kfs
             setShowProgressLoader(true);
-            setProgressTitle("Generating Customer ID");
+            setProgressTitle("Uploading documents");
             return setProgress(30);
           } else if (nextStep === 8) {
             //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
+            setProgressTitle("Generating Customer ID");
+            setShowProgressLoader(true);
+            return setProgress(60);
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(10);
           } else if (nextStep === 10) {
             //jump to last step
-            return setStep(11);
+            await getKFSHTML();
+            return setStep(10);
           } else if (nextStep === 11) {
             //jump to last step
             setStep(11);
@@ -992,19 +994,21 @@ const index: FC = () => {
           } else if (nextStep === 7) {
             //jump to Kfs
             setShowProgressLoader(true);
-            setProgressTitle("Generating Customer ID");
+            setProgressTitle("Uploading documents");
             return setProgress(30);
           } else if (nextStep === 8) {
             //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
+            setProgressTitle("Generating Customer ID");
+            setShowProgressLoader(true);
+            return setProgress(60);
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(10);
           } else if (nextStep === 10) {
             //jump to last step
-            return setStep(11);
+            await getKFSHTML();
+            return setStep(10);
           } else if (nextStep === 11) {
             //jump to last step
             setStep(11);
@@ -1283,19 +1287,21 @@ const index: FC = () => {
           } else if (nextStep === 7) {
             //jump to Kfs
             setShowProgressLoader(true);
-            setProgressTitle("Generating Customer ID");
+            setProgressTitle("Uploading documents");
             return setProgress(30);
           } else if (nextStep === 8) {
             //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
+            setProgressTitle("Generating Customer ID");
+            setShowProgressLoader(true);
+            return setProgress(60);
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(10);
           } else if (nextStep === 10) {
             //jump to last step
-            return setStep(11);
+            await getKFSHTML();
+            return setStep(10);
           } else if (nextStep === 11) {
             //jump to last step
             setStep(11);
@@ -1402,19 +1408,21 @@ const index: FC = () => {
           } else if (nextStep === 7) {
             //jump to Kfs
             setShowProgressLoader(true);
-            setProgressTitle("Generating Customer ID");
+            setProgressTitle("Uploading documents");
             return setProgress(30);
           } else if (nextStep === 8) {
             //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
+            setProgressTitle("Generating Customer ID");
+            setShowProgressLoader(true);
+            return setProgress(60);
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(10);
           } else if (nextStep === 10) {
             //jump to last step
-            return setStep(11);
+            await getKFSHTML();
+            return setStep(10);
           } else if (nextStep === 11) {
             //jump to last step
             setStep(11);
@@ -1488,19 +1496,21 @@ const index: FC = () => {
           } else if (nextStep === 7) {
             //jump to Kfs
             setShowProgressLoader(true);
-            setProgressTitle("Generating Customer ID");
+            setProgressTitle("Uploading documents");
             return setProgress(30);
           } else if (nextStep === 8) {
             //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
+            setProgressTitle("Generating Customer ID");
+            setShowProgressLoader(true);
+            return setProgress(60);
           } else if (nextStep === 9) {
             //jump to Kfs
             await getKFSHTML();
             return setStep(10);
           } else if (nextStep === 10) {
             //jump to last step
-            return setStep(11);
+            await getKFSHTML();
+            return setStep(10);
           } else if (nextStep === 11) {
             //jump to last step
             setStep(11);
@@ -1705,7 +1715,7 @@ const index: FC = () => {
     if (progress === 1) {
       savecustomerdata();
     } else if (progress === 30) {
-      savenewloanbyleaddetail();
+      uploaddocuments();
     } else if (progress === 60) {
       savenewloanbyleaddetail();
     }
@@ -1742,13 +1752,16 @@ const index: FC = () => {
             return setStep(11);
           } else if (nextStep <= 7) {
             //jump to Kfs
+            setProgressTitle("Uploading documents");
             setShowProgressLoader(true);
             return setProgress(30);
           } else if (nextStep === 8) {
             //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
+            setProgressTitle("Generating Customer ID");
+            setShowProgressLoader(true);
+            return setProgress(60);
           } else if (nextStep === 9) {
+            setShowProgressLoader(false);
             //jump to Kfs
             await getKFSHTML();
             return setStep(10);
@@ -1779,78 +1792,80 @@ const index: FC = () => {
       });
   };
 
-  // const uploaddocuments = async () => {
-  //   const body = {
-  //     ApplicationID: offers?.ApplicationID,
-  //     Token: localStorage.getItem("TOKEN") || verificationToken,
-  //   };
+  const uploaddocuments = async () => {
+    const body = {
+      ApplicationID: offers?.ApplicationID,
+      Token: localStorage.getItem("TOKEN") || verificationToken,
+    };
 
-  //   const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
-  //   setIsLoading(true);
-  //   await api.app
-  //     .post<EsignResponseType>({
-  //       url: "/api/uploaddocuments",
-  //       requestBody: encryptedBody,
-  //     })
-  //     .then(async (res) => {
-  //       const { data } = res;
-  //       setIsLoading(false);
-  //       if (data.message === "Documents not found or pending for approval") {
-  //         showAlert({
-  //           title: data.message || "Something went wrong",
-  //           description: "",
-  //         });
-  //         setShowProgressLoader(false);
-  //         return;
-  //       }
-  //       if (data.status === "Success") {
-  //         const steps = await getSteps2(data.Token, step);
-  //         const nextStep = steps?.findIndex(
-  //           ({ kycStepCompletionStatus }) =>
-  //             kycStepCompletionStatus === "Pending"
-  //         )!;
-  //         if (steps.length === 0) {
-  //           setShowProgressLoader(true);
-  //           return setProgress(60);
-  //         }
-  //         if (nextStep < 0) {
-  //           //jump to last step
-  //           return setStep(11);
-  //         } else if (nextStep <= 8) {
-  //           //jump to Kfs
-  //           setShowProgressLoader(true);
-  //           return setProgress(60);
-  //         } else if (nextStep === 9) {
-  //           //jump to Kfs
-  //           setShowProgressLoader(false);
-  //           await getKFSHTML();
-  //           return setStep(10);
-  //         } else if (nextStep === 10) {
-  //           //jump to esign
-  //           setShowProgressLoader(false);
-  //           return setStep(10);
-  //         } else if (nextStep === 11) {
-  //           //jump to last step
-  //           setShowProgressLoader(false);
-  //           setStep(11);
-  //         }
-  //       } else {
-  //         setShowProgressLoader(false);
-  //         showAlert({
-  //           title: data.message || "Something went wrong",
-  //           description: "Please try after some time",
-  //         });
-  //       }
-  //     })
-  //     .catch((error: AxiosError) => {
-  //       setShowProgressLoader(false);
-  //       setIsLoading(false);
-  //       showAlert({
-  //         title: error.message,
-  //         description: "Please try after some time",
-  //       });
-  //     });
-  // };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<EsignResponseType>({
+        url: "/api/uploaddocuments",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.message === "Documents not found or pending for approval") {
+          showAlert({
+            title: data.message || "Something went wrong",
+            description: "",
+          });
+          setShowProgressLoader(false);
+          return;
+        }
+        if (data.status === "Success") {
+          const steps = await getSteps2(data.Token, step);
+          const nextStep = steps?.findIndex(
+            ({ kycStepCompletionStatus }) =>
+              kycStepCompletionStatus === "Pending"
+          )!;
+          if (steps.length === 0) {
+            setProgressTitle("Generating Customer ID");
+            setShowProgressLoader(true);
+            return setProgress(60);
+          }
+          if (nextStep < 0) {
+            //jump to last step
+            return setStep(11);
+          } else if (nextStep <= 8) {
+            //jump to Kfs
+            setProgressTitle("Generating Customer ID");
+            setShowProgressLoader(true);
+            return setProgress(60);
+          } else if (nextStep === 9) {
+            //jump to Kfs
+            setShowProgressLoader(false);
+            await getKFSHTML();
+            return setStep(10);
+          } else if (nextStep === 10) {
+            //jump to esign
+            setShowProgressLoader(false);
+            return setStep(10);
+          } else if (nextStep === 11) {
+            //jump to last step
+            setShowProgressLoader(false);
+            setStep(11);
+          }
+        } else {
+          setShowProgressLoader(false);
+          showAlert({
+            title: data.message || "Something went wrong",
+            description: "Please try after some time",
+          });
+        }
+      })
+      .catch((error: AxiosError) => {
+        setShowProgressLoader(false);
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
+  };
 
   const savenewloanbyleaddetail = async () => {
     const body = {
