@@ -260,6 +260,10 @@ export type OfferDetails = {
   ProcessingFeesRate: number;
   GSTRate: number;
   LoanStatus: "1" | "2" | "5";
+  AllCloudEnable:
+    | 0 //disabled
+    | 1; //enabled
+  DistributorLoan: 0 | 1;
 };
 
 export type LoginOTPVerifyAPIResponeType = {
@@ -360,6 +364,7 @@ export type APIEndPoints =
   | "/api/getesignrequestterms1"
   | "/api/getesignrequestterms2"
   | "/getesignrequestpackets_allcloud"
+  | "/getesignrequestpackets"
   | "/api/esignresponse"
   | "/gettermsconditions"
   | "/api/getesigndocument"
@@ -372,5 +377,4 @@ export type APIEndPoints =
   | "/api/customer/savecustomerdata"
   | "/api/uploaddocuments"
   | "/api/loan/savenewloanbyleaddetail"
-  | "/api/getesigndocument"
   | "/api/getesignallcloud";

@@ -56,6 +56,7 @@ import OfferedLoanAmountS1 from "./Steps/OfferedLoanAmountS1";
 import EnterMobileNoS2 from "./Steps/EnterMobileNoS2";
 import ApplicationSubmittedS11 from "./Steps/ApplicationSubmittedS11";
 import ProgressModal from "@/components/modals/progress-loader";
+import { PasswordInput } from "@/components/password-input";
 
 const index: FC = () => {
   const [step, setStep] = useState(0);
@@ -455,12 +456,15 @@ const index: FC = () => {
 
       // setStep((prevStep) => prevStep + 1);
     } else if (step === 9) {
-      setOpenTermsDrawer(true);
-      // if (Number(offers?.ProductId) === 8) {
-      //   agreeKFS();
-      // } else {
-      //   setStep((prevStep) => prevStep + 1);
-      // }
+      if (offers?.DistributorLoan === 0 && offers?.DistributorLoan === 0) {
+        setStep((prevStep) => prevStep + 1);
+        return;
+      }
+      if (offers?.DistributorLoan === 1) {
+        agreeKFS();
+      } else {
+        setOpenTermsDrawer(true);
+      }
     } else if (step === 10) {
       setOpenTermsDrawer(true);
     } else if (step === 11) {
@@ -518,12 +522,14 @@ const index: FC = () => {
         const searchParams = new URLSearchParams(location.search);
         const urlMsg = searchParams.get("msg");
         const refId = searchParams.get("RefId");
+        debugger;
         if (urlMsg !== null) {
           const fixedUrl = urlMsg.replace(/ /g, "+");
           let msg = crypto.CryptoGraphDecrypt(fixedUrl);
           msg = msg.replace(/'/g, '"').replace(/(\w+):/g, '"$1":');
           const esignMsg = JSON.parse(msg);
           await getOffers(undefined, true);
+
           if (esignMsg.Status === "Fail") {
             toast.error(esignMsg.Msg || "E-sign failed please retry");
 
@@ -690,6 +696,7 @@ const index: FC = () => {
         if (data.status === "Success") {
           setVerificationToken(data.Token);
           toast.success(data.message);
+
           const steps = await getSteps2(data.Token, step);
 
           // if(steps.length === 0){
@@ -700,59 +707,102 @@ const index: FC = () => {
             ({ kycStepCompletionStatus }) =>
               kycStepCompletionStatus === "Pending"
           )!;
-          if (steps.length === 0) {
-            await getPersonalDetails();
-            return setStep(4);
+
+          if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+            if (steps.length === 0) {
+              await getPersonalDetails();
+              return setStep(4);
+            }
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 0) {
+              //jump to personal details
+              await getPersonalDetails();
+              return setStep(4);
+            } else if (nextStep === 1) {
+              //jump to selfie
+              return setStep(5);
+            } else if (nextStep === 2) {
+              //jump to pan card upload
+              setStep(6);
+            } else if (nextStep === 3) {
+              //jump to aadhar details
+              setStep(7);
+            } else if (nextStep === 4) {
+              //jump to aadhar upload
+              setStep(7);
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              await getKFSHTML();
+              return setStep(9);
+            } else if (nextStep === 7) {
+              //jump to esign
+              await geteSignAllCloud();
+              return setStep(10);
+            } else if (nextStep === 8) {
+              //jump to last step
+              setStep(11);
+            }
+          } else {
+            if (steps.length === 0) {
+              await getPersonalDetails();
+              return setStep(4);
+            }
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 0) {
+              //jump to personal details
+              await getPersonalDetails();
+              return setStep(4);
+            } else if (nextStep === 1) {
+              //jump to selfie
+              return setStep(5);
+            } else if (nextStep === 2) {
+              //jump to pan card upload
+              setStep(6);
+            } else if (nextStep === 3) {
+              //jump to aadhar details
+              setStep(7);
+            } else if (nextStep === 4) {
+              //jump to aadhar upload
+              setStep(7);
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Saving Customer data");
+              return setProgress(1);
+            } else if (nextStep === 7) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Generating Customer ID");
+              return setProgress(30);
+            } else if (nextStep === 8) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 9) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 10) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 11) {
+              //jump to last step
+              setStep(11);
+            }
           }
-          if (nextStep < 0) {
-            //jump to last step
-            return setStep(11);
-          } else if (nextStep === 0) {
-            //jump to personal details
-            await getPersonalDetails();
-            return setStep(4);
-          } else if (nextStep === 1) {
-            //jump to selfie
-            return setStep(5);
-          } else if (nextStep === 2) {
-            //jump to pan card upload
-            setStep(6);
-          } else if (nextStep === 3) {
-            //jump to aadhar details
-            setStep(7);
-          } else if (nextStep === 4) {
-            //jump to aadhar upload
-            setStep(7);
-            setAadharVerified(true);
-          } else if (nextStep === 5) {
-            //jump to bank details
-            await getBusinessBankDetails();
-            setStep(8);
-          } else if (nextStep === 6) {
-            //jump to Kfs
-            setShowProgressLoader(true);
-            setProgressTitle("Saving Customer data");
-            return setProgress(1);
-          } else if (nextStep === 7) {
-            //jump to Kfs
-            setShowProgressLoader(true);
-            setProgressTitle("Generating Customer ID");
-            return setProgress(30);
-          } else if (nextStep === 8) {
-            //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
-          } else if (nextStep === 9) {
-            //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
-          } else if (nextStep === 10) {
-            //jump to last step
-            return setStep(11);
-          } else if (nextStep === 11) {
-            //jump to last step
-            setStep(11);
-          }
+
           // setStep((prevStep) => prevStep + 1);
           // getPersonalDetails();
         } else {
@@ -964,50 +1014,83 @@ const index: FC = () => {
           if (steps.length === 0) {
             return setStep(5);
           }
-          if (nextStep < 0) {
-            //jump to last step
-            return setStep(11);
-          } else if (nextStep === 1 || nextStep === 0) {
-            //jump to selfie
-            return setStep(5);
-          } else if (nextStep === 2) {
-            //jump to pan card upload
-            setStep(6);
-          } else if (nextStep === 3) {
-            //jump to aadhar details
-            setStep(7);
-          } else if (nextStep === 4) {
-            //jump to aadhar upload
-            setStep(7);
-            setAadharVerified(true);
-          } else if (nextStep === 5) {
-            //jump to bank details
-            await getBusinessBankDetails();
-            setStep(8);
-          } else if (nextStep === 6) {
-            //jump to Kfs
-            setShowProgressLoader(true);
-            setProgressTitle("Saving Customer data");
-            return setProgress(1);
-          } else if (nextStep === 7) {
-            //jump to Kfs
-            setShowProgressLoader(true);
-            setProgressTitle("Generating Customer ID");
-            return setProgress(30);
-          } else if (nextStep === 8) {
-            //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
-          } else if (nextStep === 9) {
-            //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
-          } else if (nextStep === 10) {
-            //jump to last step
-            return setStep(11);
-          } else if (nextStep === 11) {
-            //jump to last step
-            setStep(11);
+          if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 1 || nextStep === 0) {
+              //jump to selfie
+              return setStep(5);
+            } else if (nextStep === 2) {
+              //jump to pan card upload
+              setStep(6);
+            } else if (nextStep === 3) {
+              //jump to aadhar details
+              setStep(7);
+            } else if (nextStep === 4) {
+              //jump to aadhar upload
+              setStep(7);
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              await getKFSHTML();
+              return setStep(9);
+            } else if (nextStep === 7) {
+              //jump to esign
+              await geteSignAllCloud();
+              return setStep(10);
+            } else if (nextStep === 8) {
+              //jump to last step
+              setStep(11);
+            }
+          } else {
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 1 || nextStep === 0) {
+              //jump to selfie
+              return setStep(5);
+            } else if (nextStep === 2) {
+              //jump to pan card upload
+              setStep(6);
+            } else if (nextStep === 3) {
+              //jump to aadhar details
+              setStep(7);
+            } else if (nextStep === 4) {
+              //jump to aadhar upload
+              setStep(7);
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Saving Customer data");
+              return setProgress(1);
+            } else if (nextStep === 7) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Generating Customer ID");
+              return setProgress(30);
+            } else if (nextStep === 8) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 9) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 10) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 11) {
+              //jump to last step
+              setStep(11);
+            }
           }
         } else {
           toast.error(data.message);
@@ -1071,49 +1154,82 @@ const index: FC = () => {
             if (steps.length === 0) {
               return setStep(7);
             }
-            if (nextStep < 0) {
-              //jump to last step
-              return setStep(11);
-            } else if (
-              nextStep === 1 ||
-              nextStep === 0 ||
-              nextStep === 2 ||
-              nextStep === 3
-            ) {
-              //jump to aadhar details
-              return setStep(7);
-            } else if (nextStep === 4) {
-              //jump to aadhar upload
-              setStep(7);
-              setAadharVerified(true);
-            } else if (nextStep === 5) {
-              //jump to bank details
-              await getBusinessBankDetails();
-              setStep(8);
-            } else if (nextStep === 6) {
-              //jump to Kfs
-              setShowProgressLoader(true);
-              setProgressTitle("Saving Customer data");
-              return setProgress(1);
-            } else if (nextStep === 7) {
-              //jump to Kfs
-              setShowProgressLoader(true);
-              setProgressTitle("Generating Customer ID");
-              return setProgress(30);
-            } else if (nextStep === 8) {
-              //jump to Kfs
-              await getKFSHTML();
-              return setStep(10);
-            } else if (nextStep === 9) {
-              //jump to Kfs
-              await getKFSHTML();
-              return setStep(10);
-            } else if (nextStep === 10) {
-              //jump to last step
-              return setStep(11);
-            } else if (nextStep === 11) {
-              //jump to last step
-              setStep(11);
+            if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+              if (nextStep < 0) {
+                //jump to last step
+                return setStep(11);
+              } else if (
+                nextStep === 1 ||
+                nextStep === 0 ||
+                nextStep === 2 ||
+                nextStep === 3
+              ) {
+                //jump to aadhar details
+                return setStep(7);
+              } else if (nextStep === 4) {
+                //jump to aadhar upload
+                setStep(7);
+                setAadharVerified(true);
+              } else if (nextStep === 5) {
+                //jump to bank details
+                await getBusinessBankDetails();
+                setStep(8);
+              } else if (nextStep === 6) {
+                //jump to Kfs
+                await getKFSHTML();
+                return setStep(9);
+              } else if (nextStep === 7) {
+                //jump to esign
+                return setStep(10);
+              } else if (nextStep === 8) {
+                //jump to last step
+                setStep(11);
+              }
+            } else {
+              if (nextStep < 0) {
+                //jump to last step
+                return setStep(11);
+              } else if (
+                nextStep === 1 ||
+                nextStep === 0 ||
+                nextStep === 2 ||
+                nextStep === 3
+              ) {
+                //jump to aadhar details
+                return setStep(7);
+              } else if (nextStep === 4) {
+                //jump to aadhar upload
+                setStep(7);
+                setAadharVerified(true);
+              } else if (nextStep === 5) {
+                //jump to bank details
+                await getBusinessBankDetails();
+                setStep(8);
+              } else if (nextStep === 6) {
+                //jump to Kfs
+                setShowProgressLoader(true);
+                setProgressTitle("Saving Customer data");
+                return setProgress(1);
+              } else if (nextStep === 7) {
+                //jump to Kfs
+                setShowProgressLoader(true);
+                setProgressTitle("Generating Customer ID");
+                return setProgress(30);
+              } else if (nextStep === 8) {
+                //jump to Kfs
+                await geteSignAllCloud();
+                return setStep(10);
+              } else if (nextStep === 9) {
+                //jump to Kfs
+                await geteSignAllCloud();
+                return setStep(10);
+              } else if (nextStep === 10) {
+                //jump to last step
+                return setStep(11);
+              } else if (nextStep === 11) {
+                //jump to last step
+                setStep(11);
+              }
             }
           } else {
             //Selfie step === 5
@@ -1126,47 +1242,79 @@ const index: FC = () => {
             if (steps.length === 0) {
               return setStep(6);
             }
-            if (nextStep < 0) {
-              //jump to last step
-              return setStep(11);
-            } else if (nextStep === 1 || nextStep === 0 || nextStep === 2) {
-              //jump to pan card upload
-              return setStep(6);
-            } else if (nextStep === 3) {
-              //jump to aadhar details
-              setStep(7);
-            } else if (nextStep === 4) {
-              //jump to aadhar upload
-              setStep(7);
-              setAadharVerified(true);
-            } else if (nextStep === 5) {
-              //jump to bank details
-              await getBusinessBankDetails();
-              setStep(8);
-            } else if (nextStep === 6) {
-              //jump to Kfs
-              setShowProgressLoader(true);
-              setProgressTitle("Saving Customer data");
-              return setProgress(1);
-            } else if (nextStep === 7) {
-              //jump to Kfs
-              setShowProgressLoader(true);
-              setProgressTitle("Generating Customer ID");
-              return setProgress(30);
-            } else if (nextStep === 8) {
-              //jump to Kfs
-              await getKFSHTML();
-              return setStep(10);
-            } else if (nextStep === 9) {
-              //jump to Kfs
-              await getKFSHTML();
-              return setStep(10);
-            } else if (nextStep === 10) {
-              //jump to last step
-              return setStep(11);
-            } else if (nextStep === 11) {
-              //jump to last step
-              setStep(11);
+
+            if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+              if (nextStep < 0) {
+                //jump to last step
+                return setStep(11);
+              } else if (nextStep === 1 || nextStep === 0 || nextStep === 2) {
+                //jump to pan card upload
+                return setStep(6);
+              } else if (nextStep === 3) {
+                //jump to aadhar details
+                setStep(7);
+              } else if (nextStep === 4) {
+                //jump to aadhar upload
+                setStep(7);
+                setAadharVerified(true);
+              } else if (nextStep === 5) {
+                //jump to bank details
+                await getBusinessBankDetails();
+                setStep(8);
+              } else if (nextStep === 6) {
+                //jump to Kfs
+                await getKFSHTML();
+                return setStep(9);
+              } else if (nextStep === 7) {
+                //jump to esign
+                return setStep(10);
+              } else if (nextStep === 8) {
+                //jump to last step
+                setStep(11);
+              }
+            } else {
+              if (nextStep < 0) {
+                //jump to last step
+                return setStep(11);
+              } else if (nextStep === 1 || nextStep === 0 || nextStep === 2) {
+                //jump to pan card upload
+                return setStep(6);
+              } else if (nextStep === 3) {
+                //jump to aadhar details
+                setStep(7);
+              } else if (nextStep === 4) {
+                //jump to aadhar upload
+                setStep(7);
+                setAadharVerified(true);
+              } else if (nextStep === 5) {
+                //jump to bank details
+                await getBusinessBankDetails();
+                setStep(8);
+              } else if (nextStep === 6) {
+                //jump to Kfs
+                setShowProgressLoader(true);
+                setProgressTitle("Saving Customer data");
+                return setProgress(1);
+              } else if (nextStep === 7) {
+                //jump to Kfs
+                setShowProgressLoader(true);
+                setProgressTitle("Generating Customer ID");
+                return setProgress(30);
+              } else if (nextStep === 8) {
+                //jump to Kfs
+                await geteSignAllCloud();
+                return setStep(10);
+              } else if (nextStep === 9) {
+                //jump to Kfs
+                await geteSignAllCloud();
+                return setStep(10);
+              } else if (nextStep === 10) {
+                //jump to last step
+                return setStep(11);
+              } else if (nextStep === 11) {
+                //jump to last step
+                setStep(11);
+              }
             }
           }
 
@@ -1259,46 +1407,83 @@ const index: FC = () => {
             setAadharVerified(true);
             return;
           }
-          if (nextStep < 0) {
-            //jump to last step
-            return setStep(11);
-          } else if (
-            nextStep === 1 ||
-            nextStep === 0 ||
-            nextStep === 2 ||
-            nextStep === 3 ||
-            nextStep === 4
-          ) {
-            //jump to aadhar upload
-            setAadharVerified(true);
-          } else if (nextStep === 5) {
-            //jump to bank details
-            await getBusinessBankDetails();
-            setStep(8);
-          } else if (nextStep === 6) {
-            //jump to Kfs
-            setShowProgressLoader(true);
-            setProgressTitle("Saving Customer data");
-            return setProgress(1);
-          } else if (nextStep === 7) {
-            //jump to Kfs
-            setShowProgressLoader(true);
-            setProgressTitle("Generating Customer ID");
-            return setProgress(30);
-          } else if (nextStep === 8) {
-            //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
-          } else if (nextStep === 9) {
-            //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
-          } else if (nextStep === 10) {
-            //jump to last step
-            return setStep(11);
-          } else if (nextStep === 11) {
-            //jump to last step
-            setStep(11);
+          if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+            const nextStep = steps?.findIndex(
+              ({ kycStepCompletionStatus }) =>
+                kycStepCompletionStatus === "Pending"
+            )!;
+            if (steps.length === 0) {
+              setAadharVerified(true);
+              return;
+            }
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (
+              nextStep === 1 ||
+              nextStep === 0 ||
+              nextStep === 2 ||
+              nextStep === 3 ||
+              nextStep === 4
+            ) {
+              //jump to aadhar upload
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              await getKFSHTML();
+              return setStep(9);
+            } else if (nextStep === 7) {
+              //jump to esign
+              await geteSignAllCloud();
+              return setStep(10);
+            } else if (nextStep === 8) {
+              //jump to last step
+              setStep(11);
+            }
+          } else {
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (
+              nextStep === 1 ||
+              nextStep === 0 ||
+              nextStep === 2 ||
+              nextStep === 3 ||
+              nextStep === 4
+            ) {
+              //jump to aadhar upload
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Saving Customer data");
+              return setProgress(1);
+            } else if (nextStep === 7) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Generating Customer ID");
+              return setProgress(30);
+            } else if (nextStep === 8) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 9) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 10) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 11) {
+              //jump to last step
+              setStep(11);
+            }
           }
         } else {
           if (data.message.includes("422")) {
@@ -1380,44 +1565,57 @@ const index: FC = () => {
             setStep(8);
             return;
           }
-          if (nextStep < 0) {
-            //jump to last step
-            return setStep(11);
-          } else if (
-            nextStep === 1 ||
-            nextStep === 0 ||
-            nextStep === 2 ||
-            nextStep === 3 ||
-            nextStep === 4 ||
-            nextStep === 5
-          ) {
-            //jump to bank details
-            await getBusinessBankDetails();
-            setStep(8);
-          } else if (nextStep === 6) {
-            //jump to Kfs
-            setShowProgressLoader(true);
-            setProgressTitle("Saving Customer data");
-            return setProgress(1);
-          } else if (nextStep === 7) {
-            //jump to Kfs
-            setShowProgressLoader(true);
-            setProgressTitle("Generating Customer ID");
-            return setProgress(30);
-          } else if (nextStep === 8) {
-            //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
-          } else if (nextStep === 9) {
-            //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
-          } else if (nextStep === 10) {
-            //jump to last step
-            return setStep(11);
-          } else if (nextStep === 11) {
-            //jump to last step
-            setStep(11);
+          if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep <= 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              await getKFSHTML();
+              return setStep(9);
+            } else if (nextStep === 7) {
+              //jump to esign
+              await geteSignAllCloud();
+              return setStep(10);
+            } else if (nextStep === 8) {
+              //jump to last step
+              setStep(11);
+            }
+          } else {
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep <= 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Saving Customer data");
+              return setProgress(1);
+            } else if (nextStep === 7) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Generating Customer ID");
+              return setProgress(30);
+            } else if (nextStep === 8) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 9) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 10) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 11) {
+              //jump to last step
+              setStep(11);
+            }
           }
         } else {
           toast.error(data.message);
@@ -1477,33 +1675,50 @@ const index: FC = () => {
             setShowProgressLoader(true);
             return setProgress(1);
           }
-          if (nextStep < 0) {
-            //jump to last step
-            return setStep(11);
-          } else if (nextStep === 6) {
-            //jump to Kfs
-            setShowProgressLoader(true);
-            setProgressTitle("Saving Customer data");
-            return setProgress(1);
-          } else if (nextStep === 7) {
-            //jump to Kfs
-            setShowProgressLoader(true);
-            setProgressTitle("Generating Customer ID");
-            return setProgress(30);
-          } else if (nextStep === 8) {
-            //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
-          } else if (nextStep === 9) {
-            //jump to Kfs
-            await getKFSHTML();
-            return setStep(10);
-          } else if (nextStep === 10) {
-            //jump to last step
-            return setStep(11);
-          } else if (nextStep === 11) {
-            //jump to last step
-            setStep(11);
+          if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep <= 6) {
+              //jump to kfs
+              await getKFSHTML();
+              setStep(9);
+              return;
+            } else if (nextStep === 7) {
+              //jump to esign
+              await geteSignAllCloud();
+              return setStep(10);
+            } else if (nextStep === 8) {
+              //jump to last step
+              setStep(11);
+            }
+          } else {
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Saving Customer data");
+              return setProgress(1);
+            } else if (nextStep === 7) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Generating Customer ID");
+              return setProgress(30);
+            } else if (nextStep === 8) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 9) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 10) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 11) {
+              //jump to last step
+              setStep(11);
+            }
           }
         } else {
           toast.error(data.message);
@@ -1524,7 +1739,7 @@ const index: FC = () => {
     }, 1000);
   };
 
-  const getKFSHTML = async (ApplicationID?: string) => {
+  const geteSignAllCloud = async (ApplicationID?: string) => {
     const body = {
       ApplicationID: ApplicationID || offers?.ApplicationID,
       MerchantID: formValues.merchant_id.value,
@@ -1544,6 +1759,39 @@ const index: FC = () => {
         if (data.status === "Success") {
           console.log("/api/getesignallcloud", data.data);
           // Handle pdf
+          setKFSHTML(data.data);
+        } else {
+          toast.error(data.data);
+        }
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
+  };
+
+  const getKFSHTML = async (ApplicationID?: string) => {
+    const body = {
+      ApplicationID: ApplicationID || offers?.ApplicationID,
+      MerchantID: formValues.merchant_id.value,
+      MobileNo: offers?.MobileNumber,
+      Token: verificationToken,
+    };
+
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<EsignResponseType>({
+        url: "/gettermsconditions",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
           setKFSHTML(data.data);
         } else {
           toast.error(data.data);
@@ -1609,9 +1857,14 @@ const index: FC = () => {
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
+    let url = "/getesignrequestpackets_allcloud";
+    if (offers?.AllCloudEnable === 0 && offers?.DistributorLoan === 0) {
+      url = "/getesignrequestpackets";
+    }
     await api.app
       .post<ESignPacketsAPI>({
-        url: "/getesignrequestpackets_allcloud",
+        //@ts-ignore
+        url: url,
         requestBody: encryptedBody,
       })
       .then(async (res) => {
@@ -1746,11 +1999,9 @@ const index: FC = () => {
             return setProgress(30);
           } else if (nextStep === 8) {
             //jump to Kfs
-            await getKFSHTML();
             return setStep(10);
           } else if (nextStep === 9) {
             //jump to Kfs
-            await getKFSHTML();
             return setStep(10);
           } else if (nextStep === 10) {
             setShowProgressLoader(false);
@@ -1823,7 +2074,7 @@ const index: FC = () => {
   //         } else if (nextStep === 9) {
   //           //jump to Kfs
   //           setShowProgressLoader(false);
-  //           await getKFSHTML();
+  //           await geteSignAllCloud();
   //           return setStep(10);
   //         } else if (nextStep === 10) {
   //           //jump to esign
@@ -1884,14 +2135,14 @@ const index: FC = () => {
           )!;
 
           if (steps.length === 0) {
-            await getKFSHTML();
+            await geteSignAllCloud();
             return setStep(10);
           }
 
           if (nextStep < 0) {
             return setStep(11);
           } else if (nextStep <= 9) {
-            await getKFSHTML();
+            await geteSignAllCloud();
             return setStep(10);
           } else if (nextStep === 10) {
             return setStep(11);
@@ -1997,8 +2248,14 @@ const index: FC = () => {
           ({ kycStepCompletionStatus }) => kycStepCompletionStatus === "Pending"
         );
 
-        if (nextStep === 11) {
-          setStep(11);
+        if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+          if (nextStep === 8) {
+            setStep(11);
+          }
+        } else {
+          if (nextStep === 11) {
+            setStep(11);
+          }
         }
 
         return steps; // Return steps if everything is successful
@@ -2020,10 +2277,71 @@ const index: FC = () => {
     }
   };
 
+  const getSteps = async (nextStep: number, Token?: string) => {
+    const body = {
+      MerchantID: formValues.merchant_id.value,
+      ApplicationID: offers?.ApplicationID,
+      MobileNo: formValues?.mobile_no.value,
+      LoanAmount: offers?.loanAmount,
+      Token: Token ?? verificationToken,
+    };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    try {
+      const res = await api.app.post<GetStepsAPIResponseType>({
+        url: "/api/getapplicantmerchantdetails",
+        requestBody: encryptedBody,
+      });
+
+      const { data } = res;
+      if (data.message === "Invalid or expire application.") {
+        if (offers?.LoanStatus !== "1" && !data.Token) {
+          setCustomError({
+            image: false,
+            Heading: "Loan Application Already Submitted",
+            Description: "It looks like you've already applied for this loan",
+          });
+        } else {
+          setVerificationToken(data.Token);
+          localStorage.setItem("TOKEN", data.Token);
+        }
+      }
+
+      if (data.status === "Success") {
+        setVerificationToken(data.Token);
+        localStorage.setItem("TOKEN", data.Token);
+        const steps = data.result;
+
+        const nextPendingStep = steps.findIndex(
+          ({ kycStepCompletionStatus }) => kycStepCompletionStatus === "Pending"
+        );
+
+        if (nextPendingStep <= nextStep) {
+          setStep(nextPendingStep + 1);
+        }
+
+        if (nextPendingStep === 11) {
+          setStep(11);
+        }
+      } else {
+        if (data.message !== "Invalid or expire application.") {
+          toast.error(data.message);
+        }
+      }
+    } catch (error: any) {
+      showAlert({
+        title: error.message,
+        description: "Please try after some time",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const kfsFileName =
     Number(offers?.ProductId) === 4
       ? "CspAgreement"
-      : Number(offers?.ProductId) === 8
+      : Number(offers?.DistributorLoan) === 1
       ? "DistributorAgreement"
       : "customerAgreement";
 
@@ -2728,7 +3046,19 @@ const index: FC = () => {
                                 <label htmlFor="pannumber">
                                   Enter PAN number *
                                 </label>
-                                <input
+
+                                <PasswordInput
+                                  style={{
+                                    textTransform: "uppercase",
+                                  }}
+                                  value={formValues.pan_number.value}
+                                  maxLength={10}
+                                  onChange={(e) =>
+                                    onInputChange("pan_number", e.target.value)
+                                  }
+                                  placeholder="Enter PAN Number"
+                                />
+                                {/* <input
                                   style={{
                                     textTransform: "uppercase",
                                   }}
@@ -2743,7 +3073,7 @@ const index: FC = () => {
                                   onChange={(e) =>
                                     onInputChange("pan_number", e.target.value)
                                   }
-                                />
+                                /> */}
                                 {formValues.pan_number.error ? (
                                   <span
                                     style={{ color: "red", fontSize: "14px" }}
@@ -2776,7 +3106,17 @@ const index: FC = () => {
                                 <label htmlFor="enter_aadhar_number mt-2">
                                   Aadhar number *
                                 </label>
-                                <input
+                                <PasswordInput
+                                  placeholder="Enter aadhar number"
+                                  id="enter_aadhar_number"
+                                  required
+                                  maxLength={12}
+                                  onKeyDown={(e) => onlyNumberValues(e)}
+                                  onChange={(e) =>
+                                    onInputChange("aadhar_no", e.target.value)
+                                  }
+                                />
+                                {/* <input
                                   className="form-control"
                                   type="password"
                                   name="enter_aadhar_number"
@@ -2788,7 +3128,7 @@ const index: FC = () => {
                                   onChange={(e) =>
                                     onInputChange("aadhar_no", e.target.value)
                                   }
-                                />
+                                /> */}
                                 {formValues.aadhar_no.error ? (
                                   <span
                                     style={{ color: "red", fontSize: "14px" }}
@@ -2809,7 +3149,22 @@ const index: FC = () => {
                             <div className="col-md-12 mt-2">
                               <div className="form-group">
                                 <label htmlFor="aadhar_otp">Aadhar OTP *</label>
-                                <input
+                                <PasswordInput
+                                  disabled={
+                                    formValues.aadhar_no.error ||
+                                    formValues.aadhar_no.value.length < 12
+                                  }
+                                  placeholder="Enter aadhar otp"
+                                  id="aadhar_otp"
+                                  autoComplete="one-time-code"
+                                  required
+                                  maxLength={6}
+                                  onKeyDown={(e) => onlyNumberValues(e)}
+                                  onChange={(e) =>
+                                    onInputChange("aadhar_otp", e.target.value)
+                                  }
+                                />
+                                {/* <input
                                   readOnly={
                                     formValues.aadhar_no.error ||
                                     formValues.aadhar_no.value.length < 12
@@ -2826,7 +3181,7 @@ const index: FC = () => {
                                   onChange={(e) =>
                                     onInputChange("aadhar_otp", e.target.value)
                                   }
-                                />
+                                /> */}
                                 {formValues.aadhar_otp.error ? (
                                   <span
                                     style={{ color: "red", fontSize: "14px" }}
@@ -3245,90 +3600,94 @@ const index: FC = () => {
                             )}
                           </div>
                         )}
-                        {step === 9 && (
-                          <div className="page">
-                            <div className="main_step_8">
-                              <h4>E-sign customer agreement</h4>
-                              <img
-                                // style={{ width: "60%" }}
-                                src={EsignSteps}
-                                alt="enter-account-details-image"
-                              />
-                            </div>
-                            {/* <div
-                             dangerouslySetInnerHTML={{ __html: esignTerms! }}
-                             className="main_step_9 col-md-12 pt-2 bg-cover max-h-[32rem]   overflow-auto relative"
-                           ></div> */}
-                            <div className="check_box">
-                              <div className="check">
-                                <div className="form-check form-check-inline">
-                                  <Checkbox
-                                    checked={formValues.esign_terms.value}
-                                    // value={formValues.esign_terms.value}
-                                    id="esign_terms"
-                                    className="form-check-input"
-                                    name="esign_terms"
-                                    defaultValue="true"
-                                    required
-                                    onCheckedChange={(checked) => {
-                                      onInputChange("esign_terms", checked);
-                                    }}
-                                  />
-                                  <label
-                                    htmlFor="esign_terms"
-                                    className="form-check-label"
-                                  >
-                                    I have read and agree to the{" "}
-                                    <a target="_blank" href={KFSHTML}>
-                                      {kfsFileName}
-                                    </a>
-                                  </label>
-                                </div>
-                              </div>
-                            </div>
+
+                        {(step === 9 && offers?.DistributorLoan === 1) ||
+                        (step === 9 &&
+                          offers?.DistributorLoan === 0 &&
+                          offers?.AllCloudEnable === 0) ? (
+                          <div className="page overflow-auto max-h-[600px]">
+                            {offers && <KFSDetailsCard offers={offers} />}
+
+                            {KFSHTML && (
+                              <div
+                                className="main_step_10bottom"
+                                dangerouslySetInnerHTML={{ __html: KFSHTML }}
+                              ></div>
+                            )}
                             <div className="field btns">
                               <button
-                                disabled={
-                                  isLoading || !formValues.esign_terms.value
-                                }
-                                onClick={(e) => handleNext(e)}
-                                className={cn(
-                                  "next-4 next disabled:opacity-70 disabled:pointer-events-none",
-                                  isLoading && "animate-pulse"
-                                )}
+                                disabled={isLoading}
+                                onClick={handleNext}
+                                className="submit disabled:opacity-70 disabled:pointer-events-none"
                               >
-                                next
+                                Agree
                               </button>
                             </div>
                           </div>
-                          // <div className="page overflow-auto max-h-[600px]">
-                          //   {offers ? <KFSDetailsCard offers={offers} /> : ""}
-
-                          //   {KFSHTML && (
-                          //     <div className="main_step_10bottom">
-                          //       <div className="flex justify-center items-center cursor-pointer p-2">
-                          //         <a
-                          //           href={KFSHTML}
-                          //           className="text-center"
-                          //           target="_blank"
-                          //           download="kfs.pdf"
-                          //         >
-                          //           View KFS
-                          //         </a>
-                          //       </div>
-                          //     </div>
-                          //   )}
-                          //   <div className="field btns">
-                          //     <button
-                          //       disabled={isLoading}
-                          //       onClick={(e) => handleNext(e)}
-                          //       className="submit disabled:opacity-70 disabled:pointer-events-none"
-                          //     >
-                          //       Agree
-                          //     </button>
-                          //   </div>
-                          // </div>
+                        ) : (
+                          step === 9 && (
+                            <div className="page">
+                              <div className="main_step_8">
+                                <h4>E-sign customer agreement</h4>
+                                <img
+                                  src={EsignSteps}
+                                  alt="enter-account-details-image"
+                                />
+                              </div>
+                              <div className="check_box">
+                                <div className="check">
+                                  <div className="form-check form-check-inline">
+                                    <Checkbox
+                                      checked={formValues.esign_terms.value}
+                                      id="esign_terms"
+                                      className="form-check-input"
+                                      name="esign_terms"
+                                      defaultValue="true"
+                                      required
+                                      onCheckedChange={(checked) => {
+                                        onInputChange("esign_terms", checked);
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor="esign_terms"
+                                      className="form-check-label"
+                                    >
+                                      I have read and agree to the{" "}
+                                      {offers?.DistributorLoan === 0 &&
+                                      offers?.AllCloudEnable === 0 ? (
+                                        <a
+                                          target="_blank"
+                                          href={`https://backoffice.mnfpl.com/pdf/${kfsFileName}.pdf`}
+                                        >
+                                          {kfsFileName}
+                                        </a>
+                                      ) : (
+                                        <a target="_blank" href={KFSHTML}>
+                                          {kfsFileName}
+                                        </a>
+                                      )}
+                                    </label>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="field btns">
+                                <button
+                                  disabled={
+                                    isLoading || !formValues.esign_terms.value
+                                  }
+                                  onClick={handleNext}
+                                  className={cn(
+                                    "next-4 next disabled:opacity-70 disabled:pointer-events-none",
+                                    isLoading && "animate-pulse"
+                                  )}
+                                >
+                                  Next
+                                </button>
+                              </div>
+                            </div>
+                          )
                         )}
+
                         {step === 10 && (
                           <div className="page">
                             <div className="main_step_8">
@@ -3363,9 +3722,19 @@ const index: FC = () => {
                                     className="form-check-label"
                                   >
                                     I have read and agree to the{" "}
-                                    <a target="_blank" href={KFSHTML}>
-                                      {kfsFileName}
-                                    </a>
+                                    {offers?.DistributorLoan === 0 &&
+                                    offers?.AllCloudEnable === 0 ? (
+                                      <a
+                                        target="_blank"
+                                        href={`https://backoffice.mnfpl.com/pdf/${kfsFileName}.pdf`}
+                                      >
+                                        {kfsFileName}
+                                      </a>
+                                    ) : (
+                                      <a target="_blank" href={KFSHTML}>
+                                        {kfsFileName}
+                                      </a>
+                                    )}
                                   </label>
                                 </div>
                               </div>
