@@ -705,7 +705,8 @@ const index: FC = () => {
           // }
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
-              kycStepCompletionStatus === "Pending"
+              kycStepCompletionStatus === "Pending" ||
+              kycStepCompletionStatus === "Rejected"
           )!;
 
           if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
@@ -1009,7 +1010,8 @@ const index: FC = () => {
 
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
-              kycStepCompletionStatus === "Pending"
+              kycStepCompletionStatus === "Pending" ||
+              kycStepCompletionStatus === "Rejected"
           )!;
           if (steps.length === 0) {
             return setStep(5);
@@ -1149,7 +1151,8 @@ const index: FC = () => {
 
             const nextStep = steps?.findIndex(
               ({ kycStepCompletionStatus }) =>
-                kycStepCompletionStatus === "Pending"
+                kycStepCompletionStatus === "Pending" ||
+                kycStepCompletionStatus === "Rejected"
             )!;
             if (steps.length === 0) {
               return setStep(7);
@@ -1237,7 +1240,8 @@ const index: FC = () => {
 
             const nextStep = steps?.findIndex(
               ({ kycStepCompletionStatus }) =>
-                kycStepCompletionStatus === "Pending"
+                kycStepCompletionStatus === "Pending" ||
+                kycStepCompletionStatus === "Rejected"
             )!;
             if (steps.length === 0) {
               return setStep(6);
@@ -1401,7 +1405,8 @@ const index: FC = () => {
 
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
-              kycStepCompletionStatus === "Pending"
+              kycStepCompletionStatus === "Pending" ||
+              kycStepCompletionStatus === "Rejected"
           )!;
           if (steps.length === 0) {
             setAadharVerified(true);
@@ -1410,7 +1415,8 @@ const index: FC = () => {
           if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
             const nextStep = steps?.findIndex(
               ({ kycStepCompletionStatus }) =>
-                kycStepCompletionStatus === "Pending"
+                kycStepCompletionStatus === "Pending" ||
+                kycStepCompletionStatus === "Rejected"
             )!;
             if (steps.length === 0) {
               setAadharVerified(true);
@@ -1558,7 +1564,8 @@ const index: FC = () => {
 
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
-              kycStepCompletionStatus === "Pending"
+              kycStepCompletionStatus === "Pending" ||
+              kycStepCompletionStatus === "Rejected"
           )!;
           if (steps.length === 0) {
             await getBusinessBankDetails();
@@ -1668,7 +1675,8 @@ const index: FC = () => {
 
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
-              kycStepCompletionStatus === "Pending"
+              kycStepCompletionStatus === "Pending" ||
+              kycStepCompletionStatus === "Rejected"
           )!;
           if (steps.length === 0) {
             //jump to Kfs
@@ -1984,7 +1992,8 @@ const index: FC = () => {
           setIsLoading(false);
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
-              kycStepCompletionStatus === "Pending"
+              kycStepCompletionStatus === "Pending" ||
+              kycStepCompletionStatus === "Rejected"
           )!;
           if (steps.length === 0) {
             setShowProgressLoader(true);
@@ -2058,7 +2067,7 @@ const index: FC = () => {
   //         const steps = await getSteps2(data.Token, step);
   //         const nextStep = steps?.findIndex(
   //           ({ kycStepCompletionStatus }) =>
-  //             kycStepCompletionStatus === "Pending"
+  //             kycStepCompletionStatus === "Pending" ||  kycStepCompletionStatus === "Rejected"
   //         )!;
   //         if (steps.length === 0) {
   //           setShowProgressLoader(true);
@@ -2131,7 +2140,8 @@ const index: FC = () => {
           const steps = await getSteps2(data.Token, step);
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
-              kycStepCompletionStatus === "Pending"
+              kycStepCompletionStatus === "Pending" ||
+              kycStepCompletionStatus === "Rejected"
           )!;
 
           if (steps.length === 0) {
@@ -2245,7 +2255,9 @@ const index: FC = () => {
         const steps = data.result;
 
         const nextStep = steps.findIndex(
-          ({ kycStepCompletionStatus }) => kycStepCompletionStatus === "Pending"
+          ({ kycStepCompletionStatus }) =>
+            kycStepCompletionStatus === "Pending" ||
+            kycStepCompletionStatus === "Rejected"
         );
 
         if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
@@ -2313,7 +2325,9 @@ const index: FC = () => {
         const steps = data.result;
 
         const nextPendingStep = steps.findIndex(
-          ({ kycStepCompletionStatus }) => kycStepCompletionStatus === "Pending"
+          ({ kycStepCompletionStatus }) =>
+            kycStepCompletionStatus === "Pending" ||
+            kycStepCompletionStatus === "Rejected"
         );
 
         if (nextPendingStep <= nextStep) {

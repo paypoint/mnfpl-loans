@@ -39,6 +39,7 @@ export type SendOTPAPIResponse = {
 type kycStepCompletionStatus =
   | "Complete"
   | "Document under-revirew"
+  | "Rejected"
   | "Pending";
 export type Steps = [
   {
