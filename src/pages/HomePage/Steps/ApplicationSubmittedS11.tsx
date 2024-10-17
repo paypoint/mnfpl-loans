@@ -3,8 +3,6 @@ import { Landmark, CircleCheckBig } from "lucide-react";
 
 import { Icons } from "@/components/ui/Icons";
 
-import { vhostURL } from "@/services/api";
-
 import { BankList, OfferDetails } from "@/types";
 
 interface ApplicationSubmittedS11Props {
@@ -60,7 +58,7 @@ const ApplicationSubmittedS11: FC<ApplicationSubmittedS11Props> = ({
         {eSignUrl && (
           <div className="flex justify-center items-center cursor-pointer p-2">
             <a
-              href={`${vhostURL}/vhost/${eSignUrl}`}
+              href={eSignUrl}
               className="text-center"
               target="_blank"
               download="esignagreement.pdf"

@@ -105,7 +105,7 @@ const Stepper: FC<StepperProps> = ({ activeStep, offers }) => {
             </div>
           </div>
 
-          {Number(offers?.ProductId) != 8 && (
+          {Number(offers?.DistributorLoan) != 1 && (
             <div className="step">
               <p>E-Sign</p>
               <div className="bullet">

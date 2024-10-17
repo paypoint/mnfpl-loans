@@ -17,29 +17,30 @@ const KFSDetailsCard: FC<KFSDetailsCardProps> = ({ offers }) => {
           {" "}
           {format(new Date(offers?.ExpiryDate!), "dd/MM/yyyy")}
         </div>
-        <div className="KFSDetailsKey">Daily Installment Amount</div>
+        {/* <div className="KFSDetailsKey">Daily Installment Amount</div>
         <div className="KFSDetailsValue">₹{Math.round(offers?.emi!)}</div>
         <div className="KFSDetailsKey">Number of Installments</div>
-        <div className="KFSDetailsValue">{offers?.noOfPayment}</div>
-        <div className="KFSDetailsKey">Interest Rate</div>
+        <div className="KFSDetailsValue">{offers?.noOfPayment}</div> */}
+        <div className="KFSDetailsKey">
+          Interest Rate{" "}
+          <span className="text-gray-400 font-medium">(Yearly)</span>
+        </div>
         <div className="KFSDetailsValue">{offers?.interest}%</div>
         <div className="KFSDetailsKey">
-          Processing Fees{" "}
-          <span className="text-gray-400 font-medium">
-            ({offers?.ProcessingFeesRate}% + {offers?.GSTRate}% gst)
-          </span>
+          Processing Fees
+          <span className="text-gray-400 font-medium">(Fees + GST)</span>
         </div>
         <div className="KFSDetailsValue">
-          ₹{offers?.processingFee.toFixed(2)}
+          ({offers?.ProcessingFeesRate}% + {offers?.GSTRate}%)
         </div>
-        <div className="KFSDetailsKey">Net Disbursed Amount</div>
+        {/* <div className="KFSDetailsKey">Net Disbursed Amount</div>
         <div className="KFSDetailsValue">
           ₹{offers?.netDisbursement.toFixed(2)}
         </div>
         <div className="KFSDetailsKey">Total Paid by Customer</div>
         <div className="KFSDetailsValue">
           ₹{offers?.totalPaidbyCustomer.toFixed(2)}
-        </div>
+        </div> */}
       </div>
     </div>
   );

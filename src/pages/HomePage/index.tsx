@@ -55,12 +55,17 @@ import LoaderModal from "@/components/modals/loader-modal";
 import OfferedLoanAmountS1 from "./Steps/OfferedLoanAmountS1";
 import EnterMobileNoS2 from "./Steps/EnterMobileNoS2";
 import ApplicationSubmittedS11 from "./Steps/ApplicationSubmittedS11";
+import ProgressModal from "@/components/modals/progress-loader";
+import { PasswordInput } from "@/components/password-input";
 
 const index: FC = () => {
   const [step, setStep] = useState(0);
   const [alreadyRequest, setAlreadyRequest] = useState(false);
   const [countDownTimer, setCountDownTimer] = useState(120);
   const [selectedBankID, setSelectedBankID] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [progressTitle, setProgressTitle] = useState("Please wait...");
+  const [showProgressLoader, setShowProgressLoader] = useState(false);
   const [aadharOTPcountDownTimer, setAadharOTPcountDownTimer] = useState(60);
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [bankList, setBankList] = useState<BankList[]>();
@@ -451,10 +456,14 @@ const index: FC = () => {
 
       // setStep((prevStep) => prevStep + 1);
     } else if (step === 9) {
-      if (Number(offers?.ProductId) === 8) {
+      if (offers?.DistributorLoan === 0 && offers?.DistributorLoan === 0) {
+        setStep((prevStep) => prevStep + 1);
+        return;
+      }
+      if (offers?.DistributorLoan === 1) {
         agreeKFS();
       } else {
-        setStep((prevStep) => prevStep + 1);
+        setOpenTermsDrawer(true);
       }
     } else if (step === 10) {
       setOpenTermsDrawer(true);
@@ -513,12 +522,14 @@ const index: FC = () => {
         const searchParams = new URLSearchParams(location.search);
         const urlMsg = searchParams.get("msg");
         const refId = searchParams.get("RefId");
+        debugger;
         if (urlMsg !== null) {
           const fixedUrl = urlMsg.replace(/ /g, "+");
           let msg = crypto.CryptoGraphDecrypt(fixedUrl);
           msg = msg.replace(/'/g, '"').replace(/(\w+):/g, '"$1":');
           const esignMsg = JSON.parse(msg);
           await getOffers(undefined, true);
+
           if (esignMsg.Status === "Fail") {
             toast.error(esignMsg.Msg || "E-sign failed please retry");
 
@@ -685,6 +696,7 @@ const index: FC = () => {
         if (data.status === "Success") {
           setVerificationToken(data.Token);
           toast.success(data.message);
+
           const steps = await getSteps2(data.Token, step);
 
           // if(steps.length === 0){
@@ -693,47 +705,105 @@ const index: FC = () => {
           // }
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
-              kycStepCompletionStatus === "Pending"
+              kycStepCompletionStatus === "Pending" ||
+              kycStepCompletionStatus === "Rejected"
           )!;
-          if (steps.length === 0) {
-            await getPersonalDetails();
-            return setStep(4);
+
+          if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+            if (steps.length === 0) {
+              await getPersonalDetails();
+              return setStep(4);
+            }
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 0) {
+              //jump to personal details
+              await getPersonalDetails();
+              return setStep(4);
+            } else if (nextStep === 1) {
+              //jump to selfie
+              return setStep(5);
+            } else if (nextStep === 2) {
+              //jump to pan card upload
+              setStep(6);
+            } else if (nextStep === 3) {
+              //jump to aadhar details
+              setStep(7);
+            } else if (nextStep === 4) {
+              //jump to aadhar upload
+              setStep(7);
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              await getKFSHTML();
+              return setStep(9);
+            } else if (nextStep === 7) {
+              //jump to esign
+              await geteSignAllCloud();
+              return setStep(10);
+            } else if (nextStep === 8) {
+              //jump to last step
+              setStep(11);
+            }
+          } else {
+            if (steps.length === 0) {
+              await getPersonalDetails();
+              return setStep(4);
+            }
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 0) {
+              //jump to personal details
+              await getPersonalDetails();
+              return setStep(4);
+            } else if (nextStep === 1) {
+              //jump to selfie
+              return setStep(5);
+            } else if (nextStep === 2) {
+              //jump to pan card upload
+              setStep(6);
+            } else if (nextStep === 3) {
+              //jump to aadhar details
+              setStep(7);
+            } else if (nextStep === 4) {
+              //jump to aadhar upload
+              setStep(7);
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Saving Customer data");
+              return setProgress(1);
+            } else if (nextStep === 7) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Generating Customer ID");
+              return setProgress(30);
+            } else if (nextStep === 8) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 9) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 10) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 11) {
+              //jump to last step
+              setStep(11);
+            }
           }
-          if (nextStep < 0) {
-            //jump to last step
-            return setStep(11);
-          } else if (nextStep === 0) {
-            //jump to personal details
-            await getPersonalDetails();
-            return setStep(4);
-          } else if (nextStep === 1) {
-            //jump to selfie
-            return setStep(5);
-          } else if (nextStep === 2) {
-            //jump to pan card upload
-            setStep(6);
-          } else if (nextStep === 3) {
-            //jump to aadhar details
-            setStep(7);
-          } else if (nextStep === 4) {
-            //jump to aadhar upload
-            setStep(7);
-            setAadharVerified(true);
-          } else if (nextStep === 5) {
-            //jump to bank details
-            await getBusinessBankDetails();
-            setStep(8);
-          } else if (nextStep === 6) {
-            //jump to Kfs
-            await getKFSHTML();
-            return setStep(9);
-          } else if (nextStep === 7) {
-            //jump to esign
-            return setStep(10);
-          } else if (nextStep === 8) {
-            //jump to last step
-            setStep(11);
-          }
+
           // setStep((prevStep) => prevStep + 1);
           // getPersonalDetails();
         } else {
@@ -892,10 +962,10 @@ const index: FC = () => {
       })
       .catch((error: AxiosError) => {
         setIsLoading(false);
-        showAlert({
-          title: error.message,
-          description: "Please try after some time",
-        });
+        // showAlert({
+        //   title: error.message,
+        //   description: "Please try after some time",
+        // });
       });
   };
 
@@ -911,8 +981,8 @@ const index: FC = () => {
       house: formValues.house.value,
       emergency: formValues.emergency_contact_number.value,
       email: formValues.email.value,
-      nomineeName: "NA" ?? formValues.nominee.value,
-      nomineeRelation: "NA" ?? formValues.nominee_relation.value,
+      nomineeName: "NA",
+      nomineeRelation: "NA",
       bPinCode: formValues.business_address_pincode.value,
       bAddress1: formValues.business_address.value,
       bAddress2: "",
@@ -940,41 +1010,89 @@ const index: FC = () => {
 
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
-              kycStepCompletionStatus === "Pending"
+              kycStepCompletionStatus === "Pending" ||
+              kycStepCompletionStatus === "Rejected"
           )!;
           if (steps.length === 0) {
             return setStep(5);
           }
-          if (nextStep < 0) {
-            //jump to last step
-            return setStep(11);
-          } else if (nextStep === 1 || nextStep === 0) {
-            //jump to selfie
-            return setStep(5);
-          } else if (nextStep === 2) {
-            //jump to pan card upload
-            setStep(6);
-          } else if (nextStep === 3) {
-            //jump to aadhar details
-            setStep(7);
-          } else if (nextStep === 4) {
-            //jump to aadhar upload
-            setStep(7);
-            setAadharVerified(true);
-          } else if (nextStep === 5) {
-            //jump to bank details
-            await getBusinessBankDetails();
-            setStep(8);
-          } else if (nextStep === 6) {
-            //jump to Kfs
-            await getKFSHTML();
-            return setStep(9);
-          } else if (nextStep === 7) {
-            //jump to esign
-            return setStep(10);
-          } else if (nextStep === 8) {
-            //jump to last step
-            setStep(11);
+          if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 1 || nextStep === 0) {
+              //jump to selfie
+              return setStep(5);
+            } else if (nextStep === 2) {
+              //jump to pan card upload
+              setStep(6);
+            } else if (nextStep === 3) {
+              //jump to aadhar details
+              setStep(7);
+            } else if (nextStep === 4) {
+              //jump to aadhar upload
+              setStep(7);
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              await getKFSHTML();
+              return setStep(9);
+            } else if (nextStep === 7) {
+              //jump to esign
+              await geteSignAllCloud();
+              return setStep(10);
+            } else if (nextStep === 8) {
+              //jump to last step
+              setStep(11);
+            }
+          } else {
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 1 || nextStep === 0) {
+              //jump to selfie
+              return setStep(5);
+            } else if (nextStep === 2) {
+              //jump to pan card upload
+              setStep(6);
+            } else if (nextStep === 3) {
+              //jump to aadhar details
+              setStep(7);
+            } else if (nextStep === 4) {
+              //jump to aadhar upload
+              setStep(7);
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Saving Customer data");
+              return setProgress(1);
+            } else if (nextStep === 7) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Generating Customer ID");
+              return setProgress(30);
+            } else if (nextStep === 8) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 9) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 10) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 11) {
+              //jump to last step
+              setStep(11);
+            }
           }
         } else {
           toast.error(data.message);
@@ -1033,40 +1151,88 @@ const index: FC = () => {
 
             const nextStep = steps?.findIndex(
               ({ kycStepCompletionStatus }) =>
-                kycStepCompletionStatus === "Pending"
+                kycStepCompletionStatus === "Pending" ||
+                kycStepCompletionStatus === "Rejected"
             )!;
             if (steps.length === 0) {
               return setStep(7);
             }
-            if (nextStep < 0) {
-              //jump to last step
-              return setStep(11);
-            } else if (
-              nextStep === 1 ||
-              nextStep === 0 ||
-              nextStep === 2 ||
-              nextStep === 3
-            ) {
-              //jump to aadhar details
-              return setStep(7);
-            } else if (nextStep === 4) {
-              //jump to aadhar upload
-              setStep(7);
-              setAadharVerified(true);
-            } else if (nextStep === 5) {
-              //jump to bank details
-              await getBusinessBankDetails();
-              setStep(8);
-            } else if (nextStep === 6) {
-              //jump to Kfs
-              await getKFSHTML();
-              return setStep(9);
-            } else if (nextStep === 7) {
-              //jump to esign
-              return setStep(10);
-            } else if (nextStep === 8) {
-              //jump to last step
-              setStep(11);
+            if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+              if (nextStep < 0) {
+                //jump to last step
+                return setStep(11);
+              } else if (
+                nextStep === 1 ||
+                nextStep === 0 ||
+                nextStep === 2 ||
+                nextStep === 3
+              ) {
+                //jump to aadhar details
+                return setStep(7);
+              } else if (nextStep === 4) {
+                //jump to aadhar upload
+                setStep(7);
+                setAadharVerified(true);
+              } else if (nextStep === 5) {
+                //jump to bank details
+                await getBusinessBankDetails();
+                setStep(8);
+              } else if (nextStep === 6) {
+                //jump to Kfs
+                await getKFSHTML();
+                return setStep(9);
+              } else if (nextStep === 7) {
+                //jump to esign
+                return setStep(10);
+              } else if (nextStep === 8) {
+                //jump to last step
+                setStep(11);
+              }
+            } else {
+              if (nextStep < 0) {
+                //jump to last step
+                return setStep(11);
+              } else if (
+                nextStep === 1 ||
+                nextStep === 0 ||
+                nextStep === 2 ||
+                nextStep === 3
+              ) {
+                //jump to aadhar details
+                return setStep(7);
+              } else if (nextStep === 4) {
+                //jump to aadhar upload
+                setStep(7);
+                setAadharVerified(true);
+              } else if (nextStep === 5) {
+                //jump to bank details
+                await getBusinessBankDetails();
+                setStep(8);
+              } else if (nextStep === 6) {
+                //jump to Kfs
+                setShowProgressLoader(true);
+                setProgressTitle("Saving Customer data");
+                return setProgress(1);
+              } else if (nextStep === 7) {
+                //jump to Kfs
+                setShowProgressLoader(true);
+                setProgressTitle("Generating Customer ID");
+                return setProgress(30);
+              } else if (nextStep === 8) {
+                //jump to Kfs
+                await geteSignAllCloud();
+                return setStep(10);
+              } else if (nextStep === 9) {
+                //jump to Kfs
+                await geteSignAllCloud();
+                return setStep(10);
+              } else if (nextStep === 10) {
+                //jump to last step
+                return setStep(11);
+              } else if (nextStep === 11) {
+                //jump to last step
+                setStep(11);
+              }
             }
           } else {
             //Selfie step === 5
@@ -1074,38 +1240,85 @@ const index: FC = () => {
 
             const nextStep = steps?.findIndex(
               ({ kycStepCompletionStatus }) =>
-                kycStepCompletionStatus === "Pending"
+                kycStepCompletionStatus === "Pending" ||
+                kycStepCompletionStatus === "Rejected"
             )!;
             if (steps.length === 0) {
               return setStep(6);
             }
-            if (nextStep < 0) {
-              //jump to last step
-              return setStep(11);
-            } else if (nextStep === 1 || nextStep === 0 || nextStep === 2) {
-              //jump to pan card upload
-              return setStep(6);
-            } else if (nextStep === 3) {
-              //jump to aadhar details
-              setStep(7);
-            } else if (nextStep === 4) {
-              //jump to aadhar upload
-              setStep(7);
-              setAadharVerified(true);
-            } else if (nextStep === 5) {
-              //jump to bank details
-              await getBusinessBankDetails();
-              setStep(8);
-            } else if (nextStep === 6) {
-              //jump to Kfs
-              await getKFSHTML();
-              return setStep(9);
-            } else if (nextStep === 7) {
-              //jump to esign
-              return setStep(10);
-            } else if (nextStep === 8) {
-              //jump to last step
-              setStep(11);
+
+            if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+              if (nextStep < 0) {
+                //jump to last step
+                return setStep(11);
+              } else if (nextStep === 1 || nextStep === 0 || nextStep === 2) {
+                //jump to pan card upload
+                return setStep(6);
+              } else if (nextStep === 3) {
+                //jump to aadhar details
+                setStep(7);
+              } else if (nextStep === 4) {
+                //jump to aadhar upload
+                setStep(7);
+                setAadharVerified(true);
+              } else if (nextStep === 5) {
+                //jump to bank details
+                await getBusinessBankDetails();
+                setStep(8);
+              } else if (nextStep === 6) {
+                //jump to Kfs
+                await getKFSHTML();
+                return setStep(9);
+              } else if (nextStep === 7) {
+                //jump to esign
+                return setStep(10);
+              } else if (nextStep === 8) {
+                //jump to last step
+                setStep(11);
+              }
+            } else {
+              if (nextStep < 0) {
+                //jump to last step
+                return setStep(11);
+              } else if (nextStep === 1 || nextStep === 0 || nextStep === 2) {
+                //jump to pan card upload
+                return setStep(6);
+              } else if (nextStep === 3) {
+                //jump to aadhar details
+                setStep(7);
+              } else if (nextStep === 4) {
+                //jump to aadhar upload
+                setStep(7);
+                setAadharVerified(true);
+              } else if (nextStep === 5) {
+                //jump to bank details
+                await getBusinessBankDetails();
+                setStep(8);
+              } else if (nextStep === 6) {
+                //jump to Kfs
+                setShowProgressLoader(true);
+                setProgressTitle("Saving Customer data");
+                return setProgress(1);
+              } else if (nextStep === 7) {
+                //jump to Kfs
+                setShowProgressLoader(true);
+                setProgressTitle("Generating Customer ID");
+                return setProgress(30);
+              } else if (nextStep === 8) {
+                //jump to Kfs
+                await geteSignAllCloud();
+                return setStep(10);
+              } else if (nextStep === 9) {
+                //jump to Kfs
+                await geteSignAllCloud();
+                return setStep(10);
+              } else if (nextStep === 10) {
+                //jump to last step
+                return setStep(11);
+              } else if (nextStep === 11) {
+                //jump to last step
+                setStep(11);
+              }
             }
           }
 
@@ -1192,38 +1405,91 @@ const index: FC = () => {
 
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
-              kycStepCompletionStatus === "Pending"
+              kycStepCompletionStatus === "Pending" ||
+              kycStepCompletionStatus === "Rejected"
           )!;
           if (steps.length === 0) {
             setAadharVerified(true);
             return;
           }
-          if (nextStep < 0) {
-            //jump to last step
-            return setStep(11);
-          } else if (
-            nextStep === 1 ||
-            nextStep === 0 ||
-            nextStep === 2 ||
-            nextStep === 3 ||
-            nextStep === 4
-          ) {
-            //jump to aadhar upload
-            setAadharVerified(true);
-          } else if (nextStep === 5) {
-            //jump to bank details
-            await getBusinessBankDetails();
-            setStep(8);
-          } else if (nextStep === 6) {
-            //jump to Kfs
-            await getKFSHTML();
-            return setStep(9);
-          } else if (nextStep === 7) {
-            //jump to esign
-            return setStep(10);
-          } else if (nextStep === 8) {
-            //jump to last step
-            setStep(11);
+          if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+            const nextStep = steps?.findIndex(
+              ({ kycStepCompletionStatus }) =>
+                kycStepCompletionStatus === "Pending" ||
+                kycStepCompletionStatus === "Rejected"
+            )!;
+            if (steps.length === 0) {
+              setAadharVerified(true);
+              return;
+            }
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (
+              nextStep === 1 ||
+              nextStep === 0 ||
+              nextStep === 2 ||
+              nextStep === 3 ||
+              nextStep === 4
+            ) {
+              //jump to aadhar upload
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              await getKFSHTML();
+              return setStep(9);
+            } else if (nextStep === 7) {
+              //jump to esign
+              await geteSignAllCloud();
+              return setStep(10);
+            } else if (nextStep === 8) {
+              //jump to last step
+              setStep(11);
+            }
+          } else {
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (
+              nextStep === 1 ||
+              nextStep === 0 ||
+              nextStep === 2 ||
+              nextStep === 3 ||
+              nextStep === 4
+            ) {
+              //jump to aadhar upload
+              setAadharVerified(true);
+            } else if (nextStep === 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Saving Customer data");
+              return setProgress(1);
+            } else if (nextStep === 7) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Generating Customer ID");
+              return setProgress(30);
+            } else if (nextStep === 8) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 9) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 10) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 11) {
+              //jump to last step
+              setStep(11);
+            }
           }
         } else {
           if (data.message.includes("422")) {
@@ -1298,37 +1564,65 @@ const index: FC = () => {
 
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
-              kycStepCompletionStatus === "Pending"
+              kycStepCompletionStatus === "Pending" ||
+              kycStepCompletionStatus === "Rejected"
           )!;
           if (steps.length === 0) {
             await getBusinessBankDetails();
             setStep(8);
             return;
           }
-          if (nextStep < 0) {
-            //jump to last step
-            return setStep(11);
-          } else if (
-            nextStep === 1 ||
-            nextStep === 0 ||
-            nextStep === 2 ||
-            nextStep === 3 ||
-            nextStep === 4 ||
-            nextStep === 5
-          ) {
-            //jump to bank details
-            await getBusinessBankDetails();
-            setStep(8);
-          } else if (nextStep === 6) {
-            //jump to Kfs
-            await getKFSHTML();
-            return setStep(9);
-          } else if (nextStep === 7) {
-            //jump to esign
-            return setStep(10);
-          } else if (nextStep === 8) {
-            //jump to last step
-            setStep(11);
+          if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep <= 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              await getKFSHTML();
+              return setStep(9);
+            } else if (nextStep === 7) {
+              //jump to esign
+              await geteSignAllCloud();
+              return setStep(10);
+            } else if (nextStep === 8) {
+              //jump to last step
+              setStep(11);
+            }
+          } else {
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep <= 5) {
+              //jump to bank details
+              await getBusinessBankDetails();
+              setStep(8);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Saving Customer data");
+              return setProgress(1);
+            } else if (nextStep === 7) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Generating Customer ID");
+              return setProgress(30);
+            } else if (nextStep === 8) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 9) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 10) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 11) {
+              //jump to last step
+              setStep(11);
+            }
           }
         } else {
           toast.error(data.message);
@@ -1381,27 +1675,58 @@ const index: FC = () => {
 
           const nextStep = steps?.findIndex(
             ({ kycStepCompletionStatus }) =>
-              kycStepCompletionStatus === "Pending"
+              kycStepCompletionStatus === "Pending" ||
+              kycStepCompletionStatus === "Rejected"
           )!;
           if (steps.length === 0) {
-            await getKFSHTML();
-            setStep(9);
-            return;
+            //jump to Kfs
+            setShowProgressLoader(true);
+            return setProgress(1);
           }
-          if (nextStep < 0) {
-            //jump to last step
-            return setStep(11);
-          } else if (nextStep <= 6) {
-            //jump to kfs
-            await getKFSHTML();
-            setStep(9);
-            return;
-          } else if (nextStep === 7) {
-            //jump to esign
-            return setStep(10);
-          } else if (nextStep === 8) {
-            //jump to last step
-            setStep(11);
+          if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep <= 6) {
+              //jump to kfs
+              await getKFSHTML();
+              setStep(9);
+              return;
+            } else if (nextStep === 7) {
+              //jump to esign
+              await geteSignAllCloud();
+              return setStep(10);
+            } else if (nextStep === 8) {
+              //jump to last step
+              setStep(11);
+            }
+          } else {
+            if (nextStep < 0) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 6) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Saving Customer data");
+              return setProgress(1);
+            } else if (nextStep === 7) {
+              //jump to Kfs
+              setShowProgressLoader(true);
+              setProgressTitle("Generating Customer ID");
+              return setProgress(30);
+            } else if (nextStep === 8) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 9) {
+              //jump to Kfs
+              return setStep(10);
+            } else if (nextStep === 10) {
+              //jump to last step
+              return setStep(11);
+            } else if (nextStep === 11) {
+              //jump to last step
+              setStep(11);
+            }
           }
         } else {
           toast.error(data.message);
@@ -1420,6 +1745,40 @@ const index: FC = () => {
     setInterval(() => {
       setAadharOTPcountDownTimer((PrevCountDown) => PrevCountDown - 1);
     }, 1000);
+  };
+
+  const geteSignAllCloud = async (ApplicationID?: string) => {
+    const body = {
+      ApplicationID: ApplicationID || offers?.ApplicationID,
+      MerchantID: formValues.merchant_id.value,
+      MobileNo: offers?.MobileNumber,
+      Token: localStorage.getItem("TOKEN") || verificationToken,
+    };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<EsignResponseType>({
+        url: "/api/getesignallcloud",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        setIsLoading(false);
+        if (data.status === "Success") {
+          console.log("/api/getesignallcloud", data.data);
+          // Handle pdf
+          setKFSHTML(data.data);
+        } else {
+          toast.error(data.data);
+        }
+      })
+      .catch((error: AxiosError) => {
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
   };
 
   const getKFSHTML = async (ApplicationID?: string) => {
@@ -1506,9 +1865,14 @@ const index: FC = () => {
     };
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
     setIsLoading(true);
+    let url = "/getesignrequestpackets_allcloud";
+    if (offers?.AllCloudEnable === 0 && offers?.DistributorLoan === 0) {
+      url = "/getesignrequestpackets";
+    }
     await api.app
       .post<ESignPacketsAPI>({
-        url: "/getesignrequestpackets",
+        //@ts-ignore
+        url: url,
         requestBody: encryptedBody,
       })
       .then(async (res) => {
@@ -1570,7 +1934,7 @@ const index: FC = () => {
       ApplicationID: offers?.ApplicationID,
       MerchantID: formValues.merchant_id.value,
       MobileNo: offers?.MobileNumber,
-      Token: verificationToken || localStorage.getItem("TOKEN"),
+      Token: localStorage.getItem("TOKEN") || verificationToken,
     };
 
     const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
@@ -1597,6 +1961,263 @@ const index: FC = () => {
         });
       });
   };
+
+  useEffect(() => {
+    if (progress === 1) {
+      savecustomerdata();
+    } else if (progress === 30) {
+      savenewloanbyleaddetail();
+    } else if (progress === 60) {
+      savenewloanbyleaddetail();
+    }
+  }, [progress]);
+
+  const savecustomerdata = async () => {
+    const body = {
+      ApplicationID: offers?.ApplicationID,
+      Token: localStorage.getItem("TOKEN") || verificationToken,
+    };
+
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    await api.app
+      .post<EsignResponseType>({
+        url: "/api/customer/savecustomerdata",
+        requestBody: encryptedBody,
+      })
+      .then(async (res) => {
+        const { data } = res;
+        if (data.status === "Success") {
+          const steps = await getSteps2(data.Token, step);
+          setIsLoading(false);
+          const nextStep = steps?.findIndex(
+            ({ kycStepCompletionStatus }) =>
+              kycStepCompletionStatus === "Pending" ||
+              kycStepCompletionStatus === "Rejected"
+          )!;
+          if (steps.length === 0) {
+            setShowProgressLoader(true);
+            return setProgress(30);
+          }
+          if (nextStep < 0) {
+            //jump to last step
+            return setStep(11);
+          } else if (nextStep <= 7) {
+            //jump to Kfs
+            setShowProgressLoader(true);
+            return setProgress(30);
+          } else if (nextStep === 8) {
+            //jump to Kfs
+            return setStep(10);
+          } else if (nextStep === 9) {
+            //jump to Kfs
+            return setStep(10);
+          } else if (nextStep === 10) {
+            setShowProgressLoader(false);
+            //jump to esign
+            return setStep(11);
+          } else if (nextStep === 11) {
+            setShowProgressLoader(false);
+            //jump to last step
+            setStep(11);
+          }
+        } else {
+          setShowProgressLoader(false);
+          showAlert({
+            title: data.message || "Something went wrong",
+            description: "Please try after some time",
+          });
+        }
+      })
+      .catch((error: AxiosError) => {
+        setShowProgressLoader(false);
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      });
+  };
+
+  // const uploaddocuments = async () => {
+  //   const body = {
+  //     ApplicationID: offers?.ApplicationID,
+  //     Token: localStorage.getItem("TOKEN") || verificationToken,
+  //   };
+
+  //   const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+  //   setIsLoading(true);
+  //   await api.app
+  //     .post<EsignResponseType>({
+  //       url: "/api/uploaddocuments",
+  //       requestBody: encryptedBody,
+  //     })
+  //     .then(async (res) => {
+  //       const { data } = res;
+  //       setIsLoading(false);
+  //       if (data.message === "Documents not found or pending for approval") {
+  //         showAlert({
+  //           title: data.message || "Something went wrong",
+  //           description: "",
+  //         });
+  //         setShowProgressLoader(false);
+  //         return;
+  //       }
+  //       if (data.status === "Success") {
+  //         const steps = await getSteps2(data.Token, step);
+  //         const nextStep = steps?.findIndex(
+  //           ({ kycStepCompletionStatus }) =>
+  //             kycStepCompletionStatus === "Pending" ||  kycStepCompletionStatus === "Rejected"
+  //         )!;
+  //         if (steps.length === 0) {
+  //           setShowProgressLoader(true);
+  //           return setProgress(60);
+  //         }
+  //         if (nextStep < 0) {
+  //           //jump to last step
+  //           return setStep(11);
+  //         } else if (nextStep <= 8) {
+  //           //jump to Kfs
+  //           setShowProgressLoader(true);
+  //           return setProgress(60);
+  //         } else if (nextStep === 9) {
+  //           //jump to Kfs
+  //           setShowProgressLoader(false);
+  //           await geteSignAllCloud();
+  //           return setStep(10);
+  //         } else if (nextStep === 10) {
+  //           //jump to esign
+  //           setShowProgressLoader(false);
+  //           return setStep(10);
+  //         } else if (nextStep === 11) {
+  //           //jump to last step
+  //           setShowProgressLoader(false);
+  //           setStep(11);
+  //         }
+  //       } else {
+  //         setShowProgressLoader(false);
+  //         showAlert({
+  //           title: data.message || "Something went wrong",
+  //           description: "Please try after some time",
+  //         });
+  //       }
+  //     })
+  //     .catch((error: AxiosError) => {
+  //       setShowProgressLoader(false);
+  //       setIsLoading(false);
+  //       showAlert({
+  //         title: error.message,
+  //         description: "Please try after some time",
+  //       });
+  //     });
+  // };
+
+  const savenewloanbyleaddetail = async () => {
+    const body = {
+      ApplicationID: offers?.ApplicationID,
+      Token: localStorage.getItem("TOKEN") || verificationToken,
+    };
+
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+
+    const startTime = Date.now();
+    const timeout = 2 * 60 * 1000; // 2 minutes in milliseconds
+    const interval = 30 * 1000; // 30 seconds in milliseconds
+
+    const makeApiCall = async (): Promise<void> => {
+      try {
+        const res = await api.app.post<EsignResponseType>({
+          url: "/api/loan/savenewloanbyleaddetail",
+          requestBody: encryptedBody,
+        });
+
+        const { data } = res;
+        setIsLoading(false);
+        setShowProgressLoader(false);
+
+        if (data.status === "Success") {
+          const steps = await getSteps2(data.Token, step);
+          const nextStep = steps?.findIndex(
+            ({ kycStepCompletionStatus }) =>
+              kycStepCompletionStatus === "Pending" ||
+              kycStepCompletionStatus === "Rejected"
+          )!;
+
+          if (steps.length === 0) {
+            await geteSignAllCloud();
+            return setStep(10);
+          }
+
+          if (nextStep < 0) {
+            return setStep(11);
+          } else if (nextStep <= 9) {
+            await geteSignAllCloud();
+            return setStep(10);
+          } else if (nextStep === 10) {
+            return setStep(11);
+          } else if (nextStep === 11) {
+            setStep(11);
+          }
+        } else if (data.status === "Fail" && data.message === "") {
+          if (Date.now() - startTime < timeout) {
+            setProgressTitle("Generating Customer ID, this might take time.");
+            console.log("Retrying API call...");
+            setTimeout(makeApiCall, interval);
+          } else {
+            setIsLoading(false);
+            showAlert({
+              title: "Timeout Error",
+              description:
+                "The operation timed out after two minutes. Please try again later.",
+            });
+          }
+        } else {
+          setShowProgressLoader(false);
+          setIsLoading(false);
+          showAlert({
+            title: data.message || "Something went wrong",
+            description: "Please try after some time",
+          });
+        }
+      } catch (error: any) {
+        setShowProgressLoader(false);
+        setIsLoading(false);
+        showAlert({
+          title: error.message,
+          description: "Please try after some time",
+        });
+      }
+    };
+
+    makeApiCall();
+  };
+  // const PostLetterByFinanceId = async () => {
+  //   const body = {
+  //     ApplicationID: offers?.ApplicationID,
+  //     Token: verificationToken || localStorage.getItem("TOKEN"),
+  //   };
+
+  //   const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+  //   setIsLoading(true);
+  //   await api.app
+  //     .post<EsignResponseType>({
+  //       url: "/api/PostLetterByFinanceId",
+  //       requestBody: encryptedBody,
+  //     })
+  //     .then(async (res) => {
+  //       setProgress(100);
+  //       const { data } = res;
+  //       setIsLoading(false);
+  //     })
+  //     .catch((error: AxiosError) => {
+  //       setIsLoading(false);
+  //       showAlert({
+  //         title: error.message,
+  //         description: "Please try after some time",
+  //       });
+  //     });
+  // };
 
   const getSteps2 = async (Token?: string, currentStep?: number) => {
     const body = {
@@ -1634,11 +2255,19 @@ const index: FC = () => {
         const steps = data.result;
 
         const nextStep = steps.findIndex(
-          ({ kycStepCompletionStatus }) => kycStepCompletionStatus === "Pending"
+          ({ kycStepCompletionStatus }) =>
+            kycStepCompletionStatus === "Pending" ||
+            kycStepCompletionStatus === "Rejected"
         );
 
-        if (nextStep === 8) {
-          setStep(11);
+        if (offers?.AllCloudEnable === 0 || offers?.DistributorLoan === 1) {
+          if (nextStep === 8) {
+            setStep(11);
+          }
+        } else {
+          if (nextStep === 11) {
+            setStep(11);
+          }
         }
 
         return steps; // Return steps if everything is successful
@@ -1660,10 +2289,73 @@ const index: FC = () => {
     }
   };
 
+  const getSteps = async (nextStep: number, Token?: string) => {
+    const body = {
+      MerchantID: formValues.merchant_id.value,
+      ApplicationID: offers?.ApplicationID,
+      MobileNo: formValues?.mobile_no.value,
+      LoanAmount: offers?.loanAmount,
+      Token: Token ?? verificationToken,
+    };
+    const encryptedBody = crypto.CryptoGraphEncrypt(JSON.stringify(body));
+    setIsLoading(true);
+    try {
+      const res = await api.app.post<GetStepsAPIResponseType>({
+        url: "/api/getapplicantmerchantdetails",
+        requestBody: encryptedBody,
+      });
+
+      const { data } = res;
+      if (data.message === "Invalid or expire application.") {
+        if (offers?.LoanStatus !== "1" && !data.Token) {
+          setCustomError({
+            image: false,
+            Heading: "Loan Application Already Submitted",
+            Description: "It looks like you've already applied for this loan",
+          });
+        } else {
+          setVerificationToken(data.Token);
+          localStorage.setItem("TOKEN", data.Token);
+        }
+      }
+
+      if (data.status === "Success") {
+        setVerificationToken(data.Token);
+        localStorage.setItem("TOKEN", data.Token);
+        const steps = data.result;
+
+        const nextPendingStep = steps.findIndex(
+          ({ kycStepCompletionStatus }) =>
+            kycStepCompletionStatus === "Pending" ||
+            kycStepCompletionStatus === "Rejected"
+        );
+
+        if (nextPendingStep <= nextStep) {
+          setStep(nextPendingStep + 1);
+        }
+
+        if (nextPendingStep === 11) {
+          setStep(11);
+        }
+      } else {
+        if (data.message !== "Invalid or expire application.") {
+          toast.error(data.message);
+        }
+      }
+    } catch (error: any) {
+      showAlert({
+        title: error.message,
+        description: "Please try after some time",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const kfsFileName =
     Number(offers?.ProductId) === 4
       ? "CspAgreement"
-      : Number(offers?.ProductId) === 8
+      : Number(offers?.DistributorLoan) === 1
       ? "DistributorAgreement"
       : "customerAgreement";
 
@@ -1673,6 +2365,12 @@ const index: FC = () => {
         title: "",
         description: "",
       })}
+      <ProgressModal
+        title={progressTitle}
+        open={showProgressLoader}
+        progress={progress}
+        onClose={() => setShowProgressLoader(false)}
+      />
       <LoaderModal open={isLoading} onClose={() => setIsLoading(false)} />
       <div className="container">
         <div className="flex justify-center p-2 items-center">
@@ -2362,7 +3060,19 @@ const index: FC = () => {
                                 <label htmlFor="pannumber">
                                   Enter PAN number *
                                 </label>
-                                <input
+
+                                <PasswordInput
+                                  style={{
+                                    textTransform: "uppercase",
+                                  }}
+                                  value={formValues.pan_number.value}
+                                  maxLength={10}
+                                  onChange={(e) =>
+                                    onInputChange("pan_number", e.target.value)
+                                  }
+                                  placeholder="Enter PAN Number"
+                                />
+                                {/* <input
                                   style={{
                                     textTransform: "uppercase",
                                   }}
@@ -2377,7 +3087,7 @@ const index: FC = () => {
                                   onChange={(e) =>
                                     onInputChange("pan_number", e.target.value)
                                   }
-                                />
+                                /> */}
                                 {formValues.pan_number.error ? (
                                   <span
                                     style={{ color: "red", fontSize: "14px" }}
@@ -2410,7 +3120,17 @@ const index: FC = () => {
                                 <label htmlFor="enter_aadhar_number mt-2">
                                   Aadhar number *
                                 </label>
-                                <input
+                                <PasswordInput
+                                  placeholder="Enter aadhar number"
+                                  id="enter_aadhar_number"
+                                  required
+                                  maxLength={12}
+                                  onKeyDown={(e) => onlyNumberValues(e)}
+                                  onChange={(e) =>
+                                    onInputChange("aadhar_no", e.target.value)
+                                  }
+                                />
+                                {/* <input
                                   className="form-control"
                                   type="password"
                                   name="enter_aadhar_number"
@@ -2422,7 +3142,7 @@ const index: FC = () => {
                                   onChange={(e) =>
                                     onInputChange("aadhar_no", e.target.value)
                                   }
-                                />
+                                /> */}
                                 {formValues.aadhar_no.error ? (
                                   <span
                                     style={{ color: "red", fontSize: "14px" }}
@@ -2443,7 +3163,22 @@ const index: FC = () => {
                             <div className="col-md-12 mt-2">
                               <div className="form-group">
                                 <label htmlFor="aadhar_otp">Aadhar OTP *</label>
-                                <input
+                                <PasswordInput
+                                  disabled={
+                                    formValues.aadhar_no.error ||
+                                    formValues.aadhar_no.value.length < 12
+                                  }
+                                  placeholder="Enter aadhar otp"
+                                  id="aadhar_otp"
+                                  autoComplete="one-time-code"
+                                  required
+                                  maxLength={6}
+                                  onKeyDown={(e) => onlyNumberValues(e)}
+                                  onChange={(e) =>
+                                    onInputChange("aadhar_otp", e.target.value)
+                                  }
+                                />
+                                {/* <input
                                   readOnly={
                                     formValues.aadhar_no.error ||
                                     formValues.aadhar_no.value.length < 12
@@ -2460,7 +3195,7 @@ const index: FC = () => {
                                   onChange={(e) =>
                                     onInputChange("aadhar_otp", e.target.value)
                                   }
-                                />
+                                /> */}
                                 {formValues.aadhar_otp.error ? (
                                   <span
                                     style={{ color: "red", fontSize: "14px" }}
@@ -2879,9 +3614,13 @@ const index: FC = () => {
                             )}
                           </div>
                         )}
-                        {step === 9 && (
+
+                        {(step === 9 && offers?.DistributorLoan === 1) ||
+                        (step === 9 &&
+                          offers?.DistributorLoan === 0 &&
+                          offers?.AllCloudEnable === 0) ? (
                           <div className="page overflow-auto max-h-[600px]">
-                            {offers ? <KFSDetailsCard offers={offers} /> : ""}
+                            {offers && <KFSDetailsCard offers={offers} />}
 
                             {KFSHTML && (
                               <div
@@ -2892,14 +3631,77 @@ const index: FC = () => {
                             <div className="field btns">
                               <button
                                 disabled={isLoading}
-                                onClick={(e) => handleNext(e)}
+                                onClick={handleNext}
                                 className="submit disabled:opacity-70 disabled:pointer-events-none"
                               >
                                 Agree
                               </button>
                             </div>
                           </div>
+                        ) : (
+                          step === 9 && (
+                            <div className="page">
+                              <div className="main_step_8">
+                                <h4>E-sign customer agreement</h4>
+                                <img
+                                  src={EsignSteps}
+                                  alt="enter-account-details-image"
+                                />
+                              </div>
+                              <div className="check_box">
+                                <div className="check">
+                                  <div className="form-check form-check-inline">
+                                    <Checkbox
+                                      checked={formValues.esign_terms.value}
+                                      id="esign_terms"
+                                      className="form-check-input"
+                                      name="esign_terms"
+                                      defaultValue="true"
+                                      required
+                                      onCheckedChange={(checked) => {
+                                        onInputChange("esign_terms", checked);
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor="esign_terms"
+                                      className="form-check-label"
+                                    >
+                                      I have read and agree to the{" "}
+                                      {offers?.DistributorLoan === 0 &&
+                                      offers?.AllCloudEnable === 0 ? (
+                                        <a
+                                          target="_blank"
+                                          href={`https://backoffice.mnfpl.com/pdf/${kfsFileName}.pdf`}
+                                        >
+                                          {kfsFileName}
+                                        </a>
+                                      ) : (
+                                        <a target="_blank" href={KFSHTML}>
+                                          {kfsFileName}
+                                        </a>
+                                      )}
+                                    </label>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="field btns">
+                                <button
+                                  disabled={
+                                    isLoading || !formValues.esign_terms.value
+                                  }
+                                  onClick={handleNext}
+                                  className={cn(
+                                    "next-4 next disabled:opacity-70 disabled:pointer-events-none",
+                                    isLoading && "animate-pulse"
+                                  )}
+                                >
+                                  Next
+                                </button>
+                              </div>
+                            </div>
+                          )
                         )}
+
                         {step === 10 && (
                           <div className="page">
                             <div className="main_step_8">
@@ -2934,12 +3736,19 @@ const index: FC = () => {
                                     className="form-check-label"
                                   >
                                     I have read and agree to the{" "}
-                                    <a
-                                      target="_blank"
-                                      href={`https://backoffice.mnfpl.com/pdf/${kfsFileName}.pdf`}
-                                    >
-                                      {kfsFileName}
-                                    </a>
+                                    {offers?.DistributorLoan === 0 &&
+                                    offers?.AllCloudEnable === 0 ? (
+                                      <a
+                                        target="_blank"
+                                        href={`https://backoffice.mnfpl.com/pdf/${kfsFileName}.pdf`}
+                                      >
+                                        {kfsFileName}
+                                      </a>
+                                    ) : (
+                                      <a target="_blank" href={KFSHTML}>
+                                        {kfsFileName}
+                                      </a>
+                                    )}
                                   </label>
                                 </div>
                               </div>
