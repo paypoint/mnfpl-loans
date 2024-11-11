@@ -522,7 +522,6 @@ const index: FC = () => {
         const searchParams = new URLSearchParams(location.search);
         const urlMsg = searchParams.get("msg");
         const refId = searchParams.get("RefId");
-        debugger;
         if (urlMsg !== null) {
           const fixedUrl = urlMsg.replace(/ /g, "+");
           let msg = crypto.CryptoGraphDecrypt(fixedUrl);

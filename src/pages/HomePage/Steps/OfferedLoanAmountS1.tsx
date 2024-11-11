@@ -146,6 +146,25 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
       })
       .finally(() => setIsLoading(false));
   };
+
+  const getDownsizingOptions = () => {
+    const loanOffered = offers?.LoanOffered;
+    // const loanOffered = 75000
+    console.log(loanOffered);
+    
+    if (loanOffered === 100000) {
+      return [75000, 50000];
+    } else if (loanOffered === 75000) {
+      return [50000]; 
+    } else if (loanOffered === 50000) {
+      return []; 
+    }
+    return []; // Default: no downsizing option
+  };
+
+  const downsizingOptions = getDownsizingOptions();
+
+
   return (
     <>
       {" "}
@@ -166,7 +185,8 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
                   Offered loan amount <br />
                   <i className="fa fa-inr" aria-hidden="true" />
                   {" " + offers.loanAmount + " "}{" "}
-                  <Dialog open={open} onOpenChange={setOpen}>
+                  
+                  {offers.LoanOffered > 50000 &&  <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
                       <Button size={"rounded"} variant={"ghost"} type="button">
                         <i
@@ -192,9 +212,10 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
                           onEditAmount();
                         }}
                       >
-                        <div className="grid gap-2">
+                        {/* <div className="grid gap-2">
                           <div className="form-group">
                             <label htmlFor="amount">Amount</label>
+                            
                             <input
                               className="form-control"
                               type="text"
@@ -211,7 +232,28 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
                                   e.target.value
                                 )
                               }
-                            />
+                            /> */}
+                            <div className="grid gap-2">
+                            <div className="form-group">
+                              <label htmlFor="amount">Amount</label>
+                              
+                              <select
+                                id="amount"
+                                value={formValues.edit_loan_amount.value}
+                                onChange={(e) => onInputChange("edit_loan_amount", e.target.value)}
+                                className="form-control"
+                                disabled={downsizingOptions.length === 0}
+                              >
+                                <option value="" disabled>
+                                  Select downsized amount
+                                </option>
+                                {downsizingOptions.map((option) => (
+                                  <option key={option} value={option}>
+                                    ₹{option}
+                                  </option>
+                                ))}
+                              </select>
+
                             {formValues.edit_loan_amount.error ? (
                               <span
                                 style={{
@@ -239,11 +281,12 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
                         </Button>
                       </form>
                     </DialogContent>
-                  </Dialog>
+                  </Dialog> }
+                 
                 </p>
                 <strong>Tenure: {offers.tenor} days</strong>
                 <span>
-                  Offer Expriy Date:
+                  Offer Expiry Date:
                   {" " + format(new Date(offers.ExpiryDate), "dd/MM/yyyy")}
                 </span>
               </div>
