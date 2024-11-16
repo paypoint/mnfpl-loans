@@ -149,21 +149,17 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
 
   const getDownsizingOptions = () => {
     const loanOffered = offers?.LoanOffered;
-    // const loanOffered = 75000
-    console.log(loanOffered);
-    
     if (loanOffered === 100000) {
       return [75000, 50000];
     } else if (loanOffered === 75000) {
-      return [50000]; 
+      return [50000];
     } else if (loanOffered === 50000) {
-      return []; 
+      return [];
     }
     return []; // Default: no downsizing option
   };
 
   const downsizingOptions = getDownsizingOptions();
-
 
   return (
     <>
@@ -185,104 +181,160 @@ const OfferedLoanAmountS1: FC<OfferedLoanAmountS1Props> = ({
                   Offered loan amount <br />
                   <i className="fa fa-inr" aria-hidden="true" />
                   {" " + offers.loanAmount + " "}{" "}
-                  
-                  {offers.LoanOffered > 50000 &&  <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogTrigger asChild>
-                      <Button size={"rounded"} variant={"ghost"} type="button">
-                        <i
-                          style={{ fontSize: "20px" }}
-                          className="fa fa-pen"
-                          aria-hidden="true"
-                        />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Edit loan amount</DialogTitle>
-                        <DialogDescription>
-                          <b className="text-black/70">
-                            Edited amount should not be greater than ₹
-                            {offers.LoanOffered}
-                          </b>
-                        </DialogDescription>
-                      </DialogHeader>
-                      <form
-                        onSubmit={(event) => {
-                          event.preventDefault();
-                          onEditAmount();
-                        }}
-                      >
-                        {/* <div className="grid gap-2">
-                          <div className="form-group">
-                            <label htmlFor="amount">Amount</label>
-                            
-                            <input
-                              className="form-control"
-                              type="text"
-                              name="amount"
-                              placeholder="Enter amount"
-                              id="amount"
-                              value={formValues.edit_loan_amount.value}
-                              required
-                              maxLength={7}
-                              onKeyDown={(e) => onlyNumberValues(e)}
-                              onChange={(e) =>
-                                onInputChange(
-                                  "edit_loan_amount",
-                                  e.target.value
-                                )
-                              }
-                            /> */}
-                            <div className="grid gap-2">
+                  {offers?.DistributorLoan === 1 ? (
+                    <Dialog open={open} onOpenChange={setOpen}>
+                      <DialogTrigger asChild>
+                        <Button
+                          size={"rounded"}
+                          variant={"ghost"}
+                          type="button"
+                        >
+                          <i
+                            style={{ fontSize: "20px" }}
+                            className="fa fa-pen"
+                            aria-hidden="true"
+                          />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Edit loan amount</DialogTitle>
+                          <DialogDescription>
+                            <b className="text-black/70">
+                              Edited amount should not be greater than ₹
+                              {offers.LoanOffered}
+                            </b>
+                          </DialogDescription>
+                        </DialogHeader>
+                        <form
+                          onSubmit={(event) => {
+                            event.preventDefault();
+                            onEditAmount();
+                          }}
+                        >
+                          <div className="grid gap-2">
                             <div className="form-group">
                               <label htmlFor="amount">Amount</label>
-                              
-                              <select
+                              <input
+                                className="form-control"
+                                type="text"
+                                name="amount"
+                                placeholder="Enter amount"
                                 id="amount"
                                 value={formValues.edit_loan_amount.value}
-                                onChange={(e) => onInputChange("edit_loan_amount", e.target.value)}
-                                className="form-control"
-                                disabled={downsizingOptions.length === 0}
-                              >
-                                <option value="" disabled>
-                                  Select downsized amount
-                                </option>
-                                {downsizingOptions.map((option) => (
-                                  <option key={option} value={option}>
-                                    ₹{option}
-                                  </option>
-                                ))}
-                              </select>
-
-                            {formValues.edit_loan_amount.error ? (
-                              <span
-                                style={{
-                                  color: "red",
-                                  fontSize: "14px",
-                                }}
-                              >
-                                Amount should not be greater than offered amount
-                              </span>
-                            ) : (
-                              ""
-                            )}
+                                required
+                                maxLength={7}
+                                onKeyDown={(e) => onlyNumberValues(e)}
+                                onChange={(e) =>
+                                  onInputChange(
+                                    "edit_loan_amount",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
                           </div>
-                        </div>
+                          <Button
+                            disabled={
+                              formValues.edit_loan_amount.error ||
+                              formValues.edit_loan_amount.value === ""
+                            }
+                            className="w-full"
+                            type="submit"
+                          >
+                            Save changes
+                          </Button>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
+                  ) : (
+                    offers?.LoanOffered > 50000 && (
+                      <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger asChild>
+                          <Button
+                            size={"rounded"}
+                            variant={"ghost"}
+                            type="button"
+                          >
+                            <i
+                              style={{ fontSize: "20px" }}
+                              className="fa fa-pen"
+                              aria-hidden="true"
+                            />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Edit loan amount</DialogTitle>
+                            <DialogDescription>
+                              <b className="text-black/70">
+                                Edited amount should not be greater than ₹
+                                {offers.LoanOffered}
+                              </b>
+                            </DialogDescription>
+                          </DialogHeader>
+                          <form
+                            onSubmit={(event) => {
+                              event.preventDefault();
+                              onEditAmount();
+                            }}
+                          >
+                            <div className="grid gap-2">
+                              <div className="form-group">
+                                <label htmlFor="amount">Amount</label>
 
-                        <Button
-                          disabled={
-                            formValues.edit_loan_amount.error ||
-                            formValues.edit_loan_amount.value === ""
-                          }
-                          className="w-full"
-                          type="submit"
-                        >
-                          Save changes
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog> }
-                 
+                                <select
+                                  id="amount"
+                                  value={formValues.edit_loan_amount.value}
+                                  onChange={(e) =>
+                                    onInputChange(
+                                      "edit_loan_amount",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="form-control"
+                                  disabled={downsizingOptions.length === 0}
+                                >
+                                  <option value="" disabled>
+                                    Select downsized amount
+                                  </option>
+                                  {downsizingOptions.map((option) => (
+                                    <option key={option} value={option}>
+                                      ₹{option}
+                                    </option>
+                                  ))}
+                                </select>
+
+                                {formValues.edit_loan_amount.error ? (
+                                  <span
+                                    style={{
+                                      color: "red",
+                                      fontSize: "14px",
+                                    }}
+                                  >
+                                    Amount should not be greater than offered
+                                    amount
+                                  </span>
+                                ) : (
+                                  ""
+                                )}
+                              </div>
+                            </div>
+                            <Button
+                              disabled={
+                                formValues.edit_loan_amount.error ||
+                                formValues.edit_loan_amount.value === ""
+                              }
+                              className="w-full"
+                              type="submit"
+                            >
+                              Save changes
+                            </Button>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+                    )
+                  )}
                 </p>
                 <strong>Tenure: {offers.tenor} days</strong>
                 <span>
