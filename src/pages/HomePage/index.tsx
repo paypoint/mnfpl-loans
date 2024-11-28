@@ -790,9 +790,11 @@ const index: FC = () => {
               return setProgress(30);
             } else if (nextStep === 8) {
               //jump to Kfs
+              await geteSignAllCloud();
               return setStep(10);
             } else if (nextStep === 9) {
               //jump to Kfs
+              await geteSignAllCloud();
               return setStep(10);
             } else if (nextStep === 10) {
               //jump to last step
@@ -1081,9 +1083,11 @@ const index: FC = () => {
               return setProgress(30);
             } else if (nextStep === 8) {
               //jump to Kfs
+              await geteSignAllCloud();
               return setStep(10);
             } else if (nextStep === 9) {
               //jump to Kfs
+              await geteSignAllCloud();
               return setStep(10);
             } else if (nextStep === 10) {
               //jump to last step
@@ -1478,9 +1482,11 @@ const index: FC = () => {
               return setProgress(30);
             } else if (nextStep === 8) {
               //jump to Kfs
+              await geteSignAllCloud();
               return setStep(10);
             } else if (nextStep === 9) {
               //jump to Kfs
+              await geteSignAllCloud();
               return setStep(10);
             } else if (nextStep === 10) {
               //jump to last step
@@ -1611,9 +1617,11 @@ const index: FC = () => {
               return setProgress(30);
             } else if (nextStep === 8) {
               //jump to Kfs
+              await geteSignAllCloud();
               return setStep(10);
             } else if (nextStep === 9) {
               //jump to Kfs
+              await geteSignAllCloud();
               return setStep(10);
             } else if (nextStep === 10) {
               //jump to last step
@@ -1715,9 +1723,11 @@ const index: FC = () => {
               return setProgress(30);
             } else if (nextStep === 8) {
               //jump to Kfs
+              await geteSignAllCloud();
               return setStep(10);
             } else if (nextStep === 9) {
               //jump to Kfs
+              await geteSignAllCloud();
               return setStep(10);
             } else if (nextStep === 10) {
               //jump to last step
@@ -1868,6 +1878,7 @@ const index: FC = () => {
     if (offers?.AllCloudEnable === 0 && offers?.DistributorLoan === 0) {
       url = "/getesignrequestpackets";
     }
+    debugger;
     await api.app
       .post<ESignPacketsAPI>({
         //@ts-ignore
@@ -1875,6 +1886,7 @@ const index: FC = () => {
         requestBody: encryptedBody,
       })
       .then(async (res) => {
+        debugger;
         const { data } = res;
         setIsLoading(false);
         if (data.status === "Success") {
